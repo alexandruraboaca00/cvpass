@@ -1,16 +1,17 @@
-# Modelo de datos propuesto
+# Modelo de datos de CVForge
 
-Versión 0.1 · 15 de octubre de 2026 · Especificación conceptual, pendiente de aprobación. No es un esquema implementado.
+Versión 0.2 · 15 de octubre de 2026 · Modelo conceptual alineado con las decisiones finales del usuario. Detalles técnicos por validar en F1; no es un esquema implementado.
 
 ## Convenciones y principios [D]
 
-**Todo el modelo es una decisión de diseño nuestra [D].** Los nombres del XML Europass solo aparecen como referencias del adaptador de importación. No se asume que este sea su modelo interno. Hechos y límites se recogen en [REQUIREMENTS.md](REQUIREMENTS.md); el almacenamiento físico y los adaptadores se describen en [ARCHITECTURE.md](ARCHITECTURE.md).
+**Todo el modelo es una decisión de diseño nuestra [D].** Perfil materializado, biblioteca automática, `.cvproj` completo, PDF limitado a su exportación y política lingüística A/B/C son decisiones finales del usuario; su estructura conceptual se concreta aquí. Los nombres XML Europass solo pertenecen al adaptador. Hechos y límites: [REQUIREMENTS.md](REQUIREMENTS.md); almacenamiento/adaptadores: [ARCHITECTURE.md](ARCHITECTURE.md).
 
 - Identificadores opacos estables —UUID propuestos—, independientes de títulos, fechas y posiciones.
 - Metadatos de tiempo en UTC; fechas de trayectoria como fechas de calendario, sin convertirlas a instantes UTC.
 - Colecciones con mapa por ID y una lista de IDs para el orden; ninguna segunda propiedad `position` que pueda contradecirla.
 - Contenido y presentación separados. Los CV son instantáneas materializadas independientes del perfil maestro.
-- Originales y traducciones no se sustituyen entre sí. El idioma de una etiqueta no prueba el idioma de un texto libre.
+- Narrativa: texto activo y recuperación por revisiones. Términos sensibles: original y traducciones aprobadas reutilizables. Literales: valor protegido. El idioma de una etiqueta no prueba el de un texto libre.
+- El modelo completo privado y `ExportProjection`/`ExportPayload` son contratos separados. El segundo no es una serialización del primero.
 - Valores ausentes explícitos, con semántica por campo; evitar cadenas vacías para representar fechas, niveles o referencias inexistentes.
 - Los datos desconocidos se preservan y se explican. Conservar el archivo de origen no permite afirmar que un campo ya se haya importado funcionalmente.
 
@@ -25,6 +26,9 @@ Versión 0.1 · 15 de octubre de 2026 · Especificación conceptual, pendiente d
 | `Asset` | Imagen o archivo original almacenado por hash. | Reutilizable por referencia dentro de la biblioteca. |
 | `FormDraft` | Edición temporal recuperable. | Separado de las revisiones confirmadas. |
 | `Revision` | Estado confirmado recuperable. | Historial de un perfil o CV. |
+| `TranslationOperation` | Propuestas temporales y revisión sobre una revisión base. | No modifica el CV hasta aplicar atómicamente con checkpoint previo. |
+| `SensitiveTranslationMemory` | Traducciones sensibles aprobadas y contexto. | Biblioteca/proyecto privado; copiar entre perfil y CV requiere transferencia explícita. |
+| `ExportProjection` / `ExportPayload` | Contenido efectivamente representado en una exportación. | Sin referencias a contenido privado excluido. |
 | `TemplateDefinition` | Diseño original y capacidades. | Recurso de la aplicación, versionado. |
 | `ImportRecord` / `ImportProposal` | Origen, correspondencias y revisión. | Sin cambios sobre un CV hasta confirmar. |
 | `ExportRecord` | Archivo producido y estado del que procede. | Vinculado a revisión y composición concretas. |
@@ -41,6 +45,7 @@ Un `CvDocument` nunca necesita resolver un `MasterEntryId` para mostrar o export
 | `MasterProfile.id`, `revision`, `createdAt`, `updatedAt` | Identidad y control de versiones. |
 | `MasterProfile.personalInformation` | Datos personales completos de origen. |
 | `MasterProfile.sectionsById`, `sectionOrder` | Secciones y entradas de la trayectoria. No implican inclusión en un CV concreto. |
+| `MasterProfile.sensitiveTranslationMemory` | Aprobaciones contextualizadas propias del perfil; se materializan al transferir contenido a un CV, nunca se referencian como datos vivos. |
 | `MasterProfile.sourceRefs` | Importaciones o versiones de procedencia opcionales. |
 
 Copiar al CV materializa los datos elegidos y añade una procedencia con `profileId`, `profileEntryId` y `profileRevision`. Editar el perfil no modifica CV existentes. Copiar desde un CV al perfil requiere selección/revisión explícita; no se deduplican personas, títulos o certificados por coincidencia textual.
@@ -54,8 +59,9 @@ Copiar al CV materializa los datos elegidos y añade una procedencia con `profil
 | `documentTitle` | Título visible opcional, traducible cuando corresponda. |
 | `personalInformation` | Copia completa de los datos seleccionados para este CV. |
 | `sectionsById`, `sectionOrder` | Secciones propiedad del CV y orden explícito. Información personal se presenta como cabecera aparte. |
-| `documentLocale` | Idioma de etiquetas y convenciones de salida, inicialmente `es` o `en`. |
-| `contentPolicy` | Política predeterminada original/traducción/ambos y excepciones por campo estable. |
+| `documentLocale` | Idioma confirmado del CV, inicialmente `es` o `en`; cambia junto con el contenido al aplicar traducción, no antes. |
+| `languagePolicy` | Clasificación A/B/C, fragmentos protegidos y decisiones de presentación de campos sensibles. |
+| `sensitiveTranslationMemory` | Aprobaciones reutilizables propias del CV, materializadas al copiar del perfil; sin dependencia de una memoria externa mutable. |
 | `presentation` | Plantilla, versión y ajustes de renderización. |
 | `sourceRefs`, `unmappedDataRefs` | Procedencia y elementos no recuperados completamente. No se ocultan al revisar/exportar. |
 | `validationIssues` | Resultados derivados, no una segunda copia editable de los datos. Se recalculan al migrar/abrir. |
@@ -70,7 +76,7 @@ Al duplicar/importar como copia se regeneran IDs locales y se remapean todas las
 | --- | --- |
 | Nombre de presentación | Cadena obligatoria para crear un CV nuevo; se admiten nombres de una sola parte. |
 | Nombre, apellidos y otros nombres | Campos opcionales separados cuando el usuario o el origen los suministran. No se reconstruyen automáticamente a partir de una cadena. |
-| Titular profesional / sobre mí | `LocalizedField<string>` y `LocalizedField<RichTextDoc>` opcionales. |
+| Titular profesional / sobre mí | `ContentField<string>` y `ContentField<RichTextDoc>` opcionales. La narrativa es A; un cargo ambiguo puede ser C. |
 | Email, teléfono, dirección, web, redes | Listas de elementos con ID, etiqueta/tipo y valor. Teléfono conserva prefijo y número como texto; no como número entero. |
 | Dirección | Líneas, localidad, región, código postal y país opcionales. Mantener el texto original cuando no pueda descomponerse con certeza. |
 | Foto | Referencia a `Asset`, recorte/encuadre y ajuste visible independientes del archivo. |
@@ -82,22 +88,42 @@ El nombre de presentación obligatorio es nuestra regla para CV nuevos, distinta
 
 Idiomas mediante etiquetas BCP 47 cuando sean conocidas; `und` para idioma de contenido indeterminado. Países mediante código normalizado cuando sea fiable, más etiqueta original de respaldo. No inferir una traducción de un nombre de empresa por el país, ni asignar el idioma del documento a todos sus campos sin revisión.
 
-### `LocalizedField<T>`
+### Campos lingüísticos `ContentField<T>`
 
-| Campo | Semántica |
+La unión discriminada siguiente sustituye el mapa universal de traducciones por idioma de la versión 0.1. `T` es texto o `RichTextDoc`; los valores identificadores/contactos mantienen sus tipos propios y política B.
+
+| Variante | Contenido persistente | Invariantes |
+| --- | --- | --- |
+| A — `NarrativeField<T>` | `current.value`, `current.locale`, revisión del campo y fragmentos protegidos cuando proceda. | Confirmar traducción sustituye el texto activo después de fijar la revisión anterior. No hay mapa permanente de todas las narrativas por idioma. |
+| B — `LiteralField<T>` | Valor literal, idioma conocido/`und` y protección de entidad/término. | Traducir el CV no cambia el valor. Puede editarse expresamente como dato, no mediante el traductor automático. |
+| C — `SensitiveField<T>` | Original/idioma/revisión cuando se conocen; traducciones aprobadas contextualizadas; idioma de salida y `displayMode`. | Una propuesta no es una aprobación ni una equivalencia oficial. Los originales conocidos se conservan en el proyecto. |
+
+En C, `displayMode` es `original`, `translation` o `translationAndOriginal`: este último imprime **traducción + original**, en ese orden. Si falta una traducción aprobada, el usuario debe aprobar una propuesta, corregirla o elegir conservar el original explícitamente; no se declara traducido un término pendiente. Nombres de empresas/instituciones pertenecen a B, incluso cuando acompañan un título C.
+
+Una aprobación sensible contiene valor destino, idioma destino, revisión/huella del original, contexto —tipo de campo, institución/ámbito cuando importe—, fecha y procedencia de aprobación. Cambiar el original/contexto deja sus aprobaciones pendientes de revisión, conservándolas. El texto coincidente por sí solo no demuestra equivalencia reutilizable.
+
+Las propuestas narrativas/sensibles viven en `TranslationOperation` hasta confirmar o cancelar. Tras confirmar, A conserva solo texto activo; C incorpora las aprobaciones elegidas a la memoria privada. Las revisiones sirven para recuperación, no para construir por defecto una colección perpetua de narrativas traducidas.
+
+### Traducción completa y recuperación
+
+| Campo de `TranslationOperation` | Semántica |
 | --- | --- |
-| `original.value` | Texto o árbol enriquecido original, íntegro. |
-| `original.locale` | Idioma conocido o `und`. |
-| `original.revision` | Revisión del original, independiente de la revisión del CV. |
-| `translations[locale].value` | Variante del mismo tipo `T`, nunca un reemplazo del original. |
-| `translations[locale].status` | `draft` o `reviewed`; la obsolescencia se calcula comparando revisiones. |
-| `translations[locale].basedOnOriginalRevision` | Original sobre el que se revisó la traducción. |
-| `translations[locale].origin` | Manual, importada o servicio opcional futuro; no implica fiabilidad automática. |
-| `translations[locale].reviewedAt` | Fecha de revisión si existe. |
+| `id`, `cvId`, `baseRevision` | Operación propia y control de concurrencia. |
+| `sourceLocale`, `targetLocale` | Idioma actual y destino; ES/EN en MVP. |
+| `fieldPlan` | IDs/rutas estables, clase A/B/C, propuestas, correcciones, decisiones y fragmentos B protegidos dentro de narrativas. |
+| `status` | Preparando, generando, revisando, aplicado, cancelado o fallido; el estado temporal no se confunde con el CV confirmado. |
+| `preTranslationRevisionId` | Checkpoint recuperable completo fijado antes de aplicar; obligatorio para una operación aplicada. |
+| `appliedRevisionId` | Nueva revisión con contenido, idioma, presentaciones sensibles y aprobaciones aceptadas. |
 
-Una traducción queda desactualizada si no corresponde a la revisión actual del original. Se conserva, se marca y no se usa automáticamente como revisada. La revisión debe considerar el texto actual; renombrar el original no borra el trabajo anterior.
+La transacción comprueba `baseRevision`, fija el checkpoint y confirma todo el resultado. Si hay conflicto, error o cancelación, permanece el CV anterior. Duplicar antes crea otro CV independiente y permite traducirlo sin modificar la versión española.
 
-La política de salida por campo puede ser `original`, `translation` o `both`. Nombres oficiales y entidades usan original por defecto. Si falta una traducción revisada, se conserva el original y se muestra esa circunstancia en la revisión de idioma. Cambiar idioma de etiquetas modifica configuración, no todas las cadenas del modelo.
+Los checkpoints necesarios se incluyen en `.cvproj` y quedan fuera del PDF. Su limpieza es explícita; la rotación ordinaria de historial no los elimina. Los modelos/credenciales del proveedor no son datos del CV ni se empaquetan con él.
+
+### Reimportar una versión lingüística visible
+
+Si el PDF solo muestra una traducción C, `ExportPayload` no contiene su original ni aprobaciones privadas. El CV reconstruido conserva `importedVisibleVariants` —valores/idiomas/roles mostrados— y un original desconocido, sin inventarlo ni añadir una entrada a la memoria de traducciones aprobadas. Esa representación permite editar/reproducir lo visible. Para afirmar un original oficial o reutilizar una equivalencia, hará falta aportarlo y revisarlo.
+
+Si se mostraron traducción + original, se recuperan ambos textos como tales; el historial y las aprobaciones no visibles siguen sin recuperarse. Abrir `.cvproj` sí restaura originales, decisiones y memoria sensibles completas. Una importación no obliga a reconstruir datos que nunca se exportaron.
 
 ### Fechas y periodos
 
@@ -122,7 +148,7 @@ El adaptador interpreta las listas según su semántica observada, no únicament
 | Entidad/campo | Semántica |
 | --- | --- |
 | `Section.id`, `kind` | Identidad y discriminante del tipo. Puede haber varias secciones `custom`. |
-| `Section.title` | Clave de etiqueta estándar o nombre personalizado traducible. No sustituye el título de cada entrada. |
+| `Section.title` | Clave de etiqueta estándar o nombre personalizado A/C según contexto. No sustituye el título de cada entrada. |
 | `Section.entriesById`, `entryOrder` | Entradas y su orden manual estable. |
 | `CvSection.included` | Si forma parte de la salida; ocultar no borra. El perfil maestro no necesita este estado de selección de un CV. |
 | `Entry.id`, `kind`, `fields` | Unión discriminada de campos tipados; `kind` determina las invariantes. |
@@ -137,9 +163,9 @@ Cada ID de orden aparece exactamente una vez y pertenece al contenedor. Reordena
 
 | Tipo | Datos mínimos y opcionales | Reglas |
 | --- | --- | --- |
-| `education` | Título traducible; organización; periodo; localización; EQF; web/dirección; campo de estudio; nota; tesis; materias/competencias; clasificación nacional; tipo/cantidad de créditos; validez; enlaces. | Título no blanco en nueva entrada confirmada. EQF/créditos se guardan sin inventar equivalencias. Fecha final sin inicial permitida. |
-| `work` | Puesto traducible; empleador; periodo; localización; responsabilidades enriquecidas; sector; departamento; contacto/web de organización; enlaces. | Puesto libre admitido sin elegir de catálogo. Empleador y marcas conservan su nombre oficial. |
-| `skill` | Etiqueta traducible; grupo opcional; referencia de catálogo opcional con sistema, ID y versión. | El texto libre siempre existe. Una referencia de catálogo no autoriza a traducir una etiqueta personalizada. |
+| `education` | Título C; organización B; periodo; localización; EQF; web/dirección; campo de estudio/asignaturas C; nota; tesis; materias/competencias; clasificación nacional; tipo/cantidad de créditos; validez; enlaces. | Título no blanco. No inventar equivalencias de títulos/EQF/créditos. Fecha final sin inicial permitida. Clasificar narrativa y términos oficiales por significado. |
+| `work` | Puesto A o C si ambiguo; empleador B; periodo; localización; responsabilidades A con fragmentos B protegidos; sector; departamento; contacto/web; enlaces. | Puesto libre admitido. Los cargos ambiguos requieren revisión sensible; empleador y marcas mantienen nombre oficial. |
+| `skill` | Etiqueta A/B/C según término; grupo opcional; referencia de catálogo opcional con sistema, ID y versión. | Texto libre siempre disponible. Proteger tecnologías/marcas; revisar términos ambiguos. El catálogo no autoriza sustituir una etiqueta personalizada. |
 | `nativeLanguage` | Código de idioma o denominación libre de respaldo. | Varias lenguas maternas. No confundir idioma nativo con nivel C2 de una lengua extranjera. |
 | `foreignLanguage` | Código/denominación y cinco destrezas independientes. | Cada destreza es A1, A2, B1, B2, C1, C2 o `null`; no hay nivel global obligatorio. |
 
@@ -184,23 +210,23 @@ Las doce familias repetibles del inventario —todas salvo declaración final y 
 | `SourceRef` | Artefacto/perfil, adaptador y versión; ruta semántica XML o página/fragmento del PDF. |
 | `UnmappedDatum` | Ruta/contexto, valor original, motivo y estado de resolución; puede referenciar el artefacto íntegro. |
 
-Normalizar una imagen no exige reemplazar el original privado. El CV referencia el activo usado al renderizar; la exportación incluye ese activo y su transformación. Foto y firma son roles separados aunque el XML de origen comparta un `FileType`. Una firma gráfica no añade autenticación criptográfica.
+Normalizar una imagen no reemplaza el original privado. `.cvproj` puede conservarlo y su transformación. El PDF y su payload solo usan la representación recortada/enmascarada realmente mostrada, sin píxeles excluidos ni EXIF privado. Foto y firma son roles separados aunque el XML comparta un `FileType`. Una firma gráfica no añade autenticación criptográfica.
 
 ## Importación, revisión y datos parciales [D]
 
 | Campo | Contenido |
 | --- | --- |
 | `ImportRecord.id`, `sourceArtifactId` | Operación y origen inmutable. |
-| `detectedFormat`, `adapterVersion` | Paquete propio, familia XML compatible, texto genérico u OCR; versión del traductor al dominio. |
+| `detectedFormat`, `adapterVersion` | `.cvproj` completo, payload de PDF propio, familia XML Europass, texto genérico u OCR; versión del adaptador al dominio. |
 | `candidateSources` | Adjuntos o rutas alternativas detectadas y cuál se eligió. |
 | `fieldMappings` | Campo destino, fragmento/página/ruta de origen y transformación aplicada. |
 | `issues` | Errores, ambigüedades, campos desconocidos y ajustes no recuperados. |
 | `status` | Propuesta, pendiente de revisión, aceptada, cancelada o fallida. |
 | `targetCvId`, `acceptedAt` | Se fijan al confirmar la operación. |
 
-El OCR puede aportar confianza estimada por fragmento; no se inventa una puntuación comparable para XML exacto. El resultado distingue recuperación estructurada, recuperación parcial y reconstrucción asistida. Los elementos no clasificados siguen disponibles en la revisión.
+Una misma entrada Abrir/Importar detecta estas rutas; los detalles técnicos quedan en el informe, sin exigir elegir parser. Se distingue recuperación de proyecto completo, versión PDF representada, recuperación estructurada Europass, parcial y reconstrucción asistida. El OCR puede estimar confianza por fragmento; no se inventa una puntuación comparable para XML exacto. Los elementos no clasificados siguen accesibles.
 
-Antes de exportar un resultado parcial se exige resolverlos o excluirlos explícitamente de esa salida. El proyecto privado conserva el origen y el registro de exclusión. El PDF reeditable no transporta blobs opacos del archivo original para insinuar una compatibilidad que no tiene.
+Antes de exportar un resultado parcial se exige resolver o excluir explícitamente esos elementos. El proyecto privado conserva origen/registro; el PDF no incluye datos no representados, ni siquiera resúmenes de exclusiones que revelen qué contenido personal se descartó.
 
 ## Plantillas y configuraciones [D]
 
@@ -215,7 +241,7 @@ Antes de exportar un resultado parcial se exige resolverlos o excluirlos explíc
 | `page`, `numbering` | A4 vertical inicial y numeración; márgenes/control de cortes definidos por plantilla. |
 | `dateFormat`, `showCefrGuide` | Presentación de fechas y leyenda. El formato no inventa partes ausentes de una fecha. |
 | `personalFieldVisibility`, `photoPlacement`, `signaturePlacement` | Selección/encuadre visual; la firma se habilita con la fase que la soporta. |
-| `section/entry.included`, `contentPolicy` | Orden/visibilidad y variantes pertenecen al CV, aunque el renderizador los consuma. |
+| `section/entry.included`, `languagePolicy` | Orden/visibilidad y decisiones de idioma pertenecen al CV; el PDF solo recibe la selección resuelta. |
 
 La configuración de interfaz —panel contraído, zoom del visor, ventana— se almacena aparte. No forma parte de la semántica del PDF. La configuración de plantilla propia no importa logos, fuentes o estilos de Europass.
 
@@ -224,9 +250,11 @@ La configuración de interfaz —panel contraído, zoom del visor, ventana— se
 | Concepto | Datos y comportamiento |
 | --- | --- |
 | `FormDraft` | ID, entidad/ruta objetivo, revisión base, valores temporales, texto de fechas inválidas, activos temporales y fecha de recuperación. Nunca se exporta como contenido confirmado. |
-| `Revision` | ID, entidad, número creciente, instantánea confirmada, causa y fecha. Restaurar crea otra revisión; no reescribe la historia. |
-| `ExportRecord` | CV/revisión, plantilla/configuración, digest de composición, modo de exportación, fecha y hash del archivo final. Ruta local privada opcional. |
-| `RenderSnapshot` | CV congelado, contenido resuelto, activos, versiones de fuentes/plantilla/motor y composición. Estado derivado, reproducible dentro de las versiones disponibles. |
+| `Revision` | ID, entidad, número creciente, instantánea confirmada, causa, fecha y retención ordinaria/fijada. Checkpoint antes de traducción completa, incluido en `.cvproj`. Restaurar crea otra revisión. |
+| `ExportRecord` | Registro privado: CV/revisión, plantilla/configuración, digest de proyección/composición, fecha y hash del PDF final. Ruta local opcional; no se copia al payload. |
+| `RenderSnapshot` | Estado privado congelado y `ExportProjection` derivada, versiones de recursos/motor y composición. Solo la proyección puede alimentar el payload. |
+| `ExportProjection` | Secciones/campos/valores e imágenes representados, orden visible y configuración efectiva, sin referencias privadas. |
+| `ExportPayload` | Serialización validada y versionada de la proyección efectivamente compuesta. Ningún campo opcional permite añadir el proyecto privado. |
 
 Se versionan por separado:
 
@@ -234,6 +262,7 @@ Se versionan por separado:
 - `storageSchemaVersion`: estructura física de la biblioteca SQLite.
 - `domainModelVersion`: significado y estructura del modelo de CV/perfil.
 - `projectFormatVersion`: manifiesto y contenedor portable.
+- `pdfPayloadFormatVersion`: contrato reducido de esa exportación; independiente de `.cvproj` y del modelo privado.
 - `templateVersion` y `rendererVersion`: composición visual solicitada.
 - `revision`: cambios de una entidad; no sustituye versiones de formato.
 
@@ -246,36 +275,42 @@ Las migraciones preservan una copia recuperable, validan invariantes y registran
 | Elemento lógico | Contenido |
 | --- | --- |
 | `manifest.json` | Identificador propio de formato, versiones, `scope`, `payloadPolicy`, fecha, creador y listado de ficheros con tamaño/hash. |
-| `snapshot.json` | Un CV completo o instantánea lógica de workspace, según `scope`. UTF-8, validado antes de aplicar. |
+| `snapshot.json` | CV completo o workspace, según `scope`: datos ocultos/excluidos, orden/visibilidad, estado lingüístico y memoria sensible incluidos. UTF-8 validado. |
 | `assets/<hash>` | Bytes de los activos referenciados, sin rutas externas. |
-| Registros privados opcionales | Orígenes, datos no mapeados, historial/borradores según alcance y opciones. Su presencia se declara. |
+| Plantilla/recursos | Definición declarativa validada, versión y recursos necesarios, con licencias; no ejecutar código arbitrario importado. Si el motor no soporta la versión, conservarla y señalarlo sin reescritura destructiva. |
+| Revisiones/memorias | Historial necesario para continuar y checkpoints fijados, especialmente pretraducción; originales y traducciones sensibles aprobadas/contexto. |
+| Registros privados | Orígenes/datos no mapeados y borradores declarados cuando forman parte del proyecto. Incluir todas las dependencias de lo que se promete recuperar. |
 
-`payloadPolicy` distingue proyecto privado, copia de workspace y distribución editable. Es independiente de `CvDocument.contentPolicy`, que elige variantes lingüísticas. El identificador propio de formato y la validación tienen prioridad sobre extensión/nombre. Se rechazan rutas absolutas, ascensos de directorio, enlaces simbólicos, duplicados ambiguos, hashes incorrectos y límites de expansión excedidos. Las verificaciones de hash detectan alteración de contenido, no identifican al autor.
+`scope` distingue proyecto completo de un CV y backup completo de workspace; `payloadPolicy` declara el alcance privado correspondiente. No existe una política `.cvproj` distribuible dentro del PDF. El identificador de formato prima sobre extensión/nombre. Se rechazan rutas absolutas, ascensos de directorio, enlaces simbólicos, duplicados ambiguos, hashes incorrectos y límites de expansión excedidos. Los hashes verifican integridad, no autoría.
 
-### Política de distribución del PDF reeditable
+### Contrato independiente del PDF: solo esa exportación
 
-El PDF adjunta un paquete `scope=cv`, `payloadPolicy=editable-distribution` con:
+La exportación normal **Exportar → PDF** puede adjuntar un `ExportPayload` con identificador propio de formato —distinto de `.cvproj`— y `pdfPayloadFormatVersion`. Su codificación concreta se valida en F1. Se construye por lista permitida desde `ExportProjection`, no recortando un proyecto serializado.
 
-- Todos los datos confirmados propiedad de ese CV, incluidas secciones/entradas ocultas y variantes originales/traducidas.
-- Orden, inclusión, política de idioma, configuración y referencias versionadas de plantilla.
-- Foto/firma efectivamente asociadas al CV y demás activos necesarios para reabrirlo.
-- Versiones del formato/modelo y revisión exportada, sin depender de la base local.
+| Contenido admitido | Restricción |
+| --- | --- |
+| Secciones/entradas/campos | Solo los representados; tipo y orden visibles. IDs nuevos limitados a esta exportación, sin IDs de perfil/biblioteca. |
+| Valores lingüísticos | Únicamente textos mostrados, idioma y rol semántico si es necesario. Traducción + original transporta ambos; traducción sola no transporta el original. |
+| Fechas/periodos | Partes y precisión efectivamente representadas; si solo se muestra año, no adjuntar día/mes de la fecha privada completa. |
+| Activos | Representación efectivamente usada y normalizada, con recortes/máscaras materializados y sin EXIF privado; no originales no mostrados. |
+| Plantilla/configuración | ID/versión y opciones efectivas necesarias para reconstruir la presentación; sin mapas de secciones/campos ocultos. |
+| Integridad | Versión del contrato y hashes de la proyección/activos distribuidos; nunca de una instantánea privada más amplia. |
 
-Quedan fuera: perfil maestro, otros CV, historial, borradores, archivos originales de importación, datos opacos no resueltos, rutas absolutas y credenciales. Las referencias privadas al perfil/artefactos se eliminan o se reducen a procedencia no resoluble que no afecte a la apertura. Las exclusiones de importación aceptadas se resumen sin copiar su contenido opaco; se retiran las referencias que no tendrían destino en el paquete. No se incluyen secretos para poder descifrar el propio documento.
+Quedan fuera secciones/campos ocultos, contenido excluido, perfil maestro, otros CV, historial, borradores, traducciones alternativas, versiones lingüísticas no mostradas, memorias sensibles privadas, originales de importación, datos no resueltos, procedencia, rutas, nombres privados de biblioteca y credenciales. No hay referencias a esos elementos ni resúmenes privados de lo omitido.
 
-**Esta política incluye datos no impresos y requiere aprobación.** El exportador ofrece resumen de alcance y PDF para compartir sin paquete. El propio nombre de una sección oculta no vuelve privado un adjunto; no hay cifrado por defecto en el formato propuesto.
+Esta restricción es una decisión final, no una opción de exportación. El PDF se abre normalmente en lectores comunes. Su payload es una ayuda para recuperar esa versión; una herramienta puede retirarlo sin invalidar el documento ni comprometer el backup fiable `.cvproj`.
 
 ### Reapertura y criterios de equivalencia
 
-Abrir PDF → localizar/validar paquete → comprobar versiones/activos → migrar si hace falta → proponer CV nuevo → confirmar. Si la plantilla exacta no está disponible, se conservan los datos y se informa antes de sustituir el diseño. El PDF original sigue siendo la referencia visual.
+Abrir `.cvproj` → validar/migrar → recuperar proyecto completo de su alcance. Abrir PDF → localizar/validar payload → recuperar versión representada → crear CV independiente. Si no hay payload compatible, buscar información Europass y, en su ausencia, tratar como PDF normal para la ruta asistida/OCR posterior. Si falta la plantilla exacta, conservar datos/configuración e informar antes de sustituir el diseño.
 
-Se compara equivalencia semántica de campos, fechas/precisión, traducciones/estados, niveles CEFR, enlaces, grupos, orden, inclusión, ajustes y hashes de activos. Pueden cambiar IDs locales, metadatos de importación y fecha de exportación. No se exige igualdad binaria de PDF entre versiones de Chromium.
+La equivalencia de `.cvproj` compara el proyecto completo: campos ocultos, fechas privadas con su precisión, memoria sensible/aprobaciones, decisiones, orden/visibilidad, activos, plantilla y revisiones/checkpoints necesarios. La equivalencia de PDF compara exclusivamente `ExportProjection`: valores y variantes mostrados, fechas representadas, grupos/orden visibles, activos usados y presentación. No exige recuperar historia, originales lingüísticos no impresos, datos excluidos ni revisiones desde PDF. IDs locales pueden regenerarse; no se exige igualdad binaria entre versiones de Chromium.
 
-Un hash del paquete no demuestra que sus datos correspondan al texto visible si otra herramienta editó solo las páginas. La revisión de importación permite comparar ambas fuentes. El hash del PDF completo se guarda en `ExportRecord` después de generar el archivo, no dentro de su propio manifiesto.
+Un hash del payload no demuestra correspondencia si otra herramienta editó solo las páginas; la revisión permite comparar ambas fuentes. El hash del PDF final se guarda en `ExportRecord` privado después de generar el archivo, no dentro de su manifiesto. Si desaparece el payload, se conserva un PDF válido y se usa la ruta de PDF normal, sin presentarlo como corrupción del proyecto.
 
 ### Copias de workspace
 
-La restauración recupera perfil, CV, activos y lo que el manifiesto declare sobre historial/borradores. Se valida en una biblioteca vacía. Restaurar sobre una biblioteca existente requiere escoger copia nueva o sustitución respaldada; no se fusiona por coincidencia de nombres. La operación es transaccional y conserva una salida recuperable si falla.
+La copia completa de workspace recupera perfil, CV, activos, decisiones, memorias y revisiones/puntos necesarios, incluyendo las dependencias que declare. Se valida en una biblioteca vacía. Restaurar sobre una biblioteca existente permite copia nueva o sustitución respaldada, sin fusionar por nombre. La operación es transaccional.
 
 ## Invariantes para la validación futura [D]
 
@@ -283,7 +318,8 @@ La restauración recupera perfil, CV, activos y lo que el manifiesto declare sob
 2. Toda referencia de activo necesaria se resuelve; todo orden corresponde a sus IDs, sin duplicados.
 3. Ocultar y contraer nunca eliminan datos. El borrador nunca se filtra a una exportación.
 4. Las cinco destrezas CEFR y la precisión de fecha se conservan por separado.
-5. Ninguna traducción reemplaza el original; una traducción desactualizada conserva su texto y su estado explicable.
+5. A conserva texto activo y recuperación previa; B no cambia por traducción; C conserva original conocido y aprobaciones privadas revisables. No se fabrican originales al importar un PDF.
 6. Confirmar contenido, historial y referencias de activos es atómico; Cancelar no crea una revisión confirmada.
 7. Un formato o dato no soportado se comunica y preserva en el ámbito privado adecuado; no desaparece por guardar.
-8. Reabrir el PDF propio en una biblioteca vacía recupera el CV completo definido por su política, sin acceso a Europass ni al archivo original.
+8. `.cvproj` permite recuperar completamente el proyecto de su alcance. El PDF solo permite reconstruir lo representado en esa exportación, sin depender de Europass ni añadir información privada no mostrada.
+9. Toda traducción completa aplicada referencia un checkpoint previo recuperable; copiar/editar/traducir un CV no modifica el perfil ni otros CV.

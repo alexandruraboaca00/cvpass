@@ -1,25 +1,25 @@
 # Arquitectura propuesta
 
-Versión 0.1 · 15 de octubre de 2026 · Diseño propuesto, pendiente de aprobación y de validación técnica. No hay aplicación implementada.
+Versión 0.2 · 15 de octubre de 2026 · Decisiones de producto consolidadas; stack propuesto pendiente de validación técnica F1. No hay aplicación implementada. Esta tarea no ejecuta F1.
 
 ## Decisión principal [D]
 
-Se propone una **aplicación de escritorio local con Electron, React y TypeScript**, almacenamiento SQLite y generación de PDF mediante el Chromium incluido en Electron. El mismo PDF se muestra en la vista previa y se entrega al exportar. No se necesita cuenta ni servicio remoto para el ciclo principal.
+Se propone una **aplicación de escritorio local con Electron, React y TypeScript**, almacenamiento SQLite y generación de PDF mediante el Chromium incluido en Electron. El mismo PDF se muestra en la vista previa y se entrega al exportar. Biblioteca automática y `.cvproj` completo aseguran continuidad; el PDF solo representa su exportación. El ciclo principal, incluida la traducción ES/EN con recursos instalados, debe poder funcionar localmente. El motor de traducción se seleccionará/validará en F1.
 
 La elección favorece tres prioridades del usuario: archivos locales durables, reapertura de CV y control de la composición del PDF. El coste es distribuir un runtime más pesado y mantenerlo actualizado. Linux es la plataforma inicial propuesta, no un requisito de usuario ya confirmado.
 
-Las marcas [H], [D] y [P] tienen el significado de [REQUIREMENTS.md](REQUIREMENTS.md). **Toda la arquitectura es [D]**: la investigación no identificó el stack interno de Europass. Las capacidades de bibliotecas citadas son documentación técnica externa; su adecuación al conjunto se comprobará en la fase F1 del [ROADMAP.md](ROADMAP.md).
+Las marcas [H], [D] y [P] tienen el significado de [REQUIREMENTS.md](REQUIREMENTS.md). **Toda la arquitectura es [D]**: la investigación no identificó el stack interno de Europass. Las decisiones finales del usuario sobre perfil, guardado, PDF, idiomas, importación y MVP prevalecen sobre la versión 0.1. Las capacidades de bibliotecas citadas son documentación técnica externa; su adecuación se comprobará en F1 del [ROADMAP.md](ROADMAP.md).
 
 ## Evidencia que guía la separación
 
 | Observación [H] | Decisión del producto [D] |
 | --- | --- |
-| Los PDF probados contienen un modelo XML que permite reabrir el CV; el PDF no es un formulario rellenable. | Un modelo propio editable, un adaptador de importación Europass y un paquete propio incrustado en los PDF. |
+| Los PDF probados contienen un modelo XML que permite reabrir el CV; el PDF no es un formulario rellenable. | Modelo propio, adaptador Europass y contrato PDF reducido a lo exportado; `.cvproj` conserva el proyecto completo. |
 | Las seis plantillas cambian el aspecto/paginación con datos equivalentes. | Modelo de contenido independiente de plantillas; renderización versionada. |
-| El idioma del documento no traduce de forma general los textos libres. | Separar catálogos de etiquetas, originales y traducciones por campo. |
+| El idioma del documento no traduce de forma general los textos libres. | Traducción real A/B/C con revisión, protección de nombres y checkpoint previo; etiquetas separadas del motor de traducción. |
 | Hay diferencias entre edición temporal, confirmación y recuperación de sesión. | Transacciones locales, borradores recuperables y exportaciones identificadas por revisión. |
 
-Fuentes: [13 — PDF editable](research/13-criterios-pdf-editable.md), [14 — Idiomas](research/14-idiomas-y-traducciones.md), [22 — Persistencia](research/22-borradores-salida-y-persistencia.md), [25 — Plantillas](research/25-comparativa-visual-formatos-pdf.md) y [28 — Mejoras](research/28-mejoras-necesarias-y-aceptacion.md).
+Fuentes históricas: [13 — PDF editable](research/13-criterios-pdf-editable.md), [22 — Persistencia](research/22-borradores-salida-y-persistencia.md), [25 — Plantillas](research/25-comparativa-visual-formatos-pdf.md) y [28 — Mejoras](research/28-mejoras-necesarias-y-aceptacion.md). Sus propuestas sobre alcance del PDF/traducción quedan sustituidas por la especificación actual.
 
 ## Componentes y límites [D]
 
@@ -30,13 +30,17 @@ flowchart TD
     APP[Servicios de aplicación y dominio TypeScript]
     STORE[Worker de persistencia: SQLite y activos]
     IMPORT[Workers de importación y validación]
-    RENDER[RenderSnapshot y plantilla original]
+    TRANSLATE[Worker de traducción y revisión A/B/C]
+    RENDER[ExportProjection y plantilla original]
     CHROME[Ventana aislada de impresión Chromium]
-    EXPORT[Composición del PDF y paquete portable]
+    EXPORT[PDF y ExportPayload mínimo]
+    PROJECT[Proyecto completo cvproj]
     VIEW[Visor PDF.js: PDF generado]
     FILES[Archivos locales: PDF, XML y cvproj]
     UI --> PRE --> APP
     APP --> STORE
+    APP --> TRANSLATE
+    APP --> PROJECT --> FILES
     FILES --> IMPORT --> APP
     APP --> RENDER --> CHROME --> EXPORT
     EXPORT --> VIEW
@@ -47,12 +51,13 @@ flowchart TD
 | Capa | Responsabilidad | Límite |
 | --- | --- | --- |
 | Interfaz | Biblioteca, formularios, listas, traducciones y revisión de importación. | No escribe directamente en SQLite ni ejecuta contenido importado. |
-| Dominio | Invariantes, fechas, orden, variantes de idioma, instantáneas y migraciones del modelo. | No depende de React, Electron, Tiptap o un namespace Europass. |
-| Aplicación | Casos de uso: confirmar, cancelar, importar, duplicar, restaurar, exportar. | Coordina repositorio, importadores y renderizador a través de contratos propios. |
+| Dominio | Invariantes, fechas, orden, clasificación lingüística, proyección de exportación y migraciones. | No depende de React, Electron, Tiptap, SQLite o un namespace Europass. |
+| Aplicación | Casos de uso: confirmar, cancelar, importar, duplicar, traducir, restaurar, exportar. | Coordina repositorio, traducción, importadores y renderizador mediante contratos propios. |
 | Persistencia | Un escritor SQLite en worker, revisiones, borradores, activos y copias consistentes. | Devuelve éxito de guardado después de confirmar la transacción. |
 | Importación | Detección, extracción, adaptadores y propuestas de datos con procedencia. | Ninguna propuesta modifica un CV sin aceptación. |
+| Traducción | Propuestas narrativas, protección de literales, términos sensibles y progreso. | El proveedor solo devuelve propuestas; aplicar exige revisión base vigente y recuperación previa. |
 | Presentación | Resolver contenido/idioma y componer plantillas originales. | Consume una instantánea; no altera el CV al paginar. |
-| Exportación | PDF final, paquete reeditable y guardado en archivo elegido. | No incorpora otros CV o el perfil completo por dependencia accidental. |
+| Exportación | PDF normal con semántica de salida y `.cvproj` completo mediante servicios distintos. | El empaquetador PDF recibe exclusivamente `ExportProjection`, nunca el proyecto/biblioteca completos. |
 
 El proceso principal de Electron gestiona ventanas, diálogos de archivos y el puente de operaciones. Se limita el trabajo pesado mediante workers y una cola de generación de PDF. El renderer de edición usa aislamiento de contexto, sandbox y `nodeIntegration` desactivado; el preload expone métodos concretos con validación, no acceso general al sistema. Esta configuración sigue la [guía de seguridad de Electron](https://www.electronjs.org/docs/latest/tutorial/security).
 
@@ -68,7 +73,9 @@ El formulario usa una copia temporal. Abrir un modal de grupo de habilidades o f
 
 ## Almacenamiento local y versiones [D]
 
-### Biblioteca y transacciones
+### Biblioteca automática y transacciones
+
+La biblioteca persiste automáticamente cambios confirmados y borradores recuperables por separado. El usuario no selecciona un archivo cada vez que edita; exportar `.cvproj` es una acción de backup/transferencia. Las decisiones de Confirmar/Cancelar pertenecen al formulario.
 
 SQLite se aloja en el directorio de datos de la aplicación. Se propone **better-sqlite3 dentro de un worker dedicado**: ofrece transacciones y soporte de workers; su API síncrona no debe bloquear la ventana de edición. El empaquetado del módulo nativo contra la versión de Electron es una condición de F1, no una compatibilidad ya verificada. [Repositorio de better-sqlite3](https://github.com/WiseLibs/better-sqlite3).
 
@@ -87,16 +94,16 @@ Las imágenes y archivos originales se guardan como BLOB identificados por hash 
 5. Guardar y salir resuelve el borrador pendiente, espera todas las escrituras y cierra. Tras un fallo no cierra como si hubiera guardado.
 6. Tras un cierre inesperado se ofrece recuperar o descartar el borrador sobre su revisión base. Si esa base cambió, se muestra un conflicto y se evita su aplicación automática.
 
-Se propone conservar las últimas 50 revisiones confirmadas por CV, además de puntos fijados de importación/restauración; la limpieza es configurable. El historial no se incrusta en PDF. Una restauración genera una nueva revisión.
+Se propone conservar las últimas 50 revisiones ordinarias por CV y puntos fijados de importación/restauración/traducción. Antes de aplicar una traducción completa se fija una instantánea íntegra de la revisión anterior en la misma transacción que confirma el resultado. Los puntos previos a traducción no se eliminan por la rotación ordinaria: su eliminación debe ser explícita. El historial necesario viaja en `.cvproj`, nunca en PDF. Restaurar crea una nueva revisión.
 
 ### Portabilidad y copias
 
 El formato **`.cvproj`** es un ZIP versionado con manifiesto UTF-8, datos JSON y activos. Tiene dos alcances:
 
-- `cv`: un CV completo e independiente, con originales/traducciones y ajustes; puede contener procedencia privada y datos no mapeados cuando se guarda como proyecto local.
-- `workspace`: copia lógica del perfil maestro, biblioteca de CV y activos, con historial/borradores incluidos o excluidos según el manifiesto. La opción de copia completa incluye los necesarios para la recuperación anunciada.
+- `cv`: un CV completo e independiente, incluidos datos ocultos/excluidos, ajustes, definición/versiones de plantilla y recursos necesarios, memoria sensible aprobada, decisiones lingüísticas, activos y revisiones necesarias, especialmente los puntos previos a traducción. Puede incluir origen privado/datos no mapeados y borradores declarados.
+- `workspace`: copia lógica completa de perfil maestro, biblioteca, memorias, configuración y activos, con revisiones/puntos necesarios. El manifiesto identifica el alcance; nunca se anuncia una recuperación completa omitiendo dependencias necesarias.
 
-El PDF reeditable adjunta exclusivamente un paquete `cv` con política de distribución más limitada, descrita en [DATA_MODEL.md](DATA_MODEL.md). Ni el PDF ni el proyecto de un solo CV requieren la base de datos original para abrirse.
+El PDF no adjunta `.cvproj`. Su `ExportPayload` tiene contrato y versión propios, reducidos a lo representado en esa exportación; se deriva de `ExportProjection`. Reimportar ese PDF reconstruye la versión visible, mientras `.cvproj` recupera el proyecto completo. Ambos pueden abrirse sin la base original, con distintos alcances de recuperación.
 
 La copia de biblioteca se construye desde una instantánea consistente. Si se usa una copia intermedia de SQLite, se emplea su API de backup; copiar únicamente el fichero principal de una base WAL activa no constituye la estrategia de respaldo. [API de backup de SQLite](https://www.sqlite.org/backup.html). La escritura de archivos exportados utiliza temporal y sustitución atómica en el destino cuando el sistema lo permita; se informa de errores y nunca se sobrescribe el PDF de entrada implícitamente.
 
@@ -113,23 +120,27 @@ El MVP permite copiar selección del perfil al crear un CV y copiar entradas rev
 
 ## Generación de PDF y vista previa [D]
 
-### Una composición para ambas salidas
+### Una exportación normal y una proyección mínima
 
-1. Congelar un `RenderSnapshot` con revisión, contenido resuelto, plantilla/versiones, configuración, activos y fuentes locales.
-2. Generar HTML/CSS propio en una ventana de impresión aislada. No cargar HTML arbitrario del importador ni fuentes/imágenes de Internet.
+1. Congelar el estado confirmado y construir por lista permitida una `ExportProjection`: exclusivamente secciones/entradas/campos incluidos, textos realmente mostrados, orden visible, precisión de fecha representada y configuración necesaria. El resolver lingüístico entrega solo las variantes impresas.
+2. Preparar activos efectivamente usados: materializar recortes/máscaras y eliminar metadatos privados; no adjuntar originales con zonas/píxeles que no se muestran. Generar HTML/CSS propio desde esa proyección en una ventana aislada, con recursos locales.
 3. Esperar fuentes e imágenes y usar `webContents.printToPDF` con A4 y reglas de página explícitas. Electron documenta esta API y opciones de tamaño, márgenes y etiquetado. [API printToPDF](https://www.electronjs.org/docs/latest/api/web-contents#contentsprinttopdfoptions).
-4. Según el modo, adjuntar el paquete editable o producir el PDF para compartir sin ese paquete.
+4. Verificar que la composición representa todos los elementos de la proyección sin omisiones/cortes; generar opcionalmente `ExportPayload` a partir de esa misma proyección y adjuntarlo. Ningún servicio PDF serializa directamente `CvDocument`, revisiones o `.cvproj`.
 5. Mostrar los bytes finales mediante **PDF.js**, con capa de texto y navegación por páginas. Exportar reutiliza esa composición; un cambio posterior exige generar una nueva.
 
 La cola espera inicialmente 400 ms tras cambios de presentación, descarta resultados obsoletos y prioriza el trabajo más reciente. Una exportación explícita usa una instantánea fija, aunque el usuario siga editando. La caché se identifica por contenido, revisión, plantilla, configuración y versión del motor, no solo por nombre del CV.
 
-### Datos reeditables
+La interfaz ofrece **Exportar → PDF**, sin familias «completo»/«para compartir». Incluir datos estructurales es una capacidad interna del PDF normal y no una promesa de backup. Si se eliminan, el PDF sigue siendo válido y se detecta como PDF normal para la futura extracción asistida/OCR.
 
-Se propone **pdf-lib** como adaptador para añadir el paquete al PDF ya generado. Su API permite adjuntar archivos; esto no demuestra que conserve todos los elementos producidos por Chromium. F1 debe comprobar fuentes, enlaces, páginas, árbol de etiquetas y lectura antes/después. [API de adjuntos de pdf-lib](https://pdf-lib.js.org/docs/api/classes/pdfdocument#attach).
+### Datos de esa exportación
+
+Se propone **pdf-lib** para adjuntar el `ExportPayload` al PDF ya generado. Su API permite adjuntar archivos; esto no demuestra que conserve todos los elementos producidos por Chromium. F1 comprobará fuentes, enlaces, páginas, etiquetas y lectura antes/después, además de ausencia de datos privados no representados. [API de adjuntos de pdf-lib](https://pdf-lib.js.org/docs/api/classes/pdfdocument#attach).
 
 Si el posprocesado no conserva los requisitos, se evaluará **qpdf** como adaptador alternativo para adjuntos, con el mismo control de resultados y el coste de un binario adicional. [Documentación de adjuntos de qpdf](https://qpdf.readthedocs.io/en/stable/cli.html#embedded-files-attachments). No se cierra esta alternativa sin una prueba propia.
 
-El hash del paquete verifica coherencia de datos/activos, no autenticidad ni correspondencia con una página editada por otra herramienta. El digest del archivo PDF final se registra fuera del propio archivo, evitando una referencia circular.
+El payload incluye tipos/valores visibles, orden, fechas representadas, plantilla/versión, configuración efectiva y activos usados. Excluye secciones/campos ocultos, traducciones alternativas, perfil, otros CV, historial, borradores, archivos de importación y procedencia privada. Por ejemplo, un año impreso no autoriza día/mes privados; una titulación traducida sin original impreso no lo transporta oculto. El manifiesto también se genera por lista permitida, sin nombres/rutas privados.
+
+Su hash verifica integridad, no autenticidad ni correspondencia tras una edición externa. El digest del PDF final se registra localmente en `ExportRecord`, evitando referencia circular. Las pruebas usarán marcadores sintéticos exclusivos en datos ocultos/alternativos y verificarán que no aparecen en el payload ni sus activos.
 
 ### Paginación y accesibilidad
 
@@ -141,9 +152,11 @@ La lectura debe mantener un orden lógico, también en Lateral. La opción de PD
 
 ### Canal común
 
-Archivo → inspección y límites → candidatos de datos → adaptador → validación del modelo → informe/propuesta → revisión del usuario → nuevo CV confirmado. El hash y archivo original se conservan en la biblioteca/proyecto privado. Los fallos dejan el estado anterior intacto.
+Una sola entrada Abrir/Importar ejecuta: archivo → detección → adaptador → validación → resumen proporcional → aceptación. `.cvproj` restaura el proyecto completo; PDF propio con `ExportPayload` recupera su versión representada; PDF Europass compatible usa XML; PDF normal se deriva a extracción asistida/OCR cuando exista. En el MVP se explica esta última limitación. El usuario no elige parsers ni distingue extensiones técnicas internas.
 
-Se distinguen las fuentes: paquete propio, XML Europass compatible, texto del PDF y OCR. Si hay varios adjuntos válidos o una discrepancia visible, se presenta la elección; no se elige únicamente el primero ni se fusionan silenciosamente.
+El hash y archivo original se conservan solo en el ámbito privado de biblioteca/`.cvproj`. Los fallos no modifican el estado previo. Una importación fiel propia sin incidencias puede mostrar un resumen breve; las ambigüedades y recuperaciones parciales siempre se revisan.
+
+Se distinguen internamente `.cvproj`, payload de exportación, XML Europass, texto y OCR. Si hay varios candidatos válidos o discrepancias visibles, se presenta una elección comprensible; no se fusionan silenciosamente. Un adjunto ajeno con más datos que el contrato PDF no se confunde con un proyecto completo propio.
 
 ### PDF y XML Europass
 
@@ -169,12 +182,18 @@ Se rechazan de forma comprensible documentos mal formados, límites excedidos y 
 Se mantienen tres ejes independientes:
 
 1. `uiLocale`: idioma de la aplicación, inicialmente español/inglés.
-2. `documentLocale`: etiquetas y convenciones de salida del CV.
-3. `LocalizedField`: original con idioma conocido o indeterminado, y traducciones con estado y revisión del original.
+2. `documentLocale`: idioma confirmado del CV, su contenido, etiquetas y convenciones. Cambiarlo inicia el flujo completo de traducción.
+3. Contenido: narrativa activa, valores literales protegidos y campos sensibles con original/memoria aprobada.
 
-Cambiar `documentLocale` calcula un plan: etiquetas que cambian, traducciones revisadas disponibles, originales que se conservarán y traducciones pendientes. El usuario puede revisar el plan. No se reescribe el texto fuente ni se interpreta un catálogo de interfaz como motor de traducción.
+Cambiar el idioma del CV inicia una operación completa: opcionalmente duplicar → congelar revisión base → clasificar A/B/C → generar propuestas → revisar → fijar revisión recuperable previa → aplicar contenido e idioma en una transacción. La interfaz permite corregir narrativa y exige una decisión para cada término sensible pendiente. Elegir conservar un original es una decisión válida, registrada y visible en la revisión. Cancelar, fallo o conflicto de revisión dejan contenido e idioma anteriores intactos.
 
-Los nombres oficiales de titulaciones/certificados, personas y entidades conservan el original por defecto. Cada campo traducible permite original, traducción o ambos. La falta de traducción usa el original y se indica en la revisión; no se inventa una versión inglesa. Cambiar el original vuelve obsoletas sus traducciones sin borrarlas. Los dos PDF del usuario siguen siendo importaciones distintas hasta que él decida relacionar contenido.
+Un puerto de dominio `TranslationProvider` permite evaluar un motor local ES/EN en worker, con recursos/modelos y licencias por seleccionar en F1. No es i18next: este solo localiza interfaz/etiquetas. F1 medirá distribución, calidad, memoria/latencia, cancelación y protección de términos sobre datos sintéticos. No se introduce ningún envío implícito del CV a servicios remotos.
+
+- **A:** traducir narrativa y conservar como texto activo el resultado confirmado. Las propuestas son temporales y no generan un diccionario permanente de cada versión narrativa; la revisión anterior proporciona recuperación.
+- **B:** mantener personas, instituciones, empresas, marcas, contactos e identificadores literalmente, también cuando estén incrustados en narraciones. Proteger/restaurar esos fragmentos y comprobar que el motor no los perdió o alteró.
+- **C:** proponer sin asumir equivalencia de titulación/cargo. Mantener original y traducciones aprobadas contextualizadas, reutilizables en `.cvproj`; modos original, traducción o traducción + original. Un cambio del original marca para revisión las aprobaciones dependientes.
+
+Una memoria sensible no empareja automáticamente títulos ambiguos por texto: incluye idiomas, tipo de campo y contexto relevante. Importar un PDF que solo muestra la traducción no recupera el original ni su historial de aprobación; se mantiene lo visible y se solicita original/revisión cuando sea necesario. Exportar resuelve exclusivamente las variantes mostradas, sin copiar memorias.
 
 ## Decisiones y alternativas [D/P]
 
@@ -183,9 +202,9 @@ Los nombres oficiales de titulaciones/certificados, personas y entidades conserv
 | ADR-01 Plataforma | Electron local, Linux primero. | PWA: distribución ligera, pero añade diferencias de acceso/persistencia y exportación entre navegadores. Tauri: núcleo Rust y webview del sistema; se reconsidera si prima reducir tamaño, pero su motor por plataforma dificulta fijar un único renderizador PDF. [Modelo de procesos de Tauri](https://v2.tauri.app/concept/process-model/). |
 | ADR-02 Persistencia | SQLite y activos locales, writer dedicado. | IndexedDB si se elige web; archivos JSON independientes requieren resolver escrituras, índices e historial. La API SQLite queda detrás de un repositorio. |
 | ADR-03 PDF | HTML/CSS propio → Chromium → PDF.js. | React-PDF u otro compositor si falla la puerta técnica; requiere adaptar los diseños. Evitar dos motores simultáneos para preview/exportación. Un servidor PDF añadiría una dependencia al ciclo local. |
-| ADR-04 Portabilidad | `.cvproj` versionado; paquete de un CV dentro de PDF. | XML Europass como formato interno nos acoplaría a su estructura y no expresa todas nuestras variantes. Exportarlo sería una función aparte, sin necesidad demostrada. |
+| ADR-04 Portabilidad | `.cvproj` completo; `ExportPayload` separado y limitado a lo representado en el PDF. | Un proyecto completo dentro del PDF filtraría datos excluidos. XML Europass queda como adaptador, sin obligación de exportarlo. |
 | ADR-05 Propagación | CV materializado, independiente del perfil. | Referencias vivas simplifican propagación, pero podrían cambiar un CV preparado sin una decisión visible. Se prefiere transferencia explícita. |
-| ADR-06 Idiomas | Original + traducciones revisadas por campo. | Una cadena reemplazada al cambiar idioma pierde procedencia. Traducción automática opcional después del MVP. |
+| ADR-06 Idiomas | Traducción real ES/EN en el MVP, clases A/B/C y revisión recuperable previa. Memoria persistente para términos sensibles aprobados. | Cambiar solo etiquetas no cumple el producto. Retener todas las variantes narrativas perpetuamente añade datos innecesarios; se conserva texto activo y recuperación por revisiones. Motor local pendiente de F1. |
 | ADR-07 Distribución | Recursos locales y empaquetado reproducible con electron-builder; AppImage inicial propuesto. | Confirmar plataforma/formato con el usuario. Fijar versiones estables y validar binarios nativos en F1. [Documentación Linux estable de electron-builder](https://www.electron.build/v26/docs/linux/). |
 | ADR-08 Adjuntos | pdf-lib como primer candidato, qpdf como alternativa. | Su aceptación depende de la conservación del PDF generado, especialmente etiquetado y enlaces. Ninguna biblioteca queda validada por mencionarla aquí. |
 
@@ -196,8 +215,9 @@ Los nombres oficiales de titulaciones/certificados, personas y entidades conserv
 | Chromium/posprocesador alteran orden de lectura o etiquetas. | Comparar PDF de una/dos columnas, enlaces, texto y etiquetas antes/después; cambiar adaptador o motor si falla. |
 | El módulo SQLite no se empaqueta o degrada la interfaz. | Probar transacción, cierre/reapertura y worker en el ejecutable distribuible, con activos. |
 | XML variantes/campos desconocidos producen pérdidas. | Informe de mapeo, corpus conocido y casos sintéticos; recuperación semántica comparada y conservación del origen. |
-| El CV reeditable contiene más datos que los visibles. | Aprobar el alcance de adjuntos y el modo predeterminado; resumen de exportación y alternativa sin paquete. |
+| El payload filtra contenido no representado. | Proyección por lista permitida, serializador aislado y pruebas con marcadores ocultos, traducciones alternativas, fechas reducidas y recortes/EXIF. Si falla, no se exporta ese payload. |
+| La traducción altera nombres o inventa equivalencias. | Motor local por evaluar en F1, protección B, revisión C, checkpoint previo y aplicación atómica. No declarar el MVP sin traducción real ES/EN. |
 | Versionar una plantilla cambia su aspecto histórico. | Mantener versiones disponibles; si falta una, proponer sustitución y comunicar que el PDF original sigue siendo la referencia visual. No prometer bytes idénticos entre motores/versiones. |
 | Los objetivos de rapidez no se cumplen. | Medición sobre equipo/corpus fijados; perfilar y ajustar antes de declarar el MVP, sin recortar contenido silenciosamente. |
 
-F1 se ejecutará **solo después de aprobar la especificación y autorizar la programación**. Esta documentación no instala bibliotecas, genera prototipos ni prueba una arquitectura inexistente.
+La autorización general para implementar está concedida y las decisiones de producto están cerradas. La fase actual es **F1, pendiente de ejecución**; no se inicia durante esta consolidación documental. Sus pruebas deben resolver las elecciones técnicas restantes antes de avanzar a F2.

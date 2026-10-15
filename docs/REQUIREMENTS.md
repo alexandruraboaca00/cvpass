@@ -1,18 +1,18 @@
-# Requisitos iniciales del producto
+# Requisitos de CVForge
 
-Versión 0.1 · 15 de octubre de 2026 · Propuesta pendiente de aprobación. Este documento especifica el producto; no autoriza su implementación.
+Versión 0.2 · 15 de octubre de 2026 · Decisiones de producto consolidadas por el usuario. Implementación autorizada por fases; F1 es la siguiente fase y no se ejecuta en esta consolidación documental. Ninguna funcionalidad se presenta como implementada.
 
 ## Base y alcance de la especificación
 
-Se han leído los informes `00` a `29` de [research](research/), su documentación de escenarios y las instrucciones de [AGENTS.md](research/AGENTS.md). No existe un `AGENTS.md` en la raíz: el archivo fue trasladado a investigación. Su referencia a una fase de investigación se considera histórica; la instrucción actual del usuario cierra esa fase y permite redactar la especificación, manteniendo la prohibición de implementar.
+La investigación de [research](research/) está terminada y es evidencia histórica. Las decisiones finales del usuario prevalecen sobre las propuestas de esa investigación y de la versión 0.1. [AGENTS.md](../AGENTS.md) contiene las instrucciones actuales; este documento, [ARCHITECTURE.md](ARCHITECTURE.md), [DATA_MODEL.md](DATA_MODEL.md) y [ROADMAP.md](ROADMAP.md) son la especificación vigente.
 
 Convenciones comunes a los cuatro documentos:
 
 - **[H] Hecho observado:** respaldado por la investigación, dentro del corpus y recorrido probados.
-- **[D] Decisión de diseño nuestra:** propuesta para el producto propio, aunque esté motivada por un hallazgo. No describe la implementación interna de Europass ni implica aprobación del usuario.
+- **[D] Decisión del producto propio:** las decisiones finales de perfil, guardado, PDF, idiomas, importación, diseños y MVP están aprobadas por el usuario. Las elecciones técnicas todavía propuestas se identifican como tales; ninguna describe la implementación interna de Europass.
 - **[P] Pendiente:** decisión del producto o validación técnica que todavía debe resolverse.
 
-**Todos los requisitos siguientes son [D].** Los resultados de investigación justifican su elección, pero no demuestran que nuestra aplicación los cumpla: todavía no existe. [ARCHITECTURE.md](ARCHITECTURE.md), [DATA_MODEL.md](DATA_MODEL.md) y [ROADMAP.md](ROADMAP.md) desarrollan esta misma propuesta.
+**Todos los requisitos siguientes son [D].** La investigación no demuestra que nuestra aplicación los cumpla: la implementación y sus pruebas siguen pendientes. Una propuesta histórica incompatible con estas decisiones no es un requisito vigente.
 
 ## Hechos que sustentan el producto
 
@@ -21,8 +21,8 @@ Convenciones comunes a los cuatro documentos:
 | H01 | El editor separa información personal, educación, experiencia, habilidades e idiomas; los formularios tienen acciones de confirmar y cancelar. | [01](research/01-editor-inicial.md), [02](research/02-informacion-personal.md), [03](research/03-educacion.md), [04](research/04-experiencia.md), [05](research/05-habilidades.md), [06](research/06-idiomas.md) |
 | H02 | Se probaron 14 tipos adicionales, varias entradas, varias secciones personalizadas y su ciclo de exportación/importación. No todas las entradas requieren un título: en recomendaciones es obligatoria la descripción. | [15](research/15-inventario-secciones-adicionales.md), [16](research/16-ciclo-secciones-pdf.md), [18](research/18-multiples-orden-y-visibilidad.md) |
 | H03 | Se conservó una reordenación manual. La opción Hide probada en una sección vacía pidió retirarla; no demuestra una visibilidad reversible independiente. | [11](research/11-menus-orden-visibilidad.md), [18](research/18-multiples-orden-y-visibilidad.md) |
-| H04 | Los dos PDF del usuario contienen datos XML recuperables. Se modificó una copia y se recuperó el cambio tras exportar e importar. No son formularios PDF rellenables. | [12](research/12-importacion-pdf-local.md), [13](research/13-criterios-pdf-editable.md), [21](research/21-importacion-generica-ocr-y-compatibilidad.md) |
-| H05 | El selector de idioma cambió etiquetas, sin traducir los textos libres en la prueba controlada. El PDF inglés contiene cambios manuales del usuario. | [14](research/14-idiomas-y-traducciones.md) |
+| H04 | Los dos PDF del usuario contienen datos XML recuperables. Se modificó una copia y se recuperó el cambio tras exportar e importar. No son formularios PDF rellenables. | [13](research/13-criterios-pdf-editable.md), [21](research/21-importacion-generica-ocr-y-compatibilidad.md) |
+| H05 | El selector de idioma cambió etiquetas, sin traducir los textos libres en la prueba controlada. El PDF inglés contiene cambios manuales del usuario. | [23](research/23-cierre-investigacion-y-criterios.md), [28](research/28-mejoras-necesarias-y-aceptacion.md) |
 | H06 | Fechas parciales o imposibles se descartaron en algunas pruebas; hubo títulos con espacios aceptados. Se comprobaron fecha final sin inicial, periodos y estados Ongoing. | [17](research/17-fechas-y-validaciones.md) |
 | H07 | Foto, firma gráfica, negrita, cursiva, viñetas y enlaces se recuperaron en pruebas concretas. | [19](research/19-fotografia-firma-y-texto-enriquecido.md) |
 | H08 | Se observaron Classic, Modern, Progress, Timeline, Accent y Elegant. La misma información produjo distinta paginación; no se observó una plantilla llamada Simple. | [08](research/08-plantillas.md), [20](research/20-plantillas-paginacion-y-rendimiento.md), [25](research/25-comparativa-visual-formatos-pdf.md) |
@@ -38,14 +38,14 @@ Las ampliaciones y pruebas corregidas prevalecen sobre dudas históricas de capt
 2. Generar PDF profesionales del mismo tipo funcional: texto seleccionable, enlaces, fotografía, secciones, columnas y paginación cuidada, mediante diseños originales.
 3. Reabrir PDF Europass compatibles y PDF propios para modificar los datos y generar una nueva salida.
 4. Mantener una trayectoria completa en un perfil maestro y producir distintos CV adaptados sin que editar uno cambie los demás.
-5. Conservar el contenido original y permitir traducciones revisadas por campo, especialmente nombres oficiales de certificados, titulaciones y organizaciones.
+5. Traducir realmente un CV entre español e inglés, protegiendo nombres propios y revisando términos sensibles. Conservar originales y traducciones sensibles aprobadas en el proyecto completo.
 6. Ampliar después la entrada de datos a PDF genéricos y escaneados mediante revisión asistida.
 
 El producto es un creador de CV: la importación de un PDF genérico recuperará contenido para generar un documento nuevo. La edición libre de cualquier página conservando exactamente su maquetación queda fuera del alcance inicial. No se exige generar XML Europass ni que Europass reimporte nuestros PDF.
 
 ## Alcance de las entregas [D]
 
-**MVP:** aplicación de escritorio local, inicialmente para Linux si se aprueba; un perfil maestro y múltiples CV independientes; ocho áreas: datos personales, educación, experiencia, habilidades, idiomas, certificaciones, proyectos y secciones personalizadas. Incluye foto, texto enriquecido básico, interfaz/etiquetas en español e inglés, traducciones manuales, dos plantillas originales, importación estructurada de las muestras Europass, proyecto portable y PDF propio reeditable.
+**MVP:** aplicación local; un perfil maestro y múltiples CV independientes; ocho áreas: datos personales, educación, experiencia, habilidades, idiomas, certificaciones, proyectos y secciones personalizadas. Incluye foto, texto enriquecido básico, ES/EN con traducción real y revisión, dos plantillas originales, biblioteca durable automática, importación estructurada Europass, PDF y `.cvproj` completo. La arquitectura de escritorio y Linux como entorno inicial de validación se mantienen como propuesta técnica para F1.
 
 Las plantillas propuestas se denominan **Simple** —una columna— y **Lateral** —dos columnas—. Son nombres y diseños nuestros, no plantillas observadas ni reproducciones de sus recursos.
 
@@ -56,17 +56,17 @@ Las plantillas propuestas se denominan **Simple** —una columna— y **Lateral*
 | ID | Requisito | Criterio verificable |
 | --- | --- | --- |
 | FR-01 | Biblioteca local y perfil maestro. Crear, nombrar, duplicar, abrir y eliminar CV con confirmación; seleccionar contenido del perfil para crear un CV independiente. | Editar una copia no altera el origen ni el perfil. Se puede trabajar sin cuenta ni conexión. |
-| FR-02 | Distinguir borrador de formulario, CV confirmado y archivo exportado. Confirmar valida y guarda localmente; Cancelar descarta el borrador. Guardar y salir espera la escritura. | Tras cancelar vuelve el último valor confirmado. Tras reiniciar permanece lo confirmado. Si hay borrador al salir, se ofrecen Confirmar, Descartar o Continuar editando. Un fallo de disco nunca muestra «guardado». |
+| FR-02 | Biblioteca local guardada automáticamente. Distinguir borrador de formulario, CV confirmado y exportación. Confirmar valida y persiste sin pedir archivo; Cancelar descarta el borrador. | Editar no exige guardar un `.cvproj` cada vez. Tras cancelar vuelve el último valor confirmado; tras reiniciar permanece lo confirmado. Salir resuelve borradores y espera escrituras. Un fallo de disco nunca muestra «guardado». |
 | FR-03 | Editar datos personales, educación y experiencia, con contactos/enlaces repetibles, fechas y descripciones. | Se conservan fechas de distinta precisión y fechas finales sin inicial. No se pierden campos opcionales al editar uno distinto. No se impone una fecha inventada ni una estructura obligatoria de nombre y apellidos. |
 | FR-04 | Habilidades libres agrupables y lenguas maternas/extranjeras. | Cada idioma extranjero conserva por separado comprensión oral, lectura, interacción oral, expresión oral y escritura, con valores A1–C2 o sin evaluar. Puede guardarse solo una dimensión. Quitar de un grupo y eliminar una habilidad son acciones diferentes; eliminar un grupo conserva sus habilidades sin agrupar. |
 | FR-05 | Certificaciones, proyectos y secciones personalizadas con múltiples entradas. | Se distinguen nombre de sección y título de entrada. Las URL se añaden individualmente y se validan. Se admite texto enriquecido semántico sin ejecutar HTML importado. |
 | FR-06 | Orden y visibilidad explícitos. Reordenar secciones y entradas con controles accesibles; contraer, ocultar del PDF y eliminar son acciones distintas. | El orden manual persiste aunque no sea cronológico. Ocultar conserva datos y puede revertirse. Eliminar pide confirmación y permite recuperar una versión anterior. |
-| FR-07 | Separar idioma de interfaz, idioma de etiquetas del CV y variantes del contenido. Original y traducciones manuales por campo; selección original/traducción/ambos. | Cambiar a inglés muestra qué etiquetas y variantes revisadas se usarán, sin sobrescribir originales. Un certificado mantiene su título oficial. Cambiar el original marca traducciones anteriores para revisión. |
-| FR-08 | Importar PDF Europass con datos compatibles y XML independiente. Buscar adjuntos por contenido y reconocer namespaces/estructura, sin depender de su nombre ni de la plantilla. | Los dos PDF aportados recuperan sus ocho educaciones, tres experiencias, dieciocho habilidades, dos grupos y datos de idiomas, además de contactos/foto/enlaces presentes. Una modificación aislada no cambia otros campos. |
-| FR-09 | Importación transaccional con revisión y procedencia. Mostrar datos recuperados, ambiguos, no soportados y diferencias entre datos adjuntos y aspecto del PDF. | No se modifica ningún CV antes de aceptar. Importar crea una copia por defecto; añadir al perfil requiere una acción aparte. Se conserva el origen y lo no mapeado en el proyecto privado; una importación parcial se identifica y no se presenta como recuperación completa. |
+| FR-07 | Cambiar el idioma del CV traduce su contenido, además de etiquetas. Proponer traducciones, revisar lo necesario y confirmar; permitir duplicar antes. Clasificar campos A/B/C según la política lingüística siguiente. | Antes de aplicar existe una revisión recuperable. La narrativa cambia al idioma destino; personas, empresas, instituciones y contactos se mantienen. Una titulación requiere decisión revisable, con original, traducción o traducción + original. Cancelar/fallar no cambia el CV ni su idioma. |
+| FR-08 | Importar PDF Europass con datos compatibles y XML independiente. Buscar adjuntos por contenido y reconocer namespaces/estructura, sin depender de su nombre ni de la plantilla. | Fixtures sintéticos reproducen la estructura investigada: ocho educaciones, tres experiencias, dieciocho habilidades, dos grupos e idiomas, contactos/foto/enlaces propios. Una modificación aislada conserva el resto. Los originales privados solo se usan en comprobaciones manuales autorizadas, fuera de Git/tests automatizados. |
+| FR-09 | Una entrada Abrir/Importar detecta `.cvproj`, PDF propio con datos de exportación, PDF Europass compatible y PDF normal. Revisión proporcional al resultado, con detalles técnicos secundarios. | `.cvproj` recupera el proyecto; PDF propio, solo su versión exportada; Europass usa sus datos compatibles. El PDF normal anuncia la ruta asistida/OCR posterior. Las ambigüedades no se ocultan. Importar crea copia por defecto y nunca modifica el perfil automáticamente. |
 | FR-10 | Dos plantillas originales y vista previa del PDF efectivamente generado. Ajustar tamaño, color, formato de fechas, foto y numeración. | La vista y el archivo exportado corresponden a la misma revisión/configuración. Textos largos, columnas, enlaces y caracteres con diacríticos se mantienen legibles. Un ajuste visual no modifica datos del CV. |
-| FR-11 | Guardar proyectos portables y exportar PDF reeditable o PDF para compartir. Abrir los formatos propios sin perfil maestro previo. | Proyecto/PDF reeditable → nueva biblioteca vacía → edición recupera datos, variantes, orden, visibilidad, activos y ajustes. El PDF para compartir no incluye el proyecto adjunto. Se explica qué información adicional contiene el editable. |
-| FR-12 | Versiones y copias recuperables. Historial de confirmaciones y puntos de recuperación para importaciones/restauraciones. Exportación de copia de la biblioteca. | Restaurar crea una nueva revisión, sin destruir el estado anterior. Una copia de biblioteca recupera perfil y CV en una instalación vacía. El archivo original importado nunca se sobrescribe. |
+| FR-11 | Exportar → PDF produce un PDF profesional normal. Puede llevar un modelo estructurado mínimo de esa exportación. `.cvproj` es el formato portable completo para backup, transferencia y continuación del trabajo. | El PDF recupera solo valores/semántica visibles y configuración necesaria; no incluye datos personales no representados. `.cvproj` recupera también contenido oculto, decisiones lingüísticas, traducciones sensibles aprobadas, activos y revisiones necesarias. Perder el adjunto del PDF no afecta a su validez ni al backup `.cvproj`. |
+| FR-12 | Versiones recuperables en la biblioteca y `.cvproj`. Puntos de recuperación antes de aplicar una traducción completa, importar o restaurar; copia de biblioteca. | Restaurar crea una nueva revisión. El punto previo a traducción se conserva hasta su eliminación explícita y viaja en el proyecto completo del CV. La copia de biblioteca incluye perfil y CV. No se exige recuperar historial desde PDF. |
 
 ### Reglas transversales de edición y guardado [D]
 
@@ -75,14 +75,36 @@ Las plantillas propuestas se denominan **Simple** —una columna— y **Lateral*
 - Un borrador puede conservarse localmente para recuperar un cierre inesperado, pero no participa en el PDF ni se confunde con una confirmación. Cancelar elimina ese borrador.
 - Confirmar actualiza la vista solo tras la transacción durable. Los mensajes diferencian «cambios sin confirmar», «guardando», «guardado localmente», «error de guardado» y «PDF de una revisión anterior».
 - Guardar y salir guarda en la biblioteca, sin obligar a exportar ni registrarse. Exportar genera otro archivo; no sustituye el guardado local.
-- Las traducciones se revisan manualmente en el MVP. El cambio de idioma por sí solo no llama a un traductor ni empareja automáticamente dos CV importados.
+- Cambiar idioma del CV inicia traducción real, revisión y confirmación; cambiar solo el idioma de interfaz no altera contenido. La operación se aplica atómicamente sobre una revisión base y nunca empareja automáticamente dos CV importados.
 - Una entrada importada incompleta se conserva y se señala; la aplicación ofrece corregirla o excluirla del PDF antes de exportar. Nunca rellena datos personales o fechas por deducción silenciosa.
 
-### Contenido del PDF reeditable [D, requiere aprobación]
+### Biblioteca automática y proyecto completo [D]
 
-La propuesta incluye una instantánea completa **del CV seleccionado**, con sus secciones ocultas, originales, traducciones y ajustes. Esto permite recuperar su visibilidad y variantes sin depender de la base local. No incluye el perfil maestro completo, otros CV, historial, borradores, rutas del equipo ni archivos originales de importación.
+La biblioteca local persiste cambios y borradores recuperables sin pedir destinos de archivo en cada edición. Confirmar es una decisión de edición, no «guardar como». `.cvproj` es una acción de portabilidad/backup y no un requisito para que un cambio confirmado sobreviva al cierre.
 
-Antes de exportar se resume este alcance y se permite elegir el PDF para compartir, sin datos del proyecto. Los datos adjuntos no están cifrados por defecto. La decisión sobre el modo predeterminado debe aprobarse antes de implementarlo; se propone el reeditable por la prioridad expresada de volver a editar archivos locales.
+El proyecto de un CV contiene su contenido completo, configuración y definición/versiones de plantilla necesarias, orden/visibilidad, activos, decisiones de idioma, traducciones sensibles aprobadas y revisiones/puntos de recuperación necesarios. Una copia de biblioteca puede incluir además perfil y otros CV, con alcance declarado. La recuperación no depende de rutas privadas o servicios de Europass.
+
+### Regla de minimización del PDF [D, decisión final]
+
+Hay una exportación normal **Exportar → PDF**. No se crean categorías de «PDF completo» y «PDF para compartir». El documento puede incorporar datos estructurados propios, pero ese modelo se genera exclusivamente a partir de lo que representa esa exportación.
+
+Permitido: tipos de sección/campo, valores mostrados, orden visible, precisión de fechas representada, idioma mostrado, plantilla/versión, configuración visual necesaria y activos efectivamente usados. Si se muestra traducción + original, ambos textos pueden figurar; si solo se muestra traducción, su original privado queda fuera.
+
+Prohibido: secciones/campos ocultos, entradas excluidas, perfil maestro, otros CV, historial, borradores, traducciones alternativas, versiones lingüísticas completas no mostradas, originales de importación o cualquier información privada ajena a la salida. Ni nombres privados de biblioteca, procedencia, EXIF ni partes recortadas de una foto deben filtrarse al modelo adjunto. Un formato de fecha que solo muestra el año no autoriza a adjuntar día/mes omitidos.
+
+El PDF no contiene un `.cvproj` completo: usa un contrato reducido de exportación separado. Si una herramienta elimina ese modelo, el PDF sigue siendo válido y la futura ruta de extracción asistida/OCR puede tratarlo como PDF normal. `.cvproj` sigue siendo el backup fiable. No se exige igualdad de proyecto completo al reimportar un PDF.
+
+### Política lingüística y cambio completo de idioma [D]
+
+| Clase | Tratamiento | Persistencia |
+| --- | --- | --- |
+| A — Narrativa traducible | Sobre mí, responsabilidades, descripciones, proyectos y textos personalizados: generar traducción automática, permitir corrección y confirmar el nuevo contenido. Proteger nombres/identificadores también cuando aparecen dentro de una narración. | Texto activo en el idioma actual; propuestas temporales. No se conserva un mapa perpetuo de todas las traducciones narrativas. La revisión previa permite recuperar el estado anterior. |
+| B — No traducible automáticamente | Personas, empresas, instituciones, marcas, emails, teléfonos, URL, identificadores y términos técnicos protegidos se mantienen literalmente. «Universidad Carlos III de Madrid» permanece igual. | Valor literal; no inventar equivalentes ni guardar falsas variantes traducidas. |
+| C — Traducción sensible | Titulaciones, certificaciones, cursos, asignaturas, cargos y terminología ambigua: proponer sin convertirlo en una equivalencia oficial; corregir y aprobar o conservar el original explícitamente. | Original y traducciones aprobadas con idioma/contexto y revisión, reutilizables en `.cvproj`. Mostrar solo original, solo traducción o traducción + original. |
+
+Flujo: CV español → opcionalmente duplicar → elegir English → generar propuestas → revisar campos sensibles y cambios necesarios → crear/fijar revisión recuperable del estado previo → confirmar contenido e idioma de forma atómica → CV inglés. Una traducción incompleta o fallida no se presenta como un CV completamente traducido; cualquier mezcla aceptada se hace explícita en la revisión.
+
+El motor de traducción local y su empaquetado son una elección técnica pendiente de F1. La traducción automática forma parte del MVP, no queda relegada a una mejora opcional. No se enviará contenido a servicios externos de forma implícita.
 
 ## Funcionalidades obligatorias de la versión 1 completa [D]
 
@@ -99,7 +121,7 @@ En el MVP, tipos todavía no editables se conservan como información no mapeada
 
 | ID | Función | Condición |
 | --- | --- | --- |
-| DE-01 | Traducción automática opcional con comparación y aceptación por campo. | Nunca reemplaza originales ni traducciones manuales sin aprobación; cualquier salida de datos del equipo es explícita. |
+| DE-01 | Ampliar memorias sensibles, sugerencias terminológicas y motores de traducción. | La traducción real ES/EN ya es obligatoria en FR-07; estas ampliaciones no sustituyen la revisión ni convierten propuestas en equivalencias oficiales. |
 | DE-02 | Más plantillas originales y ajuste guiado de longitud. | Se conserva todo el contenido; no se promete «dos páginas» ocultando texto o reduciendo indefinidamente la letra. |
 | DE-03 | Ordenación cronológica sugerida y actualización asistida desde el perfil. | Vista previa del cambio, aceptación explícita y posibilidad de deshacer; orden manual estable. |
 | DE-04 | Windows/macOS, aplicación web o sincronización entre equipos. | Dependen de demanda y validación propia. No añaden una cuenta obligatoria al uso local. |
@@ -110,12 +132,12 @@ En el MVP, tipos todavía no editables se conservan como información no mapeada
 
 | ID | Requisito y aceptación propuesta |
 | --- | --- |
-| NF-01 Autonomía | Con red desactivada desde el arranque: abrir, editar, confirmar, cerrar, reabrir, previsualizar, importar y exportar los formatos del MVP. Sin caducidad temporal del contenido local. |
+| NF-01 Autonomía | Con red desactivada desde el arranque y recursos locales instalados: abrir, editar, traducir ES/EN, confirmar, cerrar, reabrir, previsualizar, importar y exportar los formatos del MVP. Sin caducidad temporal del contenido local. El motor/modelo de traducción debe validarse en F1. |
 | NF-02 Durabilidad | Transacciones atómicas; conflictos de revisión detectados; error de escritura visible. Probar cierre forzado, disco lleno y restauración de copia. Una confirmación reconocida debe sobrevivir al reinicio; el borrador se ofrece aparte. |
 | NF-03 PDF | A4 inicial, texto seleccionable, enlaces activos, fuentes con licencia y glifos verificados. Títulos unidos al inicio del contenido, sin recortes/solapes ni página vacía artificial. La columna lateral debe mantener lectura comprensible al extraer texto y usar tecnología de asistencia. Comprobar también un lector externo al visor propio. |
 | NF-04 Accesibilidad | Formularios y reordenación utilizables con teclado; etiquetas, foco y errores anunciables; contraste verificable. Comprobar etiquetado y orden de lectura del PDF. No declarar conformidad PDF/UA por activar una opción del motor. |
-| NF-05 Rendimiento | Objetivos iniciales, todavía no medidos: arranque en frío p95 ≤3 s; respuesta al escribir p95 ≤100 ms; confirmación durable p95 ≤300 ms; preview de CV de hasta 3 páginas p95 ≤2 s tras espera de edición de 400 ms; exportación de 10 páginas p95 ≤5 s; importación estructurada de 3 páginas p95 ≤3 s. OCR tiene progreso y cancelación, sin este límite. |
-| NF-06 Privacidad | Contenido y OCR locales; sin telemetría de CV ni cargas automáticas. Los mensajes técnicos omiten datos personales. Los recursos importados no ejecutan código y el exportador no accede a recursos remotos. |
+| NF-05 Rendimiento | Objetivos iniciales, todavía no medidos: arranque en frío p95 ≤3 s; respuesta al escribir p95 ≤100 ms; confirmación durable p95 ≤300 ms; preview de CV de hasta 3 páginas p95 ≤2 s tras espera de edición de 400 ms; exportación de 10 páginas p95 ≤5 s; importación estructurada de 3 páginas p95 ≤3 s. Traducción y OCR tienen progreso/cancelación y presupuesto propio por medir, sin bloquear la edición. |
+| NF-06 Privacidad | Contenido, traducción y OCR locales; sin telemetría de CV ni cargas automáticas. Los mensajes técnicos omiten datos personales. Los recursos importados no ejecutan código y el exportador no accede a recursos remotos. |
 | NF-07 Robustez | Para importar un CV: entrada limitada inicialmente a 50 MiB; paquete expandido a 100 MiB/1.000 ficheros; XML/JSON de control a 10 MiB y profundidad 128. Las copias de workspace usan límites propios configurables, calculados y declarados antes de escribir/restaurar, sin aplicarles el tamaño de un solo CV. Rechazar límites excedidos con explicación, sin truncar. Probar archivos corruptos, cifrados y adjuntos ambiguos. Límites revisables con evidencia. |
 | NF-08 Evolución | Formatos, modelo y plantillas versionados; migraciones con recuperación; un formato futuro desconocido nunca se guarda destructivamente como si fuera compatible. |
 | NF-09 Independencia | Código, plantillas, estilos, iconos y recursos propios o con licencia compatible. Los PDF del usuario son entradas privadas de prueba; no se redistribuyen como recursos de la aplicación. |
@@ -129,19 +151,15 @@ El equipo de referencia propuesto para NF-05 es Linux de escritorio con 4 núcle
 | Formularios por sección, Confirmar/Cancelar y resumen de entradas. | Estado local durable, recuperación explícita y salida sin registro ni expiración. |
 | Entradas repetibles, enlaces, descripciones, idiomas por destreza. | No descartar fechas inválidas; admitir precisión explícita y errores útiles. |
 | Separación de contenido y opciones de presentación. | Preview del mismo PDF que se exporta y ajustes restaurados al importar. |
-| Documento legible con datos reeditables adjuntos. | Formato propio documentado, sin depender del XML o del servidor de Europass. |
+| Documento legible con semántica recuperable. | PDF limitado a su salida visible; `.cvproj` completo y biblioteca automática para continuidad fiable. |
 | Variación de diseño y orden manual. | Dos diseños originales iniciales; ocultar, contraer y eliminar separados. |
-| Idioma de etiquetas seleccionable. | Original y traducciones revisadas independientes; nada de sustitución parcial silenciosa. |
+| Idioma del documento seleccionable. | Traducción real con revisión previa recuperable, nombres protegidos y memoria de términos sensibles. |
 | Importación de datos estructurados. | Ruta asistida para texto genérico y OCR, con revisión y límites de compatibilidad explícitos. |
 
 ## Límites y decisiones pendientes [P]
 
 La investigación no determina qué stack usa Europass, la causa del botón deshabilitado, el TTL remoto real ni la compatibilidad universal con versiones antiguas. Tampoco valida todavía nuestro motor PDF, su accesibilidad o el rendimiento propuesto. Ninguno exige reabrir la investigación o esperar 48 horas para especificar el producto.
 
-Antes de programar deben aprobarse conjuntamente:
+Las decisiones de perfil, biblioteca automática, `.cvproj` completo, PDF limitado a su exportación, traducción real A/B/C, importación inteligente, diseños propios y MVP están cerradas por el usuario. F0 queda completada a nivel de decisiones de producto.
 
-1. Aplicación de escritorio local con Linux primero, frente a priorizar navegador u otro sistema.
-2. Alcance del MVP de ocho áreas, dos plantillas y ES/EN; once tipos, PDF genérico y OCR en fases posteriores obligatorias de la versión 1.
-3. Perfil maestro y CV independientes, con cambios transferidos solo de forma explícita.
-4. Formato `.cvproj`, PDF reeditable con todo el CV —incluido lo oculto y sus traducciones— y alternativa para compartir; sin obligación de exportar XML Europass.
-5. Stack y validación técnica propuestos en [ARCHITECTURE.md](ARCHITECTURE.md), con calidad funcional del PDF y diseños propios como criterio de fidelidad.
+F1 debe seleccionar/validar motor local de traducción, empaquetado, persistencia, composición y adjuntos PDF con minimización efectiva, rendimiento y accesibilidad. Las dependencias/versiones siguen siendo propuestas técnicas hasta superar esa puerta; no se exige volver a aprobar las decisiones de producto ya cerradas. Esta tarea solo consolida documentación y no inicia F1.
