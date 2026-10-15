@@ -1,0 +1,209 @@
+{
+  "browser": {
+    "mode": "launch",
+    "executable_path": "/opt/google/chrome/chrome",
+    "headless": true
+  },
+  "start_url": {
+    "url": "https://europa.eu/europass/eportfolio/screen/cv-editor/compact-cv-editor?lang=en"
+  },
+  "environment": {
+    "viewport": {
+      "width": 913,
+      "height": 1200
+    },
+    "locale": "en-US",
+    "timezone": "UTC",
+    "service_workers": "block"
+  },
+  "actions": [
+    {
+      "step_id": "boot",
+      "action": "wait_for_timeout",
+      "duration_ms": 7000
+    },
+    {
+      "step_id": "scratch",
+      "timeout_ms": 25000,
+      "action": "click",
+      "locator": {
+        "kind": "role",
+        "role": "button",
+        "name": "Start from scratch"
+      },
+      "button": "left",
+      "click_count": 1
+    },
+    {
+      "step_id": "editor-settle",
+      "action": "wait_for_timeout",
+      "duration_ms": 2000
+    },
+    {
+      "step_id": "beta",
+      "timeout_ms": 15000,
+      "action": "click",
+      "locator": {
+        "kind": "role",
+        "role": "button",
+        "name": "Try the new CV builder (beta)"
+      },
+      "button": "left",
+      "click_count": 1
+    },
+    {
+      "step_id": "ready",
+      "action": "wait_for_timeout",
+      "duration_ms": 2000
+    },
+    {
+      "step_id": "essential-ready",
+      "timeout_ms": 5000,
+      "action": "click",
+      "locator": {
+        "kind": "role",
+        "role": "link",
+        "name": "Accept only essential cookies"
+      },
+      "button": "left",
+      "click_count": 1
+    },
+    {
+      "step_id": "cv-name",
+      "timeout_ms": 5000,
+      "action": "fill",
+      "locator": {
+        "kind": "role",
+        "role": "textbox",
+        "name": "Name (required)"
+      },
+      "value": {
+        "source": "literal",
+        "value": "cv-prueba-autonoma"
+      }
+    },
+    {
+      "step_id": "expand-personal",
+      "timeout_ms": 5000,
+      "action": "click",
+      "locator": {
+        "kind": "css",
+        "selector": ":nth-match(button[aria-label=\"collapsed\"], 1)"
+      },
+      "button": "left",
+      "click_count": 1
+    },
+    {
+      "step_id": "personal-menu",
+      "timeout_ms": 5000,
+      "action": "click",
+      "locator": {
+        "kind": "css",
+        "selector": ":nth-match(button[aria-label=\"Actions\"], 1)"
+      },
+      "button": "left",
+      "click_count": 1
+    },
+    {
+      "step_id": "personal-edit",
+      "timeout_ms": 5000,
+      "action": "click",
+      "locator": {
+        "kind": "role",
+        "role": "menuitem",
+        "name": "Edit your Personal Information"
+      },
+      "button": "left",
+      "click_count": 1
+    },
+    {
+      "step_id": "firstname",
+      "timeout_ms": 5000,
+      "action": "fill",
+      "locator": {
+        "kind": "role",
+        "role": "textbox",
+        "name": "First name"
+      },
+      "value": {
+        "source": "literal",
+        "value": "Persona"
+      }
+    },
+    {
+      "step_id": "lastname",
+      "timeout_ms": 5000,
+      "action": "fill",
+      "locator": {
+        "kind": "role",
+        "role": "textbox",
+        "name": "Last name"
+      },
+      "value": {
+        "source": "literal",
+        "value": "Ficticia REA"
+      }
+    },
+    {
+      "step_id": "personal-save",
+      "timeout_ms": 5000,
+      "action": "click",
+      "locator": {
+        "kind": "role",
+        "role": "button",
+        "name": "Save"
+      },
+      "button": "left",
+      "click_count": 1
+    },
+    {
+      "step_id": "preview-valid",
+      "timeout_ms": 8000,
+      "action": "click",
+      "locator": {
+        "kind": "role",
+        "role": "button",
+        "name": "Access the preview of the wizard"
+      },
+      "button": "left",
+      "click_count": 1
+    },
+    {
+      "step_id": "download-valid",
+      "timeout_ms": 8000,
+      "action": "click",
+      "locator": {
+        "kind": "role",
+        "role": "button",
+        "name": "Download"
+      },
+      "button": "left",
+      "click_count": 1
+    },
+    {
+      "step_id": "download-wait",
+      "action": "wait_for_timeout",
+      "duration_ms": 20000
+    }
+  ],
+  "capture": {
+    "after_each_step": [
+      "accessibility",
+      "url"
+    ],
+    "at_end": [
+      "accessibility",
+      "url"
+    ],
+    "events": [
+      "downloads",
+      "page-errors",
+      "network"
+    ],
+    "network": {
+      "request_body": false,
+      "response_body": false,
+      "header_values": false
+    }
+  }
+}

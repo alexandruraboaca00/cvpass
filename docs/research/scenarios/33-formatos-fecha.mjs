@@ -1,0 +1,2 @@
+import {browser,imported,log,exportPdf,ROOT} from './cierre-helpers.mjs';
+const b=await browser();try{const p=await imported(b,`${ROOT}/fechas-confirmadas.pdf`);const formats=await p.locator('#cv-date-format-picker option').evaluateAll(es=>es.map(e=>e.value));for(let i=0;i<formats.length;i++){await p.locator('#cv-date-format-picker').selectOption(formats[i],{force:true});await exportPdf(p,`formato-fecha-${i}`);log('date-format-export',{index:i,value:formats[i]});}}catch(e){log('error',{message:e.message.slice(0,1200)});process.exitCode=1;}finally{await b.close();}

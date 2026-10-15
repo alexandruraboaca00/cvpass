@@ -1,0 +1,15 @@
+import {browser,imported,expandAll,log,exact,save,option,fields,cancel,exportPdf,ROOT} from './cierre-helpers.mjs';
+const b=await browser();try{
+ const p=await imported(b,`${ROOT}/multiples.pdf`);await expandAll(p);
+ await p.locator('button[id$="-action-buttons"]').click();await p.getByRole('menuitem').filter({hasText:/Add/}).first().click();await p.waitForTimeout(1200);
+ const t=p.locator('input#title');await t.fill('');await t.pressSequentially('REA segunda Other confirmada');await p.locator('#filename-input').click();await option(p,'Content');const e=p.locator('[contenteditable="true"]').filter({visible:true}).first();if(await e.count()){await e.click();await e.press('Control+a');await e.press('Backspace');await p.keyboard.insertText('Contenido de segunda entrada personalizada.');await p.locator('#filename-input').click();}
+ const result=await save(p);await p.waitForTimeout(1200);log('custom-second-save',{result,afterWait:await exact(p,'Save').filter({visible:true}).count(),fields:await fields(p),invalid:await p.locator('input.ng-invalid,textarea.ng-invalid').evaluateAll(es=>es.map(e=>({id:e.id,placeholder:e.placeholder}))),headings:await p.getByRole('heading').allTextContents()});
+ if(await exact(p,'Save').filter({visible:true}).count())await cancel(p);
+ await expandAll(p);await p.locator('button[id^="action-dropdown-projects-"]').last().click();await p.getByRole('menuitem').filter({hasText:/Delete/}).first().click();await p.waitForTimeout(150);
+ log('entry-delete-confirmation',{visibleDialogs:await p.getByRole('dialog').allTextContents(),visibleButtons:await p.locator('button').filter({visible:true}).allTextContents()});
+ const cancelBtn=exact(p,'Cancel').filter({visible:true});if(await cancelBtn.count())await cancelBtn.last().click();log('after-cancel-delete',{projects:(await p.getByRole('heading').allTextContents()).filter(x=>x.includes('projects'))});
+ await p.locator('button[id^="action-dropdown-projects-"]').last().click();await p.getByRole('menuitem').filter({hasText:/Delete/}).first().click();await exact(p,'Delete').filter({visible:true}).last().click();await p.waitForTimeout(300);log('after-confirm-delete',{projects:(await p.getByRole('heading').allTextContents()).filter(x=>x.includes('projects'))});
+ await p.locator('#action-dropdown-projectsaction-buttons').click();await p.getByRole('menuitem').filter({hasText:/Remove section/}).click();log('remove-section-dialog',{text:await p.getByRole('dialog').allTextContents()});await exact(p,'Remove section').filter({visible:true}).last().click();await p.waitForTimeout(300);log('after-remove-section',{hasProjectsHeading:(await p.getByRole('heading').allTextContents()).some(x=>x.trim()==='Projects'),hasProjectData:(await p.locator('body').innerText()).includes('REA segunda projects')});
+ await exportPdf(p,'borrado');
+ await p.locator('button').filter({hasText:'Add new section'}).first().click();log('catalogue-after-removal',{values:await p.locator('#new-section-selector option').evaluateAll(es=>es.map(x=>x.value))});
+}catch(e){log('error',{message:e.message.slice(0,2000)});process.exitCode=1;}finally{await b.close();}
