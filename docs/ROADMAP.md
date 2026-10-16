@@ -1,12 +1,12 @@
 # Roadmap de implementación
 
-Versión 0.3 · 16 de octubre de 2026 · Decisiones de producto consolidadas e implementación autorizada por fases. **Fase actual: F3 APROBADA por el usuario e integrada en main mediante merge commit desde `f3-persistence-library`. F4 no iniciada.** Véase [validación F3](f3/VALIDATION.md). F2 sigue integrada en main.
+Versión 0.4 · 16 de octubre de 2026 · Decisiones de producto consolidadas e implementación autorizada por fases. **Fase actual: F4 implementada y validada técnicamente en `f4-core-editor`; pendiente de aprobación del usuario y de integración. F5 no iniciada.** F1/F2/F3 permanecen aprobadas e integradas en main. Véase [validación F4](f4/VALIDATION.md).
 
 ## Alcance y criterio de avance [D]
 
 Las fases concretan las decisiones finales del usuario [D], descritas en [REQUIREMENTS.md](REQUIREMENTS.md), [ARCHITECTURE.md](ARCHITECTURE.md) y [DATA_MODEL.md](DATA_MODEL.md). La evidencia histórica principal está en [23 — Cierre](research/23-cierre-investigacion-y-criterios.md), [28 — Mejoras](research/28-mejoras-necesarias-y-aceptacion.md) y [29](research/29-simulacion-caducidad-y-recuperacion.md). Las propuestas históricas incompatibles no prevalecen sobre esta especificación.
 
-La investigación ha terminado y la implementación está autorizada. No hay esperas de 48 horas ni acciones manuales pendientes en Europass. Las comprobaciones siguientes se harán sobre nuestra aplicación; las pruebas de Europass no las sustituyen. La orden vigente autoriza integrar y publicar F3 en main, sin iniciar F4. F1 permanece cerrada y F2 integrada.
+La investigación ha terminado y la implementación está autorizada. No hay esperas de 48 horas ni acciones manuales pendientes en Europass. Las comprobaciones siguientes se harán sobre nuestra aplicación; las pruebas de Europass no las sustituyen. La orden vigente autoriza implementar y validar únicamente F4, sin fusionar la rama ni iniciar F5 hasta aprobación del usuario. F1 permanece cerrada y F2/F3 integradas.
 
 Cada fase debe entregar un resultado revisable y superar su criterio antes de ampliar alcance. Se fija entonces la versión de dependencias utilizada y se conserva la evidencia de aceptación. No se asignan fechas sin estimar sobre los primeros resultados.
 
@@ -56,7 +56,7 @@ Por decisión final del usuario para este cierre, la traducción no forma parte 
 
 ## F3 — Biblioteca, persistencia y recuperación
 
-**Estado: APROBADA por el usuario e integrada en main desde `f3-persistence-library` mediante merge commit — 16 de octubre de 2026.** SQLite real en worker, esquema/migraciones explícitas, biblioteca independiente, borradores recuperables, checkpoints durables, activos por hash y copias/restauración `.cvproj` CV/workspace sin ampliar v1. 39 tests F3 + 30 F2, TypeScript/build y regresión F1 3/3 pasan. Dos procesos reales de Electron, SIGKILL, SQLITE_FULL, migración fallida y red deshabilitada probados. [Evidencia](f3/VALIDATION.md), [decisiones/límites](f3/PERSISTENCE.md). F4 no iniciada.
+**Estado: APROBADA por el usuario e integrada en main desde `f3-persistence-library` mediante merge commit — 16 de octubre de 2026.** SQLite real en worker, esquema/migraciones explícitas, biblioteca independiente, borradores recuperables, checkpoints durables, activos por hash y copias/restauración `.cvproj` CV/workspace sin ampliar v1. 39 tests F3 + 30 F2, TypeScript/build y regresión F1 3/3 pasan. Dos procesos reales de Electron, SIGKILL, SQLITE_FULL, migración fallida y red deshabilitada probados. [Evidencia](f3/VALIDATION.md), [decisiones/límites](f3/PERSISTENCE.md). F4 se implementa y valida en una rama separada.
 
 **Depende de:** F2. **Salida:** biblioteca automática con perfil, CV, borradores, revisiones/checkpoints y copias `.cvproj`.
 
@@ -68,6 +68,8 @@ Por decisión final del usuario para este cierre, la traducción no forma parte 
 
 ## F4 — Editor de datos personales, educación y experiencia
 
+**Estado: implementada y validada técnicamente en `f4-core-editor` — 16 de octubre de 2026. Propuesta F4 = APROBADA; pendiente de aprobación e integración por el usuario.** React/Electron conectados a dominio/SQLite reales, formularios separados, Confirmar/Cancelar, foto, fechas parciales, texto enriquecido limitado, inclusión/contraer y orden por teclado. 13 tests F4 de aplicación/codec + 4 flujos de UI real, repetidos sin red; F1 3/3, F2 30/30, F3 39/39 y TypeScript/build pasan. [Implementación/límites](f4/EDITOR.md), [evidencia](f4/VALIDATION.md). F5 no iniciada.
+
 **Depende de:** F3. **Salida:** editor inicial con resúmenes y los tres formularios principales.
 
 - Campos obligatorios/optativos explícitos, contactos/enlaces repetibles, ubicación, periodos/Ongoing y texto enriquecido.
@@ -77,6 +79,8 @@ Por decisión final del usuario para este cierre, la traducción no forma parte 
 **Aceptación:** ejecutar Confirmar/Cancelar con un email ficticio; editar una sola educación conserva otras entradas/campos; un cambio de fecha inválido sigue visible hasta corregir/cancelar. Ocultar conserva la entrada, contraer no cambia su inclusión y reordenar persiste tras reinicio.
 
 ## F5 — Completar las ocho áreas y los idiomas del MVP
+
+**Estado: no iniciada; requiere aprobación posterior del usuario.**
 
 **Depende de:** F4. **Salida:** habilidades/grupos, lenguas, certificaciones, proyectos y personalizadas, más traducción real ES/EN con revisión.
 
@@ -221,4 +225,4 @@ Nuevos motores/memorias de traducción, diseños, ajuste de extensión, catálog
 
 ## Decisiones que siguen pendientes [P]
 
-F0 está cerrada por las decisiones finales del usuario. F1 está aprobada con versiones, mediciones y límites en [F1_VALIDATION.md](F1_VALIDATION.md). La traducción queda fuera de sus criterios de cierre por instrucción final del usuario; no se presenta como validada para el producto. F2 está aprobada e integrada en `main` con los límites del contrato inicial en [f2/VALIDATION.md](f2/VALIDATION.md). F3 está aprobada por el usuario e integrada en main [con evidencia propia](f3/VALIDATION.md). No se inicia F4.
+F0 está cerrada por las decisiones finales del usuario. F1 está aprobada con versiones, mediciones y límites en [F1_VALIDATION.md](F1_VALIDATION.md). La traducción queda fuera de sus criterios de cierre por instrucción final del usuario; no se presenta como validada para el producto. F2 está aprobada e integrada en `main` con los límites del contrato inicial en [f2/VALIDATION.md](f2/VALIDATION.md). F3 está aprobada por el usuario e integrada en main [con evidencia propia](f3/VALIDATION.md). F4 está implementada y validada técnicamente en su rama, [pendiente de aprobación e integración](f4/VALIDATION.md). No se inicia F5.

@@ -1,0 +1,90 @@
+{
+  "phase": "F4",
+  "date": "2026-10-16",
+  "technicalConclusion": "APROBADA",
+  "userApproval": "pending",
+  "merged": false,
+  "f5Started": false,
+  "baseMain": "c5392ec88ffd1df5d33bf02567fd8a561abd9b4c",
+  "implementationCommit": "a8b80332f9662cbd68da9db29dabf71f961e04d6",
+  "node": {
+    "tests": 82,
+    "pass": 82,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "f1": {
+    "tests": 3,
+    "pass": 3,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "f4Unit": {
+    "tests": 13,
+    "pass": 13,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "todo": 0
+  },
+  "unchangedSuitesWithinNode": {
+    "f2": 30,
+    "f3": 39
+  },
+  "ui": {
+    "startTime": "2026-10-16T13:20:20.384Z",
+    "duration": 37266.630999999994,
+    "expected": 4,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "offline": {
+    "ui": {
+      "startTime": "2026-10-16T13:18:56.143Z",
+      "duration": 47667.772,
+      "expected": 4,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "network": {
+      "method": "Linux user + network namespace; lo up only for local CDP; no external interface or route",
+      "interfaces": [
+        "lo"
+      ],
+      "externalTcp": "ENETUNREACH",
+      "route": "Iface\tDestination\tGateway \tFlags\tRefCnt\tUse\tMetric\tMask\t\tMTU\tWindow\tIRTT",
+      "exitCode": 0
+    }
+  },
+  "rendererErrors": 0,
+  "observedHttpRequests": 0,
+  "sqliteAssertions": {
+    "integrity": [
+      "ok"
+    ],
+    "foreignKeyViolations": 0,
+    "source": "tests/ui/f4.spec.ts and tests/editor.test.ts; verified before fixture cleanup"
+  },
+  "typecheck": "PASS",
+  "build": "PASS",
+  "buildHashes": {
+    "src/desktop/main.js": "9b5c7fb274a0c56ec269227600da9e3f2b1e286fae76da0fca8fdac76043467f",
+    "src/desktop/preload.cjs": "41b050f49978ca88347bda0cf1fa6bb788e42e5ab12744cca1d253648ad0ad76",
+    "src/application/editor.js": "a67b8a0cd9433471fdb326a6e22a3fc1aa8c1fdc055f9a0d65913e6ceea875df",
+    "src/application/editor-model.js": "4b68504b986c975e042747148391976b9f8f09b39823ddfa66e94ac5a2dc37e4",
+    "renderer/assets/index-CUDlDxCn.css": "429cb533689a1151f588d871a5fb2d91a96c4af356e45f1790682f5059c090ee",
+    "renderer/assets/index-DtsIXp9J.js": "d4983f0a1926ec6c5cff84d9cebd4cbffee8c1876ec30f7c03cb5a990e0165b5"
+  },
+  "limitations": [
+    "Linux graphical test harness uses --no-sandbox; kernel sandbox not certified",
+    "Vite use-client and chunk-size notices",
+    "Environment VA-API diagnostic",
+    "F4 fields only; F5 not started"
+  ]
+}
