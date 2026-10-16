@@ -7,8 +7,22 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "npm run build && node --test dist/tests/*.test.js",
-    "test:f1": "npm test --prefix spikes/f1"
+    "test:f1": "npm test --prefix spikes/f1",
+    "test:f2": "npm run build && node --test dist/tests/domain.test.js dist/tests/language-revisions.test.js dist/tests/invariants.test.js dist/tests/migrations.test.js dist/tests/portable.test.js",
+    "test:f3": "npm run build && node --test dist/tests/sqlite-storage.test.js dist/tests/sqlite-migrations.test.js dist/tests/library.test.js dist/tests/drafts.test.js dist/tests/local-host.test.js dist/tests/storage-failures.test.js dist/tests/project-files.test.js",
+    "validate:f3:electron": "npm run build && node scripts/f3-electron-check.mjs"
   },
-  "dependencies": {"zod": "4.6.7", "fflate": "0.8.3"},
-  "devDependencies": {"typescript": "7.0.2", "@types/node": "26.6.5"}
+  "dependencies": {
+    "better-sqlite3": "13.0.3",
+    "fflate": "0.8.3",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "9.6.0",
+    "@types/node": "26.6.5",
+    "typescript": "7.0.2"
+  },
+  "allowScripts": {
+    "better-sqlite3@13.0.3": true
+  }
 }

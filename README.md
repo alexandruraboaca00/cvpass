@@ -4,7 +4,7 @@ CVForge será una aplicación local para crear y gestionar CV, importar document
 
 ## Estado actual
 
-La investigación de Europass está terminada y las decisiones de producto están consolidadas. La implementación está autorizada por fases. La fase actual es **F2: dominio y contrato portable inicial aprobados e integrados en `main` mediante merge commit**. F1 permanece cerrada en [docs/F1_VALIDATION.md](docs/F1_VALIDATION.md). No hay editor completo ni biblioteca de producto. F3 no iniciada.
+La investigación de Europass está terminada y las decisiones de producto están consolidadas. La fase actual es **F3: biblioteca SQLite, persistencia y recuperación aprobadas por el usuario e integradas en `main` mediante merge commit desde `f3-persistence-library`**. [Validación F3](docs/f3/VALIDATION.md). F2 está integrada en `main`; F1 permanece cerrada en [docs/F1_VALIDATION.md](docs/F1_VALIDATION.md). No hay editor completo. F4 no iniciada.
 
 ## Producto definido
 
@@ -14,7 +14,7 @@ La investigación de Europass está terminada y las decisiones de producto está
 - Traducción real ES/EN: narrativa automática revisable, nombres protegidos y términos sensibles con aprobación reutilizable; recuperación del estado anterior y duplicación opcional.
 - Importación con detección automática de proyecto, PDF propio y Europass compatible. PDF genérico avanzado y OCR vendrán después del MVP.
 
-Estas son funcionalidades previstas, no capacidades ya disponibles.
+Esta lista describe el producto completo; las capacidades implementadas y sus límites se registran por fase.
 
 ## MVP previsto
 
@@ -22,9 +22,9 @@ Datos personales, educación, experiencia, habilidades, idiomas, certificaciones
 
 ## Stack y validación técnica F1
 
-Electron, React, TypeScript y Vite; SQLite en worker mediante better-sqlite3; Zod, Tiptap e i18next para validación/edición/interfaz; Chromium para componer PDF y PDF.js para visualizar/importar. pdf-lib es el primer candidato para adjuntos, con qpdf como alternativa si no conserva la calidad requerida. Electron/React/TypeScript, SQLite y PDF han superado la prueba F1 en Linux x64. Zod, Tiptap e i18next siguen propuestos para el producto. La traducción ES/EN conserva su exploración previa y queda fuera del criterio de cierre F1 por decisión final del usuario.
+Electron, React, TypeScript y Vite; SQLite en worker mediante better-sqlite3; Zod, Tiptap e i18next para validación/edición/interfaz; Chromium para componer PDF y PDF.js para visualizar/importar. pdf-lib es el primer candidato para adjuntos, con qpdf como alternativa si no conserva la calidad requerida. Electron/React/TypeScript, SQLite y PDF han superado la prueba F1 en Linux x64. Zod está integrado en F2/F3; Tiptap e i18next siguen propuestos para el producto. La traducción ES/EN conserva su exploración previa y queda fuera del criterio de cierre F1 por decisión final del usuario.
 
-La fase comprobará persistencia, empaquetado, composición/lectura PDF, minimización de datos adjuntos y viabilidad de traducción local. Las dependencias y sus versiones no están todavía validadas como conjunto.
+El resultado acotado y las versiones concretas del spike figuran en el registro F1. La integración del producto completo sigue el roadmap.
 
 ## Documentación vigente
 
@@ -54,4 +54,23 @@ npm run build
 
 [Implementación y límites](docs/f2/IMPLEMENTATION.md), [formato](docs/f2/CVPROJ.md)
 y [aceptación](docs/f2/VALIDATION.md). Las operaciones de guardado automático y
-restauración de biblioteca pertenecen a F3. F3 requiere una nueva autorización del usuario.
+restauración de biblioteca están implementadas en F3 mediante puertos de aplicación
+y un adaptador SQLite en worker, conservando los contratos F2.
+
+## Persistencia F3
+
+[Esquema, decisiones y límites](docs/f3/PERSISTENCE.md), [validación](docs/f3/VALIDATION.md).
+`src/application` contiene los casos de biblioteca, borradores y checkpoints;
+`src/host/local-library.ts` recibe exclusivamente la capacidad userData de Electron.
+Los tests usan SQLite real y datos sintéticos fuera del repositorio.
+
+```bash
+npm run test:f2
+npm run test:f3
+CVFORGE_F1_OUTPUT=/tmp/cvforge-f3-f1-regression-final npm run test:f1
+```
+
+El harness opcional `npm run validate:f3:electron` reutiliza una copia del runtime
+Linux ya instalado de F1, con otra aplicación técnica y sin modificar el spike.
+No es una dependencia de producción. `scripts/f3-offline-check.mjs` requiere
+iniciarse dentro de un namespace Linux sin red; procedimiento en el registro F3.

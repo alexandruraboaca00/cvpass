@@ -1,6 +1,6 @@
 # Modelo de datos de CVForge
 
-Versión 0.3 · 16 de octubre de 2026 · Especificación conceptual y concreción F2. El dominio MVP, revisiones en memoria y contrato portable inicial están implementados; correspondencias y límites en [f2/IMPLEMENTATION.md](f2/IMPLEMENTATION.md). El inventario V1 y los flujos de biblioteca/importación posteriores siguen siendo especificación, no código implementado.
+Versión 0.4 · 16 de octubre de 2026 · Especificación conceptual y concreciones F2/F3. El dominio MVP y el contrato portable inicial están implementados; correspondencias y límites en [f2/IMPLEMENTATION.md](f2/IMPLEMENTATION.md). La biblioteca, revisiones, activos y borradores son durables en F3; [esquema y límites](f3/PERSISTENCE.md). El inventario V1 y los importadores posteriores siguen siendo especificación.
 
 ## Convenciones y principios [D]
 
@@ -334,3 +334,22 @@ workspace como dato portable, revisiones sin persistencia y plantillas declarati
 límites y migración explícita sin compatibilidad legacy inventada. Los campos de
 importación F6 y los tipos V1 que aún no pertenecen al esquema se rechazan, nunca
 se eliminan al abrir y volver a guardar. [Aceptación F2](f2/VALIDATION.md).
+
+## Concreción implementada en F3
+
+El esquema físico SQLite v2 conserva el modelo de dominio v1 y `.cvproj` v1.
+Workspace, perfil, CV, snapshots históricos, recursos y borradores se guardan en
+transacciones detrás de puertos de aplicación. Sections/Entries/configuración/
+idioma/orden/visibilidad/memoria sensible se validan en sus snapshots; no tienen
+otra copia editable normalizada con reglas duplicadas.
+
+FormDraft es un contrato de aplicación: baseSnapshot validada, revisión base,
+versión del borrador, ruta descriptiva, valores JSON temporales, rawDateInputs y
+dependencias explícitas. La ruta no ejecuta accesos dinámicos. La aceptación de
+recuperación devuelve esos valores; confirmar exige un candidato de dominio
+válido sobre la revisión vigente. Una base vieja no se aplica automáticamente.
+
+No se amplía el formato portable F2 para guardar borradores: su exclusión requiere
+resolverlos o aceptarla expresamente. Los backups SQLite sí incluyen ese trabajo.
+SourceArtifact/importadores F6 y campos V1 siguen fuera del contrato inicial;
+claves desconocidas se rechazan. [Validación F3](f3/VALIDATION.md).
