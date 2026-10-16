@@ -1,6 +1,6 @@
 # Requisitos de CVForge
 
-Versión 0.3 · 16 de octubre de 2026 · Decisiones de producto consolidadas por el usuario. Implementación autorizada por fases; F1 está aprobada con el alcance de cierre fijado por el usuario; véase [registro F1](F1_VALIDATION.md). Ninguna funcionalidad se presenta como implementada.
+Versión 0.4 · 16 de octubre de 2026 · Decisiones de producto consolidadas por el usuario. Implementación autorizada por fases; F1 está aprobada con el alcance de cierre fijado por el usuario; véase [registro F1](F1_VALIDATION.md). F2 tiene el dominio y el contrato portable inicial aprobados e integrados en main; el producto/editor completo no está implementado. Véase [aceptación F2](f2/VALIDATION.md).
 
 ## Base y alcance de la especificación
 
@@ -12,7 +12,7 @@ Convenciones comunes a los cuatro documentos:
 - **[D] Decisión del producto propio:** las decisiones finales de perfil, guardado, PDF, idiomas, importación, diseños y MVP están aprobadas por el usuario. Las elecciones técnicas todavía propuestas se identifican como tales; ninguna describe la implementación interna de Europass.
 - **[P] Pendiente:** decisión del producto o validación técnica que todavía debe resolverse.
 
-**Todos los requisitos siguientes son [D].** La investigación no demuestra que nuestra aplicación los cumpla: la implementación y sus pruebas siguen pendientes. Una propuesta histórica incompatible con estas decisiones no es un requisito vigente.
+**Todos los requisitos siguientes son [D].** La investigación no demuestra que nuestra aplicación los cumpla: la aceptación del producto completo sigue pendiente; la evidencia acotada de F1/F2 está registrada por fase. Una propuesta histórica incompatible con estas decisiones no es un requisito vigente.
 
 ## Hechos que sustentan el producto
 
@@ -162,4 +162,4 @@ La investigación no determina qué stack usa Europass, la causa del botón desh
 
 Las decisiones de perfil, biblioteca automática, `.cvproj` completo, PDF limitado a su exportación, traducción real A/B/C, importación inteligente, diseños propios y MVP están cerradas por el usuario. F0 queda completada a nivel de decisiones de producto.
 
-F1 ha validado empaquetado, persistencia, composición y adjuntos PDF con minimización efectiva y lectura en el corpus de prueba. Por decisión final del usuario, la traducción no es criterio necesario de su cierre y no se desarrolla más en F1; sigue siendo requisito de producto en las fases posteriores. Las dependencias/versiones y sus límites validados constan en el registro F1; no se exige volver a aprobar las decisiones de producto ya cerradas. La reanudación autorizada se limita a F1; `.cvproj` comienza en F2.
+F1 ha validado empaquetado, persistencia, composición y adjuntos PDF con minimización efectiva y lectura en el corpus de prueba. Por decisión final del usuario, la traducción no es criterio necesario de su cierre y no se desarrolla más en F1; sigue siendo requisito de producto en las fases posteriores. Las dependencias/versiones y sus límites validados constan en el registro F1; no se exige volver a aprobar las decisiones de producto ya cerradas. F2 ha integrado en main el dominio y el contrato `.cvproj` inicial, con alcance y límites en [f2/VALIDATION.md](f2/VALIDATION.md). No se inicia F3 ni se declara terminado el MVP.

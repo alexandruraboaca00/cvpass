@@ -1,6 +1,6 @@
 # Arquitectura propuesta
 
-Versión 0.3 · 16 de octubre de 2026 · Stack validado en el alcance técnico F1; producto aún no implementado. Véase [registro F1](F1_VALIDATION.md).
+Versión 0.4 · 16 de octubre de 2026 · F1 cerrada; dominio y contratos iniciales F2 aprobados e integrados en main, sin biblioteca ni editor de producto. Véase [aceptación F2](f2/VALIDATION.md).
 
 ## Decisión principal [D]
 
@@ -220,7 +220,7 @@ Una memoria sensible no empareja automáticamente títulos ambiguos por texto: i
 | Versionar una plantilla cambia su aspecto histórico. | Mantener versiones disponibles; si falta una, proponer sustitución y comunicar que el PDF original sigue siendo la referencia visual. No prometer bytes idénticos entre motores/versiones. |
 | Los objetivos de rapidez no se cumplen. | Medición sobre equipo/corpus fijados; perfilar y ajustar antes de declarar el MVP, sin recortar contenido silenciosamente. |
 
-La autorización general para implementar está concedida y las decisiones de producto están cerradas. La fase actual es **F1, aprobada; F2 no iniciada**; véase [registro F1](F1_VALIDATION.md). La puerta técnica queda cerrada con los límites documentados; la orden actual no autoriza iniciar F2.
+La autorización general para implementar está concedida y las decisiones de producto están cerradas. La fase actual es **F2, aprobada e integrada en main mediante merge commit**; véase [aceptación F2](f2/VALIDATION.md). F1 permanece cerrada con sus límites; F3 no se inicia.
 
 ## Resultado de la puerta F1 — 16 de octubre de 2026
 
@@ -232,3 +232,15 @@ La traducción queda fuera del criterio de cierre por decisión final del usuari
 sus propuestas de producto anteriores no equivalen a una validación completa.
 Los futuros verbos de validación en este diseño describen obligaciones de las
 fases de producto, no pendientes que reabran F1. F2 no se inicia.
+
+## Concreción técnica F2
+
+Dominio puro en `src/domain`, con Zod y sin dependencias de UI, Electron, SQLite,
+Node o motores. Los puertos de identidad/reloj y preparación de imágenes son
+explícitos. `src/adapters` implementa JSON/ZIP/bytes/hashes sin persistencia ni
+red. El contrato `.cvproj` inicial es ZIP STORE con manifiesto versionado e
+inventario verificado; conserva CV/workspace y sus revisiones/activos necesarios
+en memoria. No es el flujo de backup/restauración durable de F3. ExportProjection
+y ExportPayload son contratos distintos del proyecto privado; no se cambia el
+motor PDF F1. [Diseño implementado y límites](f2/IMPLEMENTATION.md),
+[formato portable](f2/CVPROJ.md).
