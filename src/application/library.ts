@@ -5,7 +5,7 @@ import {
 import type { CvDocument, DomainContext, Entity, PersonalInformation, Revision, TemplateDefinition } from '../domain/index.js';
 import type { BackupReceipt, FormDraft, LibraryContent, LibraryRecord, LibraryRepository, ProjectCodec, Resources } from './contracts.js';
 import { reject } from './contracts.js';
-import { addResources, collectUnused, findEntity, projectFromState, stateFromProject, validateDraft, validateLibrary } from './library-state.js';
+import { addResources, collectUnused, findEntity, projectFromState, stateFromProject, validateDraft, validateDraftChanges, validateLibrary } from './library-state.js';
 import { copyProjectIdentities } from './copies.js';
 
 export type DraftChanges = Pick<FormDraft,'values'|'rawDateInputs'|'assetIds'|'templateRefs'>;
@@ -158,10 +158,11 @@ export class LibraryService {
     r.content.drafts.push(draft); await this.persist(r); return draft;
   }
   async updateDraft(id: string, expectedVersion: number, changes: DraftChanges, resources: Resources = {}): Promise<FormDraft> {
+    const validatedChanges = validateDraftChanges(changes);
     const r = await this.loaded(), index = r.content.drafts.findIndex(d => d.id === id);
     const previous = r.content.drafts[index] ?? reject('DRAFT_NOT_FOUND');
     if (previous.version !== expectedVersion) reject('DRAFT_CONFLICT');
-    const next = validateDraft({...previous,...changes,version:previous.version+1,updatedAt:this.ctx.now()});
+    const next = validateDraft({...previous,...validatedChanges,version:previous.version+1,updatedAt:this.ctx.now()});
     r.content.drafts[index] = next; addResources(r.content,resources); await this.persist(r); return next;
   }
   async recoverableDrafts(): Promise<{draft:FormDraft;conflict:boolean}[]> {

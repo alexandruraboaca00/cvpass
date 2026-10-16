@@ -69,3 +69,16 @@ test('SQLite constraints protect basic referential integrity independently of do
   assert.throws(() => db.exec("UPDATE revisions SET retention='ordinary' WHERE cause='beforeTranslation'"),/CHECK/);
   db.close();
 });
+test('modified blob bytes and invalid stored domain snapshots cannot be silently opened or repaired', async t => {
+  const dir = await directory(t), engine = await SqliteEngine.open(dir), state = stateFromProject(completeProjectFixture());
+  engine.commit(null,state); engine.close();
+  const path = join(dir,DATABASE_NAME), db = new Database(path), original = db.prepare<[],{sha256:string;bytes:Buffer}>('SELECT sha256,bytes FROM blobs').get()!;
+  const broken = Buffer.from(original.bytes); broken[broken.length-1] = broken[broken.length-1]! ^ 1;
+  db.prepare('UPDATE blobs SET bytes=? WHERE sha256=?').run(broken,original.sha256); db.close();
+  await assert.rejects(SqliteLibraryRepository.open(dir),/DOMAIN_INVALID/);
+  const repair = new Database(path); repair.prepare('UPDATE blobs SET bytes=? WHERE sha256=?').run(original.bytes,original.sha256);
+  const owner = state.workspace.cvOrder[0]!, text = JSON.stringify({...state.workspace.cvsById[owner],unsupportedFutureField:'SYNTHETIC_SENTINEL'});
+  repair.prepare('UPDATE entities SET snapshot_json=? WHERE id=?').run(text,owner); repair.close();
+  await assert.rejects(SqliteLibraryRepository.open(dir),/DOMAIN_INVALID/);
+  const verify = new Database(path,{readonly:true}); assert.equal(verify.prepare('SELECT snapshot_json FROM entities WHERE id=?').pluck().get(owner),text); verify.close();
+});

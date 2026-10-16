@@ -1,11 +1,12 @@
 import { z } from 'zod';
 import {
-  AssetMapSchema, IdSchema, Timestamp, TemplateSchema, WorkspaceSchema, RevisionSchema,
+  AssetMapSchema, IdSchema, Timestamp, TemplateSchema, WorkspaceSchema, RevisionSchema, Sha256,
   assertDataTree, parse, validateEntity, validateProject, referencedAssets, templateKey,
   canonical, validateResources, checkMap,
 } from '../domain/index.js';
 import type { Entity } from '../domain/index.js';
 import type { FormDraft, LibraryContent, Resources, ProjectData } from './contracts.js';
+import type { DraftChanges } from './library.js';
 import { reject } from './contracts.js';
 
 const refSchema = z.strictObject({ id: z.string().min(1), version: z.int().positive() });
@@ -16,6 +17,12 @@ const DraftSchema = z.strictObject({
   rawDateInputs: z.record(z.string().max(200), z.string().max(1000)),
   assetIds: z.array(IdSchema), templateRefs: z.array(refSchema),
 });
+const ChangesSchema = DraftSchema.pick({values:true,rawDateInputs:true,assetIds:true,templateRefs:true});
+export function validateDraftChanges(value: unknown): DraftChanges {
+  assertDataTree(value); return parse(ChangesSchema,value);
+}
+const LibrarySchema = z.strictObject({workspace:WorkspaceSchema,revisions:z.array(RevisionSchema),assetsById:AssetMapSchema,
+  templates:z.array(TemplateSchema),blobs:z.map(Sha256,z.instanceof(Uint8Array)),drafts:z.array(z.unknown())});
 export function currentEntities(s: LibraryContent): Entity[] {
   return [...(s.workspace.profile ? [s.workspace.profile] : []), ...Object.values(s.workspace.cvsById)];
 }
@@ -52,6 +59,8 @@ export function validateDraft(value: unknown): FormDraft {
   return { ...d, baseSnapshot };
 }
 export function validateLibrary(s: LibraryContent): LibraryContent {
+  assertDataTree({workspace:s.workspace,revisions:s.revisions,assetsById:s.assetsById,templates:s.templates,drafts:s.drafts});
+  parse(LibrarySchema,s);
   parse(WorkspaceSchema, s.workspace); parse(AssetMapSchema, s.assetsById); checkMap(s.assetsById,['assetsById']);
   s.templates.forEach(t => parse(TemplateSchema, t)); s.revisions.forEach(r => parse(RevisionSchema, r));
   const owners = new Set(currentEntities(s).map(e => e.id));

@@ -166,3 +166,9 @@ test('local storage never silently replaces incompatible immutable template defi
   await assert.rejects(library.confirmEntity(cv,cv.revision,{templates:[{...template,layout:'twoColumn'}]}),/TEMPLATE_VERSION_CONFLICT/);
   assert.deepEqual(await library.snapshot(),before);
 });
+test('a backwards clock is an explicit failure and never invents dates to save a new revision', async t => {
+  const {library,repository,cvId} = await libraryFixture(t), before = await library.snapshot(), cv = await library.openCv(cvId);
+  const regressedClock = new LibraryService(repository,{...runtimeContext,now:()=> '2026-10-15T00:00:00.000Z'},cvprojCodec);
+  await assert.rejects(regressedClock.renameCv(cvId,'No debe guardarse',cv.revision),/revision.beforeSnapshot/);
+  assert.deepEqual(await library.snapshot(),before);
+});

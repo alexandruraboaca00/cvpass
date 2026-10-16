@@ -2,7 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { DraftAutosaver } from '../src/application/autosave.js';
 import { makeAsset } from '../src/adapters/asset-bytes.js';
-import { decodeCvproj } from '../src/adapters/cvproj.js';
+import { decodeCvproj, encodeExportPayload } from '../src/adapters/cvproj.js';
+import { A, createExportProjection } from '../src/domain/index.js';
 import { libraryFixture, runtimeContext } from './library-helpers.js';
 import { syntheticPng } from './fixtures.js';
 
@@ -70,10 +71,46 @@ test('autosave reports conflicts as errors and a failed flush never reports save
   await assert.rejects(saver.finish(),/DRAFT_CONFLICT/); assert.equal(saver.status,'error'); assert(!statuses.includes('saved'));
   assert.deepEqual((await library.acceptRecovery(draft.id)).values,{newer:'Cambio de otra sesión'});
 });
+test('debounce automatically persists a draft without an explicit flush or confirmation', async t => {
+  const {library,cvId} = await libraryFixture(t), cv = await library.openCv(cvId), draft = await library.beginDraft(cvId,cv.revision);
+  let acknowledge: () => void = () => {};
+  const acknowledged = new Promise<void>(resolve => { acknowledge = resolve; });
+  const saver = new DraftAutosaver(library,draft,{delayMs:20,maxWaitMs:70,onStatus:s => {if (s === 'saved') acknowledge();}});
+  saver.schedule({values:{text:'Borrador automático sintético'},rawDateInputs:{},assetIds:[],templateRefs:[]});
+  let timeout: ReturnType<typeof setTimeout>;
+  try {
+    await Promise.race([acknowledged,new Promise<never>((_,reject) => {timeout=setTimeout(()=>reject(new Error('AUTOSAVE_ACK_TIMEOUT')),5000);})]);
+  } finally { clearTimeout(timeout!); }
+  assert.deepEqual((await library.acceptRecovery(draft.id)).values,{text:'Borrador automático sintético'});
+  assert.deepEqual(await library.openCv(cvId),cv); await saver.finish();
+});
 test('save and close explicitly preserves or discards drafts; neither action silently confirms form values', async t => {
   const {library,open,cvId} = await libraryFixture(t), cv = await library.openCv(cvId), draft = await library.beginDraft(cvId,cv.revision);
   await library.saveAndClose('preserveForRecovery'); const next = (await open()).library;
   assert.equal((await next.recoverableDrafts()).length,1); assert.deepEqual(await next.openCv(cvId),cv);
   await next.saveAndClose('discard'); const third = (await open()).library;
   assert.equal((await third.recoverableDrafts()).length,0); assert.deepEqual(await third.openCv(cvId),cv);
+});
+test('persisted private history, hidden values and raw drafts remain outside the F2 PDF payload contract', async t => {
+  const {library,cvId} = await libraryFixture(t), cv = await library.openCv(cvId);
+  cv.personalInformation.photo!.visible = false;
+  const hidden = cv.sectionsById[cv.sectionOrder[0]!]!, entry = Object.values(hidden.entriesById)[0]!;
+  if (entry.kind !== 'project') throw new Error('fixture'); entry.fields.title = A('PRIVATE_SQLITE_HIDDEN');
+  const confirmed = await library.confirmEntity(cv,cv.revision);
+  const draft = await library.beginDraft(cvId,confirmed.revision);
+  await library.updateDraft(draft.id,0,{values:{text:'PRIVATE_SQLITE_DRAFT'},rawDateInputs:{},assetIds:[],templateRefs:[]});
+  const payload = Buffer.from(encodeExportPayload(createExportProjection(await library.openCv(cvId)))).toString('utf8');
+  for (const privateValue of ['PRIVATE_SQLITE_HIDDEN','PRIVATE_SQLITE_DRAFT','PRIVATE_OTHER_CV','PRIVATE_PROFILE_ONLY','Primer CV privado']) assert(!payload.includes(privateValue));
+  const portable = Buffer.from(await library.exportCvproj(cvId,true)).toString('utf8');
+  assert(portable.includes('PRIVATE_SQLITE_HIDDEN')); assert(!portable.includes('PRIVATE_SQLITE_DRAFT'));
+});
+test('draft resource and identity errors fail explicitly instead of silently discarding data', async t => {
+  const {library,cvId} = await libraryFixture(t), cv = await library.openCv(cvId), draft = await library.beginDraft(cvId,cv.revision);
+  const before = await library.snapshot();
+  await assert.rejects(library.updateDraft(draft.id,0,{values:{},rawDateInputs:{},assetIds:[runtimeContext.newId()],templateRefs:[]}),/DRAFT_ASSET_MISSING/);
+  const redirected = {values:{},rawDateInputs:{},assetIds:[],templateRefs:[],entityId:runtimeContext.newId()};
+  await assert.rejects(library.updateDraft(draft.id,0,redirected));
+  const bytes = syntheticPng(5,3), asset = makeAsset(runtimeContext.newId(),bytes,'photo','image/png');
+  await assert.rejects(library.updateDraft(draft.id,0,{values:{},rawDateInputs:{},assetIds:[],templateRefs:[]},{assetsById:{[asset.id]:asset},blobs:new Map([[asset.sha256,bytes]])}),/RESOURCE_UNREFERENCED/);
+  assert.deepEqual(await library.snapshot(),before);
 });
