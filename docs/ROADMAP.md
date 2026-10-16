@@ -1,12 +1,12 @@
 # Roadmap de implementación
 
-Versión 0.4 · 16 de octubre de 2026 · Decisiones de producto consolidadas e implementación autorizada por fases. **Fase actual: F4 aprobada por el usuario e integrada en main mediante merge commit desde `f4-core-editor`. F5 no iniciada.** F1/F2/F3/F4 permanecen aprobadas e integradas en main. Véase [validación F4](f4/VALIDATION.md).
+Versión 0.4 · 16 de octubre de 2026 · Decisiones de producto consolidadas e implementación autorizada por fases. **Fase actual: F5 en implementación autorizada en `f5-mvp-sections-languages`; F4 aprobada e integrada.** F1/F2/F3/F4 permanecen aprobadas e integradas en main. Véase [validación F4](f4/VALIDATION.md).
 
 ## Alcance y criterio de avance [D]
 
 Las fases concretan las decisiones finales del usuario [D], descritas en [REQUIREMENTS.md](REQUIREMENTS.md), [ARCHITECTURE.md](ARCHITECTURE.md) y [DATA_MODEL.md](DATA_MODEL.md). La evidencia histórica principal está en [23 — Cierre](research/23-cierre-investigacion-y-criterios.md), [28 — Mejoras](research/28-mejoras-necesarias-y-aceptacion.md) y [29](research/29-simulacion-caducidad-y-recuperacion.md). Las propuestas históricas incompatibles no prevalecen sobre esta especificación.
 
-La investigación ha terminado y la implementación está autorizada. No hay esperas de 48 horas ni acciones manuales pendientes en Europass. Las comprobaciones siguientes se harán sobre nuestra aplicación; las pruebas de Europass no las sustituyen. La orden vigente autoriza integrar y publicar F4, sin iniciar F5 hasta nueva autorización del usuario. F1 permanece cerrada y F2/F3 integradas.
+La investigación ha terminado y la implementación está autorizada. No hay esperas de 48 horas ni acciones manuales pendientes en Europass. Las comprobaciones siguientes se harán sobre nuestra aplicación; las pruebas de Europass no las sustituyen. La orden vigente autoriza implementar F5 en su rama, sin fusionarla ni iniciar F6 hasta nueva aprobación. F1 permanece cerrada y F2/F3 integradas.
 
 Cada fase debe entregar un resultado revisable y superar su criterio antes de ampliar alcance. Se fija entonces la versión de dependencias utilizada y se conserva la evidencia de aceptación. No se asignan fechas sin estimar sobre los primeros resultados.
 
@@ -80,7 +80,7 @@ Por decisión final del usuario para este cierre, la traducción no forma parte 
 
 ## F5 — Completar las ocho áreas y los idiomas del MVP
 
-**Estado: no iniciada; requiere aprobación posterior del usuario.**
+**Estado: en implementación autorizada; validación de cierre pendiente.**
 
 **Depende de:** F4. **Salida:** habilidades/grupos, lenguas, certificaciones, proyectos y personalizadas, más traducción real ES/EN con revisión.
 

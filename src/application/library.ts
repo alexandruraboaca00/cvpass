@@ -20,6 +20,10 @@ export class LibraryService {
     await this.repository.commit(null,validateLibrary(content));
   }
   async snapshot(): Promise<LibraryRecord> { return this.loaded(); }
+  async setUiLocale(locale:'es'|'en'):Promise<void> {
+    if(locale!=='es'&&locale!=='en')reject('UI_LOCALE_INVALID');
+    const r=await this.loaded();r.content.workspace.settings.uiLocale=locale;await this.persist(r);
+  }
   async health() { return this.repository.health(); }
   async listCvs(): Promise<CvSummary[]> {
     const {content:s} = await this.loaded();
@@ -179,12 +183,12 @@ export class LibraryService {
     if (draft.version !== expectedVersion) reject('DRAFT_CONFLICT');
     r.content.drafts = r.content.drafts.filter(d => d.id !== id); await this.persist(r);
   }
-  async confirmDraft(id: string, expectedVersion: number, candidate: unknown, resources: Resources = {}): Promise<Entity> {
+  async confirmDraft(id: string, expectedVersion: number, candidate: unknown, resources: Resources = {}, cause:'edit'|'beforeTranslation'='edit'): Promise<Entity> {
     const r = await this.loaded(), draft = r.content.drafts.find(d => d.id === id) ?? reject('DRAFT_NOT_FOUND');
     if (draft.version !== expectedVersion) reject('DRAFT_CONFLICT');
     const entity = validateEntity(candidate);
     if (entity.id !== draft.entityId) reject('DRAFT_TARGET_MISMATCH');
-    const next = this.applyEntity(r.content,entity,draft.baseRevision,'edit',resources,id); await this.persist(r); return next;
+    const next = this.applyEntity(r.content,entity,draft.baseRevision,cause,resources,id); await this.persist(r); return next;
   }
   async exportCvproj(cvId?: string, acknowledgeDraftExclusion = false): Promise<Uint8Array> {
     const s = (await this.loaded()).content;

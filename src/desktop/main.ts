@@ -7,7 +7,7 @@ import { openLocalLibrary } from '../host/local-library.js';
 import { CoreEditorService } from '../application/editor.js';
 import { EditorTargetSchema, EditorValidationError } from '../application/editor-model.js';
 import type { EditorForm } from '../application/editor-model.js';
-import { DomainError } from '../domain/index.js';
+import { DomainError, SectionKindSchema } from '../domain/index.js';
 import { makeAsset } from '../adapters/asset-bytes.js';
 import type { EditorFailure } from '../application/editor-contract.js';
 
@@ -36,11 +36,12 @@ async function run():Promise<void> {
     win.webContents.on('will-navigate',event=>event.preventDefault());
     let queue = Promise.resolve<unknown>(undefined);
     const id = z.uuid(), revision = z.int().nonnegative(), none = z.tuple([]);
-    const target = z.union([EditorTargetSchema,z.strictObject({kind:z.literal('newEntry'),sectionId:id})]);
+    const target = z.union([EditorTargetSchema,z.strictObject({kind:z.literal('newEntry'),sectionId:id,entryKind:z.enum(['nativeLanguage','foreignLanguage']).optional()}),z.strictObject({kind:z.literal('newCustomSection')})]);
     const form = z.custom<EditorForm>(value => !!value && typeof value === 'object');
     const schemas = {
       list:none,create:z.tuple([z.string().min(1).max(1000),z.string().max(1000)]),open:z.tuple([id]),
-      addSection:z.tuple([id,revision,z.enum(['education','work'])]),begin:z.tuple([id,revision,target]),
+      addSection:z.tuple([id,revision,SectionKindSchema.exclude(['custom'])]),begin:z.tuple([id,revision,target]),
+      setUiLocale:z.tuple([z.enum(['es','en'])]),duplicate:z.tuple([id,revision,z.string().min(1).max(1000)]),revisions:z.tuple([id]),restore:z.tuple([id,revision,id]),
       stage:z.tuple([form]),confirm:z.tuple([form]),cancel:none,
       photo:z.tuple([z.instanceof(Uint8Array).refine(b=>b.byteLength>0&&b.byteLength<=10*1024*1024),z.enum(['image/png','image/jpeg'])]),
       visibility:z.tuple([id,revision,id,id.nullable(),z.boolean()]),remove:z.tuple([id,revision,id,id.nullable(),z.literal(true)]),
