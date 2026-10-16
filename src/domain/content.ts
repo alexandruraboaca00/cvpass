@@ -41,7 +41,7 @@ export const SensitiveSchema = z.strictObject({
   } else if (!s.original || s.importedVisibleVariants.length || (s.decision === 'useApproval') !== (s.approvalId !== null) || (s.decision === 'keepOriginal' && s.displayMode !== 'original')) ctx.addIssue({ code: 'custom', message: 'sensitive.invalidDecision' });
 });
 export const ApprovalSchema = z.strictObject({ id: IdSchema, source: SensitiveOriginalSchema, context: SensitiveContextSchema, value: NonBlank, locale: Locale, approvedAt: Timestamp, provenance: z.enum(['user', 'transferred']) });
-export const TextFieldSchema = z.union([NarrativeSchema, LiteralSchema, SensitiveSchema]);
+export const TextFieldSchema = z.discriminatedUnion('class', [NarrativeSchema, LiteralSchema, SensitiveSchema]);
 export type NarrativeField = z.infer<typeof NarrativeSchema>;
 export type LiteralField = z.infer<typeof LiteralSchema>;
 export type SensitiveField = z.infer<typeof SensitiveSchema>;

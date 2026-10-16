@@ -1,3 +1,4 @@
+import { selectedApprovals } from './language.js';
 import { parse, fail, IdSchema, Timestamp, assertOrder } from './primitives.js';
 import type { DomainContext } from './primitives.js';
 import { validateProfile, validateCv, PersonalSchema } from './model.js';
@@ -41,6 +42,7 @@ export function createCvFromProfile(profile: MasterProfile,options: {name:string
   const selected=structuredClone(original);
   selected.sectionOrder=original.sectionOrder.filter(id=>options.sectionIds.includes(id));
   selected.sectionsById=Object.fromEntries(selected.sectionOrder.map(id=>[id,original.sectionsById[id]!]));
+  selected.sensitiveTranslationMemory=selectedApprovals(selected,original.sensitiveTranslationMemory);
   const {materialized,idMap}=remapMaterialized(selected,ctx);
   const sections:CvDocument['sectionsById']={};
   for(const sourceId of selected.sectionOrder) {

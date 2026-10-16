@@ -55,7 +55,7 @@ export type ProfileSection = z.infer<typeof ProfileSectionSchema>;
 // Validation of CV entry inclusion is explicit below; retain a precise discriminated union type.
 export type CvEntry = Entry & { included: boolean };
 export type CvSection = Omit<ProfileSection, 'entriesById'> & { included: boolean; entriesById: Record<string, CvEntry> };
-const CvEntryUnion = z.union([Education.extend({included:z.boolean()}),Work.extend({included:z.boolean()}),Skill.extend({included:z.boolean()}),Native.extend({included:z.boolean()}),Foreign.extend({included:z.boolean()}),Certification.extend({included:z.boolean()}),Project.extend({included:z.boolean()}),Custom.extend({included:z.boolean()})]);
+const CvEntryUnion = z.discriminatedUnion('kind', [Education.extend({included:z.boolean()}),Work.extend({included:z.boolean()}),Skill.extend({included:z.boolean()}),Native.extend({included:z.boolean()}),Foreign.extend({included:z.boolean()}),Certification.extend({included:z.boolean()}),Project.extend({included:z.boolean()}),Custom.extend({included:z.boolean()})]);
 export const CvSectionSchema = ProfileSectionSchema.extend({ included: z.boolean(), entriesById: z.record(IdSchema,CvEntryUnion) });
 export const TemplateSchema = z.strictObject({ id: NonBlank, version: z.int().positive(), rendererContractVersion: z.literal(1), layout: z.enum(['singleColumn','twoColumn']), capabilities: z.array(SectionKindSchema), resourceRefs: z.array(z.strictObject({ assetId: IdSchema, license: NonBlank, attribution: NonBlank })) });
 export type TemplateDefinition = z.infer<typeof TemplateSchema>;
@@ -72,7 +72,7 @@ export const AssetMapSchema = z.record(IdSchema,AssetSchema);
 const allowed: Record<SectionKind, Entry['kind'][]> = { education:['education'], work:['work'], skills:['skill'], languages:['nativeLanguage','foreignLanguage'], certifications:['certification'], projects:['project'], custom:['custom'] };
 export function entryIds(section: ProfileSection): string[] { return section.kind === 'skills' ? [...section.ungroupedSkillIds,...section.groupOrder.flatMap(id => section.groupsById[id]!.skillIds)] : section.entryOrder!; }
 export function validateEntity(input: unknown): Entity {
-  const entity = parse(z.union([MasterProfileSchema,CvDocumentSchema]),input);
+  const entity = parse(z.discriminatedUnion('kind',[MasterProfileSchema,CvDocumentSchema]),input);
   if (entity.updatedAt < entity.createdAt) fail('timestamp.inverted');
   checkMap(entity.sectionsById,['sectionsById']); checkMap(entity.sensitiveTranslationMemory,['sensitiveTranslationMemory']);
   assertOrder(entity.sectionOrder,Object.keys(entity.sectionsById),['sectionOrder']);
