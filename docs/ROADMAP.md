@@ -1,12 +1,12 @@
 # Roadmap de implementación
 
-Versión 0.2 · 15 de octubre de 2026 · Decisiones de producto consolidadas e implementación autorizada por fases. **Fase actual: F1, pendiente de ejecución. Esta consolidación documental no la inicia.**
+Versión 0.2 · 15 de octubre de 2026 · Decisiones de producto consolidadas e implementación autorizada por fases. **Fase actual: F1 aprobada el 16 de octubre de 2026; F2 no iniciada.** Véase [registro F1](F1_VALIDATION.md).
 
 ## Alcance y criterio de avance [D]
 
 Las fases concretan las decisiones finales del usuario [D], descritas en [REQUIREMENTS.md](REQUIREMENTS.md), [ARCHITECTURE.md](ARCHITECTURE.md) y [DATA_MODEL.md](DATA_MODEL.md). La evidencia histórica principal está en [23 — Cierre](research/23-cierre-investigacion-y-criterios.md), [28 — Mejoras](research/28-mejoras-necesarias-y-aceptacion.md) y [29](research/29-simulacion-caducidad-y-recuperacion.md). Las propuestas históricas incompatibles no prevalecen sobre esta especificación.
 
-La investigación ha terminado y la implementación está autorizada. No hay esperas de 48 horas ni acciones manuales pendientes en Europass. Las comprobaciones siguientes se harán sobre nuestra aplicación; las pruebas de Europass no las sustituyen. En esta tarea se actualizan documentos y Git, sin ejecutar prototipos ni instalar dependencias.
+La investigación ha terminado y la implementación está autorizada. No hay esperas de 48 horas ni acciones manuales pendientes en Europass. Las comprobaciones siguientes se harán sobre nuestra aplicación; las pruebas de Europass no las sustituyen. La reanudación autorizada ejecuta únicamente las pruebas técnicas de F1; `.cvproj` permanece en F2.
 
 Cada fase debe entregar un resultado revisable y superar su criterio antes de ampliar alcance. Se fija entonces la versión de dependencias utilizada y se conserva la evidencia de aceptación. No se asignan fechas sin estimar sobre los primeros resultados.
 
@@ -24,19 +24,23 @@ Cada fase debe entregar un resultado revisable y superar su criterio antes de am
 - Traducción real A/B/C, revisión recuperable previa y duplicación opcional.
 - Importación inteligente, diseños propios y MVP de ocho áreas/dos plantillas/ES-EN; genéricos/OCR posteriores.
 
-**Aceptación:** decisiones registradas coherentemente; los detalles técnicos de stack/motores se validan en F1. No se requiere otra aprobación de las decisiones de producto ya cerradas. La orden actual sigue siendo terminar esta consolidación antes de comenzar F1.
+**Aceptación:** decisiones registradas coherentemente; los detalles técnicos de stack/motores se validan en F1. No se requiere otra aprobación de las decisiones de producto ya cerradas. La consolidación está terminada; F1 se ha validado y cerrado sin iniciar F2.
 
 ## F1 — Validar las decisiones técnicas críticas
 
+**Estado: APROBADA — 16 de octubre de 2026.** Evidencia y límites: [F1_VALIDATION.md](F1_VALIDATION.md). F2 no iniciada.
+
 **Depende de:** F0. **Salida:** prueba técnica mínima y decisión de continuar o revisar el stack.
+
+Por decisión final del usuario para este cierre, la traducción no forma parte de los criterios necesarios de F1. Las pruebas ES/EN anteriores se conservan como exploración técnica; no se desarrolla más traducción en esta fase. Esta excepción no elimina su alcance de producto en fases posteriores.
 
 - Empaquetar Electron con React/TypeScript y el módulo SQLite en worker; crear, confirmar y reabrir una entidad con imagen.
 - Generar un PDF propio de una y dos columnas con textos largos, enlaces y glifos de español/inglés/rumano. Mostrar los mismos bytes mediante PDF.js.
 - Adjuntar un `ExportPayload` mínimo, distinto de `.cvproj`, y recuperarlo en una ejecución nueva; comparar páginas, texto, enlaces, fuentes/etiquetas antes/después. Probar marcadores privados en secciones ocultas/traducciones alternativas y verificar su ausencia; comprobar fecha reducida y foto recortada. Evaluar qpdf si falla.
-- Seleccionar/evaluar motor local de traducción ES/EN: recursos/licencias, distribución offline, memoria/latencia, progreso/cancelación, narrativa real y conservación de nombres protegidos. Las propuestas de títulos sensibles siempre pasan por revisión; no se presupone un modelo perfecto.
+- Exploración previa ES/EN conservada; selección y validaciones adicionales de traducción quedan fuera del cierre F1 por la decisión anterior.
 - Probar reglas de corte y lectura; fijar las versiones estables y el método de empaquetado. Registrar el tamaño del ejecutable y una primera medición.
 
-**Aceptación:** ejecutable empaquetado sin red con recursos instalados; persistencia, PDF minimizado y prueba real de traducción ES/EN superados sobre datos sintéticos. Pérdida de lectura/enlaces/etiquetas, filtración de datos, fallo SQLite o inviabilidad del traductor bloquean la decisión afectada: se revisa motor/adaptador antes de F2. No se declara implementado el producto completo.
+**Aceptación:** ejecutable empaquetado sin red con recursos instalados; persistencia, lectura/paginación, PDF minimizado con/sin payload y licencias directas superados sobre datos sintéticos. Pérdida de lectura/enlaces/etiquetas, filtración de datos o fallo SQLite bloquean la decisión afectada: se revisa motor/adaptador antes de F2. No se declara implementado el producto completo.
 
 ## F2 — Dominio, invariantes y formato versionado
 
@@ -213,4 +217,4 @@ Nuevos motores/memorias de traducción, diseños, ajuste de extensión, catálog
 
 ## Decisiones que siguen pendientes [P]
 
-F0 está cerrada por las decisiones finales del usuario. F1 debe validar motor/modelos de traducción local, Electron/SQLite, composición y payload mínimo PDF, con accesibilidad/empaquetado. Las versiones concretas y mediciones siguen pendientes; no se contradicen ni reabren las decisiones finales de producto. La fase F1 no se ha ejecutado y no se empieza en esta tarea.
+F0 está cerrada por las decisiones finales del usuario. F1 está aprobada con versiones, mediciones y límites en [F1_VALIDATION.md](F1_VALIDATION.md). La traducción queda fuera de sus criterios de cierre por instrucción final del usuario; no se presenta como validada para el producto. F2 sigue sin iniciar; `.cvproj` continúa pospuesto a esa fase.

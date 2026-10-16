@@ -1,10 +1,10 @@
 # Arquitectura propuesta
 
-Versión 0.2 · 15 de octubre de 2026 · Decisiones de producto consolidadas; stack propuesto pendiente de validación técnica F1. No hay aplicación implementada. Esta tarea no ejecuta F1.
+Versión 0.3 · 16 de octubre de 2026 · Stack validado en el alcance técnico F1; producto aún no implementado. Véase [registro F1](F1_VALIDATION.md).
 
 ## Decisión principal [D]
 
-Se propone una **aplicación de escritorio local con Electron, React y TypeScript**, almacenamiento SQLite y generación de PDF mediante el Chromium incluido en Electron. El mismo PDF se muestra en la vista previa y se entrega al exportar. Biblioteca automática y `.cvproj` completo aseguran continuidad; el PDF solo representa su exportación. El ciclo principal, incluida la traducción ES/EN con recursos instalados, debe poder funcionar localmente. El motor de traducción se seleccionará/validará en F1.
+Se propone una **aplicación de escritorio local con Electron, React y TypeScript**, almacenamiento SQLite y generación de PDF mediante el Chromium incluido en Electron. El mismo PDF se muestra en la vista previa y se entrega al exportar. Biblioteca automática y `.cvproj` completo aseguran continuidad; el PDF solo representa su exportación. El ciclo principal, incluida la traducción ES/EN con recursos instalados, debe poder funcionar localmente. La traducción queda fuera del cierre F1 por decisión final del usuario; su validación de producto sigue pendiente.
 
 La elección favorece tres prioridades del usuario: archivos locales durables, reapertura de CV y control de la composición del PDF. El coste es distribuir un runtime más pesado y mantenerlo actualizado. Linux es la plataforma inicial propuesta, no un requisito de usuario ya confirmado.
 
@@ -187,7 +187,7 @@ Se mantienen tres ejes independientes:
 
 Cambiar el idioma del CV inicia una operación completa: opcionalmente duplicar → congelar revisión base → clasificar A/B/C → generar propuestas → revisar → fijar revisión recuperable previa → aplicar contenido e idioma en una transacción. La interfaz permite corregir narrativa y exige una decisión para cada término sensible pendiente. Elegir conservar un original es una decisión válida, registrada y visible en la revisión. Cancelar, fallo o conflicto de revisión dejan contenido e idioma anteriores intactos.
 
-Un puerto de dominio `TranslationProvider` permite evaluar un motor local ES/EN en worker, con recursos/modelos y licencias por seleccionar en F1. No es i18next: este solo localiza interfaz/etiquetas. F1 medirá distribución, calidad, memoria/latencia, cancelación y protección de términos sobre datos sintéticos. No se introduce ningún envío implícito del CV a servicios remotos.
+Un puerto de dominio `TranslationProvider` permite evaluar un motor local ES/EN en worker, con recursos/modelos y licencias por validar antes de integrar la traducción de producto. No es i18next: este solo localiza interfaz/etiquetas. La exploración previa de F1 se conserva; las comprobaciones adicionales de distribución, calidad, memoria/latencia, cancelación y protección de términos quedan fuera de este cierre. No se introduce ningún envío implícito del CV a servicios remotos.
 
 - **A:** traducir narrativa y conservar como texto activo el resultado confirmado. Las propuestas son temporales y no generan un diccionario permanente de cada versión narrativa; la revisión anterior proporciona recuperación.
 - **B:** mantener personas, instituciones, empresas, marcas, contactos e identificadores literalmente, también cuando estén incrustados en narraciones. Proteger/restaurar esos fragmentos y comprobar que el motor no los perdió o alteró.
@@ -220,4 +220,15 @@ Una memoria sensible no empareja automáticamente títulos ambiguos por texto: i
 | Versionar una plantilla cambia su aspecto histórico. | Mantener versiones disponibles; si falta una, proponer sustitución y comunicar que el PDF original sigue siendo la referencia visual. No prometer bytes idénticos entre motores/versiones. |
 | Los objetivos de rapidez no se cumplen. | Medición sobre equipo/corpus fijados; perfilar y ajustar antes de declarar el MVP, sin recortar contenido silenciosamente. |
 
-La autorización general para implementar está concedida y las decisiones de producto están cerradas. La fase actual es **F1, pendiente de ejecución**; no se inicia durante esta consolidación documental. Sus pruebas deben resolver las elecciones técnicas restantes antes de avanzar a F2.
+La autorización general para implementar está concedida y las decisiones de producto están cerradas. La fase actual es **F1, aprobada; F2 no iniciada**; véase [registro F1](F1_VALIDATION.md). La puerta técnica queda cerrada con los límites documentados; la orden actual no autoriza iniciar F2.
+
+## Resultado de la puerta F1 — 16 de octubre de 2026
+
+Se acepta la viabilidad del stack en Linux x64 para el corpus y flujo descritos en
+[F1_VALIDATION.md](F1_VALIDATION.md), incluidos SQLite en worker, PDF.js/Chromium,
+adjunto mínimo con pdf-lib y ejecución sin red. El formato de prueba es un
+directorio Linux ejecutable con recursos; no se ha validado un instalador AppImage.
+La traducción queda fuera del criterio de cierre por decisión final del usuario;
+sus propuestas de producto anteriores no equivalen a una validación completa.
+Los futuros verbos de validación en este diseño describen obligaciones de las
+fases de producto, no pendientes que reabran F1. F2 no se inicia.

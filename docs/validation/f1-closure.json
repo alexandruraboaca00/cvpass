@@ -1,0 +1,521 @@
+{
+  "date": "2026-10-16",
+  "result": "APROBADA",
+  "translationRequired": false,
+  "translationExecuted": false,
+  "f2Started": false,
+  "offline": {
+    "method": "unshare --user --map-current-user --net",
+    "routes": [],
+    "interfaces": [],
+    "externalConnection": "ENETUNREACH",
+    "commands": [
+      {
+        "mode": "create",
+        "args": [
+          "--closure",
+          "--create"
+        ],
+        "exitCode": 0,
+        "signal": null
+      },
+      {
+        "mode": "reopen",
+        "args": [
+          "--closure"
+        ],
+        "exitCode": 0,
+        "signal": null
+      }
+    ],
+    "testsExitCode": 0
+  },
+  "runs": {
+    "create": {
+      "packaged": true,
+      "mode": "create",
+      "sqlite": {
+        "text": "Entidad sintética Ștefan",
+        "imageHash": "b7a2eac2d657b443fea1cdff24cce4ad993f90d97e8f3cbfb3519addcde2c51d",
+        "integrity": "ok"
+      },
+      "layouts": [
+        {
+          "layout": "simple",
+          "pages": 9,
+          "longParagraphPages": 3,
+          "clickedLinks": 1,
+          "allVisibleContent": true,
+          "marginBounds": true,
+          "headingsWithContent": true,
+          "variants": {
+            "plain": {
+              "bytes": 63723,
+              "sha256": "4feb4dcdf49e6704f0860a2688a224f6a731f55f828652c42e4d0e6db8c840d8",
+              "pixelHashes": [
+                "44f68235d5dc866a8a0c71d07b3c600350f27b9e79b5ee0eaab5f37f38b59a68",
+                "2e20c3909faaa866eacd35ffd12c98f7648fbd68658b0e9cdfcac0c447368d95",
+                "239238407fe8f872a201a163d1534b73ddcba921b8b2cb641141491fa8cc41a3",
+                "6287a85faca0a8eff092db830703f80602761b807ffef570594c41525866167f",
+                "2866f8d2552562ec444bb5393d8bb61138a33d4cc886412ed830225e2a9992ab",
+                "62d14096c6ebd86f69a9c853c54f67adc2c7b623790835687d3b98eb9fc190ff",
+                "968353bda684205c13e77ac13c8bb87dbdf249f62597f3ceaaf29eb0965d5dd1",
+                "432dfe312bb68b77f0c1f8ddf06a3e57b0e7959352f211ceea08f41b0e886898",
+                "875b3bbf06d7d327417bac49308d6c9d8cd6963a0d7e04201518c5858b33ad61"
+              ]
+            },
+            "exported": {
+              "bytes": 38090,
+              "sha256": "72ce4064b14764238c89b26d5c28d3f02a9601010e2687d920281e6a1cee9088",
+              "pixelHashes": [
+                "44f68235d5dc866a8a0c71d07b3c600350f27b9e79b5ee0eaab5f37f38b59a68",
+                "2e20c3909faaa866eacd35ffd12c98f7648fbd68658b0e9cdfcac0c447368d95",
+                "239238407fe8f872a201a163d1534b73ddcba921b8b2cb641141491fa8cc41a3",
+                "6287a85faca0a8eff092db830703f80602761b807ffef570594c41525866167f",
+                "2866f8d2552562ec444bb5393d8bb61138a33d4cc886412ed830225e2a9992ab",
+                "62d14096c6ebd86f69a9c853c54f67adc2c7b623790835687d3b98eb9fc190ff",
+                "968353bda684205c13e77ac13c8bb87dbdf249f62597f3ceaaf29eb0965d5dd1",
+                "432dfe312bb68b77f0c1f8ddf06a3e57b0e7959352f211ceea08f41b0e886898",
+                "875b3bbf06d7d327417bac49308d6c9d8cd6963a0d7e04201518c5858b33ad61"
+              ]
+            },
+            "stripped": {
+              "bytes": 36435,
+              "sha256": "6316e0e823f7040fe1d4f8b2e5744c952fa53743c8b244360bc54d5675fa7808",
+              "pixelHashes": [
+                "44f68235d5dc866a8a0c71d07b3c600350f27b9e79b5ee0eaab5f37f38b59a68",
+                "2e20c3909faaa866eacd35ffd12c98f7648fbd68658b0e9cdfcac0c447368d95",
+                "239238407fe8f872a201a163d1534b73ddcba921b8b2cb641141491fa8cc41a3",
+                "6287a85faca0a8eff092db830703f80602761b807ffef570594c41525866167f",
+                "2866f8d2552562ec444bb5393d8bb61138a33d4cc886412ed830225e2a9992ab",
+                "62d14096c6ebd86f69a9c853c54f67adc2c7b623790835687d3b98eb9fc190ff",
+                "968353bda684205c13e77ac13c8bb87dbdf249f62597f3ceaaf29eb0965d5dd1",
+                "432dfe312bb68b77f0c1f8ddf06a3e57b0e7959352f211ceea08f41b0e886898",
+                "875b3bbf06d7d327417bac49308d6c9d8cd6963a0d7e04201518c5858b33ad61"
+              ]
+            }
+          },
+          "audits": {
+            "plain": {
+              "streams": 15,
+              "images": [
+                {
+                  "width": 2,
+                  "height": 2,
+                  "decodedBytes": 12
+                }
+              ]
+            },
+            "exported": {
+              "streams": 16,
+              "images": [
+                {
+                  "width": 2,
+                  "height": 2,
+                  "decodedBytes": 12
+                }
+              ]
+            },
+            "stripped": {
+              "streams": 15,
+              "images": [
+                {
+                  "width": 2,
+                  "height": 2,
+                  "decodedBytes": 12
+                }
+              ]
+            }
+          },
+          "payloadKeys": [
+            "format",
+            "pdfPayloadFormatVersion",
+            "layout",
+            "title",
+            "glyphs",
+            "year",
+            "photo",
+            "sensitiveVisible",
+            "link",
+            "paragraphs",
+            "longText",
+            "list",
+            "breakHeading",
+            "end"
+          ],
+          "allPagesPixelIdentical": true
+        },
+        {
+          "layout": "lateral",
+          "pages": 7,
+          "longParagraphPages": 3,
+          "clickedLinks": 1,
+          "allVisibleContent": true,
+          "marginBounds": true,
+          "headingsWithContent": true,
+          "variants": {
+            "plain": {
+              "bytes": 63094,
+              "sha256": "34c8529eb2ffd4a675c5771b12566b4c755c6686b770f1ae15ea3c5a5a3667db",
+              "pixelHashes": [
+                "570c6c5cbd3c3531d86b797d2005ada70188a9f2275098f0769822f0c1ae699e",
+                "c47ac94d1d948ffee6bd3be842dddcc316b7c203345cd5fdf547cf4a9ef1595e",
+                "1e8671d6856b2d6d52d44f89f21eed8521a7437ac3e25926c78b6a4524f4f004",
+                "5dd5b987291e302c1dc8509be4a4cb0c105ad83db2a3f2f321d3e014c0f55808",
+                "b3635cf8f3e95ab150c7a2d2ed180cc4197c3b897665d631046b7000ad620ee8",
+                "a8f7b77079e765725f81831db3c6155124836c5bfbd7d5ef0599436c093597fd",
+                "875b3bbf06d7d327417bac49308d6c9d8cd6963a0d7e04201518c5858b33ad61"
+              ]
+            },
+            "exported": {
+              "bytes": 38331,
+              "sha256": "63f37403ccfcce47968f2cb24d166f47b1f8ff235c7b66dc49f8c16809b48a96",
+              "pixelHashes": [
+                "570c6c5cbd3c3531d86b797d2005ada70188a9f2275098f0769822f0c1ae699e",
+                "c47ac94d1d948ffee6bd3be842dddcc316b7c203345cd5fdf547cf4a9ef1595e",
+                "1e8671d6856b2d6d52d44f89f21eed8521a7437ac3e25926c78b6a4524f4f004",
+                "5dd5b987291e302c1dc8509be4a4cb0c105ad83db2a3f2f321d3e014c0f55808",
+                "b3635cf8f3e95ab150c7a2d2ed180cc4197c3b897665d631046b7000ad620ee8",
+                "a8f7b77079e765725f81831db3c6155124836c5bfbd7d5ef0599436c093597fd",
+                "875b3bbf06d7d327417bac49308d6c9d8cd6963a0d7e04201518c5858b33ad61"
+              ]
+            },
+            "stripped": {
+              "bytes": 36626,
+              "sha256": "3a4e14cb700a25303e9e7982bdc14f83ffcb3f52bba353fd1678f19fae4babe3",
+              "pixelHashes": [
+                "570c6c5cbd3c3531d86b797d2005ada70188a9f2275098f0769822f0c1ae699e",
+                "c47ac94d1d948ffee6bd3be842dddcc316b7c203345cd5fdf547cf4a9ef1595e",
+                "1e8671d6856b2d6d52d44f89f21eed8521a7437ac3e25926c78b6a4524f4f004",
+                "5dd5b987291e302c1dc8509be4a4cb0c105ad83db2a3f2f321d3e014c0f55808",
+                "b3635cf8f3e95ab150c7a2d2ed180cc4197c3b897665d631046b7000ad620ee8",
+                "a8f7b77079e765725f81831db3c6155124836c5bfbd7d5ef0599436c093597fd",
+                "875b3bbf06d7d327417bac49308d6c9d8cd6963a0d7e04201518c5858b33ad61"
+              ]
+            }
+          },
+          "audits": {
+            "plain": {
+              "streams": 13,
+              "images": [
+                {
+                  "width": 2,
+                  "height": 2,
+                  "decodedBytes": 12
+                }
+              ]
+            },
+            "exported": {
+              "streams": 14,
+              "images": [
+                {
+                  "width": 2,
+                  "height": 2,
+                  "decodedBytes": 12
+                }
+              ]
+            },
+            "stripped": {
+              "streams": 13,
+              "images": [
+                {
+                  "width": 2,
+                  "height": 2,
+                  "decodedBytes": 12
+                }
+              ]
+            }
+          },
+          "payloadKeys": [
+            "format",
+            "pdfPayloadFormatVersion",
+            "layout",
+            "title",
+            "glyphs",
+            "year",
+            "photo",
+            "sensitiveVisible",
+            "link",
+            "paragraphs",
+            "longText",
+            "list",
+            "breakHeading",
+            "end"
+          ],
+          "allPagesPixelIdentical": true
+        }
+      ],
+      "networkAttempts": 0,
+      "translationExecuted": false,
+      "elapsedMs": 44018
+    },
+    "reopen": {
+      "packaged": true,
+      "mode": "reopen",
+      "sqlite": {
+        "text": "Entidad sintética Ștefan",
+        "imageHash": "b7a2eac2d657b443fea1cdff24cce4ad993f90d97e8f3cbfb3519addcde2c51d",
+        "integrity": "ok"
+      },
+      "layouts": [
+        {
+          "layout": "simple",
+          "pages": 9,
+          "longParagraphPages": 3,
+          "clickedLinks": 1,
+          "allVisibleContent": true,
+          "marginBounds": true,
+          "headingsWithContent": true,
+          "variants": {
+            "plain": {
+              "bytes": 63723,
+              "sha256": "4feb4dcdf49e6704f0860a2688a224f6a731f55f828652c42e4d0e6db8c840d8",
+              "pixelHashes": [
+                "44f68235d5dc866a8a0c71d07b3c600350f27b9e79b5ee0eaab5f37f38b59a68",
+                "2e20c3909faaa866eacd35ffd12c98f7648fbd68658b0e9cdfcac0c447368d95",
+                "239238407fe8f872a201a163d1534b73ddcba921b8b2cb641141491fa8cc41a3",
+                "6287a85faca0a8eff092db830703f80602761b807ffef570594c41525866167f",
+                "2866f8d2552562ec444bb5393d8bb61138a33d4cc886412ed830225e2a9992ab",
+                "62d14096c6ebd86f69a9c853c54f67adc2c7b623790835687d3b98eb9fc190ff",
+                "968353bda684205c13e77ac13c8bb87dbdf249f62597f3ceaaf29eb0965d5dd1",
+                "432dfe312bb68b77f0c1f8ddf06a3e57b0e7959352f211ceea08f41b0e886898",
+                "875b3bbf06d7d327417bac49308d6c9d8cd6963a0d7e04201518c5858b33ad61"
+              ]
+            },
+            "exported": {
+              "bytes": 38090,
+              "sha256": "72ce4064b14764238c89b26d5c28d3f02a9601010e2687d920281e6a1cee9088",
+              "pixelHashes": [
+                "44f68235d5dc866a8a0c71d07b3c600350f27b9e79b5ee0eaab5f37f38b59a68",
+                "2e20c3909faaa866eacd35ffd12c98f7648fbd68658b0e9cdfcac0c447368d95",
+                "239238407fe8f872a201a163d1534b73ddcba921b8b2cb641141491fa8cc41a3",
+                "6287a85faca0a8eff092db830703f80602761b807ffef570594c41525866167f",
+                "2866f8d2552562ec444bb5393d8bb61138a33d4cc886412ed830225e2a9992ab",
+                "62d14096c6ebd86f69a9c853c54f67adc2c7b623790835687d3b98eb9fc190ff",
+                "968353bda684205c13e77ac13c8bb87dbdf249f62597f3ceaaf29eb0965d5dd1",
+                "432dfe312bb68b77f0c1f8ddf06a3e57b0e7959352f211ceea08f41b0e886898",
+                "875b3bbf06d7d327417bac49308d6c9d8cd6963a0d7e04201518c5858b33ad61"
+              ]
+            },
+            "stripped": {
+              "bytes": 36435,
+              "sha256": "6316e0e823f7040fe1d4f8b2e5744c952fa53743c8b244360bc54d5675fa7808",
+              "pixelHashes": [
+                "44f68235d5dc866a8a0c71d07b3c600350f27b9e79b5ee0eaab5f37f38b59a68",
+                "2e20c3909faaa866eacd35ffd12c98f7648fbd68658b0e9cdfcac0c447368d95",
+                "239238407fe8f872a201a163d1534b73ddcba921b8b2cb641141491fa8cc41a3",
+                "6287a85faca0a8eff092db830703f80602761b807ffef570594c41525866167f",
+                "2866f8d2552562ec444bb5393d8bb61138a33d4cc886412ed830225e2a9992ab",
+                "62d14096c6ebd86f69a9c853c54f67adc2c7b623790835687d3b98eb9fc190ff",
+                "968353bda684205c13e77ac13c8bb87dbdf249f62597f3ceaaf29eb0965d5dd1",
+                "432dfe312bb68b77f0c1f8ddf06a3e57b0e7959352f211ceea08f41b0e886898",
+                "875b3bbf06d7d327417bac49308d6c9d8cd6963a0d7e04201518c5858b33ad61"
+              ]
+            }
+          },
+          "audits": {
+            "plain": {
+              "streams": 15,
+              "images": [
+                {
+                  "width": 2,
+                  "height": 2,
+                  "decodedBytes": 12
+                }
+              ]
+            },
+            "exported": {
+              "streams": 16,
+              "images": [
+                {
+                  "width": 2,
+                  "height": 2,
+                  "decodedBytes": 12
+                }
+              ]
+            },
+            "stripped": {
+              "streams": 15,
+              "images": [
+                {
+                  "width": 2,
+                  "height": 2,
+                  "decodedBytes": 12
+                }
+              ]
+            }
+          },
+          "payloadKeys": [
+            "format",
+            "pdfPayloadFormatVersion",
+            "layout",
+            "title",
+            "glyphs",
+            "year",
+            "photo",
+            "sensitiveVisible",
+            "link",
+            "paragraphs",
+            "longText",
+            "list",
+            "breakHeading",
+            "end"
+          ],
+          "allPagesPixelIdentical": true
+        },
+        {
+          "layout": "lateral",
+          "pages": 7,
+          "longParagraphPages": 3,
+          "clickedLinks": 1,
+          "allVisibleContent": true,
+          "marginBounds": true,
+          "headingsWithContent": true,
+          "variants": {
+            "plain": {
+              "bytes": 63094,
+              "sha256": "34c8529eb2ffd4a675c5771b12566b4c755c6686b770f1ae15ea3c5a5a3667db",
+              "pixelHashes": [
+                "570c6c5cbd3c3531d86b797d2005ada70188a9f2275098f0769822f0c1ae699e",
+                "c47ac94d1d948ffee6bd3be842dddcc316b7c203345cd5fdf547cf4a9ef1595e",
+                "1e8671d6856b2d6d52d44f89f21eed8521a7437ac3e25926c78b6a4524f4f004",
+                "5dd5b987291e302c1dc8509be4a4cb0c105ad83db2a3f2f321d3e014c0f55808",
+                "b3635cf8f3e95ab150c7a2d2ed180cc4197c3b897665d631046b7000ad620ee8",
+                "a8f7b77079e765725f81831db3c6155124836c5bfbd7d5ef0599436c093597fd",
+                "875b3bbf06d7d327417bac49308d6c9d8cd6963a0d7e04201518c5858b33ad61"
+              ]
+            },
+            "exported": {
+              "bytes": 38331,
+              "sha256": "63f37403ccfcce47968f2cb24d166f47b1f8ff235c7b66dc49f8c16809b48a96",
+              "pixelHashes": [
+                "570c6c5cbd3c3531d86b797d2005ada70188a9f2275098f0769822f0c1ae699e",
+                "c47ac94d1d948ffee6bd3be842dddcc316b7c203345cd5fdf547cf4a9ef1595e",
+                "1e8671d6856b2d6d52d44f89f21eed8521a7437ac3e25926c78b6a4524f4f004",
+                "5dd5b987291e302c1dc8509be4a4cb0c105ad83db2a3f2f321d3e014c0f55808",
+                "b3635cf8f3e95ab150c7a2d2ed180cc4197c3b897665d631046b7000ad620ee8",
+                "a8f7b77079e765725f81831db3c6155124836c5bfbd7d5ef0599436c093597fd",
+                "875b3bbf06d7d327417bac49308d6c9d8cd6963a0d7e04201518c5858b33ad61"
+              ]
+            },
+            "stripped": {
+              "bytes": 36626,
+              "sha256": "3a4e14cb700a25303e9e7982bdc14f83ffcb3f52bba353fd1678f19fae4babe3",
+              "pixelHashes": [
+                "570c6c5cbd3c3531d86b797d2005ada70188a9f2275098f0769822f0c1ae699e",
+                "c47ac94d1d948ffee6bd3be842dddcc316b7c203345cd5fdf547cf4a9ef1595e",
+                "1e8671d6856b2d6d52d44f89f21eed8521a7437ac3e25926c78b6a4524f4f004",
+                "5dd5b987291e302c1dc8509be4a4cb0c105ad83db2a3f2f321d3e014c0f55808",
+                "b3635cf8f3e95ab150c7a2d2ed180cc4197c3b897665d631046b7000ad620ee8",
+                "a8f7b77079e765725f81831db3c6155124836c5bfbd7d5ef0599436c093597fd",
+                "875b3bbf06d7d327417bac49308d6c9d8cd6963a0d7e04201518c5858b33ad61"
+              ]
+            }
+          },
+          "audits": {
+            "plain": {
+              "streams": 13,
+              "images": [
+                {
+                  "width": 2,
+                  "height": 2,
+                  "decodedBytes": 12
+                }
+              ]
+            },
+            "exported": {
+              "streams": 14,
+              "images": [
+                {
+                  "width": 2,
+                  "height": 2,
+                  "decodedBytes": 12
+                }
+              ]
+            },
+            "stripped": {
+              "streams": 13,
+              "images": [
+                {
+                  "width": 2,
+                  "height": 2,
+                  "decodedBytes": 12
+                }
+              ]
+            }
+          },
+          "payloadKeys": [
+            "format",
+            "pdfPayloadFormatVersion",
+            "layout",
+            "title",
+            "glyphs",
+            "year",
+            "photo",
+            "sensitiveVisible",
+            "link",
+            "paragraphs",
+            "longText",
+            "list",
+            "breakHeading",
+            "end"
+          ],
+          "allPagesPixelIdentical": true
+        }
+      ],
+      "networkAttempts": 0,
+      "translationExecuted": false,
+      "elapsedMs": 43824
+    }
+  },
+  "tests": {
+    "total": 3,
+    "pass": 3,
+    "fail": 0,
+    "source": "spikes/f1/closure.test.cjs"
+  },
+  "typecheck": "PASS",
+  "build": "PASS",
+  "linuxPackage": {
+    "format": "electron-builder linux dir (unpacked executable + resources)",
+    "bytes": 1005090218,
+    "asarSha256": "19f919bae6f4f69bcea17872d68deea2ce62710a175ebe0166b4d1a714f0f7e8"
+  },
+  "audit": {
+    "production": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    },
+    "full": {
+      "info": 0,
+      "low": 0,
+      "moderate": 8,
+      "high": 0,
+      "critical": 0,
+      "total": 8
+    }
+  },
+  "inputs": {
+    "closure-fixture.cjs": "65ceb1fec18340891bc05e32943ca5f7b6e9e0e896c95a1c7c611af3d4096abe",
+    "offline-check.cjs": "1ca764c46c387563240285b636f731ed2e386d3facacba2ab7deb3811111c3df",
+    "sqlite-worker.cjs": "17889bbc9faf8d5028d6ed1dee054ecdae2d29864def999cf9b4c5c348257770",
+    "tsconfig.json": "a57f4ffbfdfa5b603ffd4a27b53f5d00d0307d496cefb7716d32c42292f9d1e7",
+    "package-lock.json": "6237b9ec7dbf5680c20af5d9a12a150a7366a9467a6474a6bcad3247bf62fe27",
+    "package.json": "42a0b6ce3ad7fb2adf169bc7458f7f9cff0962d5ca4a3fdf2b657acfa89365a8",
+    "audit-direct.cjs": "99c86bf0da1b6a63393c5c7ab07e4973b91572457ade0dad61b5a1387a94ccbc",
+    "closure.cjs": "388fe346b79753e977a60ce334690abe461f9a0df899042b7fd7ca66058359d4",
+    "vite.config.mjs": "b0fe7fe27d63f323504dce7d4d721679b8ec859317864f71e68a31019df9fed6",
+    "translation-probe.mjs": "8faf4a54ed86fe83d6b068255fff3a96ec7c929c4e1ad5cad61052ff97cb386c",
+    "model-resources.json": "9d93c6ac8a5526c589c2cdf07bc533feb66c9d4925fd627107416935199fbe7e",
+    "closure.test.cjs": "6eb45c358a20f47f291697ed0d85257b47f05995afa1a4b7f42e19605a2279d8",
+    "prepare-models.mjs": "c6aa1ecc55c12a35339e8036a1806e206ba432218dbb8aa68e141ab7d5ef2948",
+    "main.cjs": "b98cf151065c97153819553202acbb2df47f4e1afc85bf5a85d45df5e535b332",
+    "index.html": "9bf4dd3ec650a1290e926ebdcfb6dce352d87e8a87bd04650d53f11f166f0824",
+    "renderer.tsx": "fece2933618eafba933151cce12bf8272b18b206aabf985d6478299937a5b15e",
+    "translation-worker.mjs": "6d6f416056fdc0fe6434e273b50919c5a95a43ff6a6ef8a6a8b78d467c922bfd"
+  }
+}

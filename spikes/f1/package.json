@@ -1,0 +1,60 @@
+{
+  "name": "cvforge-f1-spike",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Isolated technical validation, not the CVForge product",
+  "author": "CVForge",
+  "main": "main.cjs",
+  "scripts": {
+    "build": "vite build",
+    "package": "npm run build && electron-builder --linux dir",
+    "probe": "electron .",
+    "test": "node --test closure.test.cjs",
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "4.3.1",
+    "better-sqlite3": "13.0.3",
+    "pdf-lib": "1.17.1",
+    "pdfjs-dist": "6.4.299",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "electron": "44.7.2",
+    "electron-builder": "26.15.3",
+    "typescript": "7.0.2",
+    "vite": "8.3.4"
+  },
+  "build": {
+    "appId": "local.cvforge.f1",
+    "productName": "CVForge F1",
+    "directories": {
+      "output": "out"
+    },
+    "files": [
+      "main.cjs",
+      "sqlite-worker.cjs",
+      "dist/**",
+      "package.json",
+      "translation-worker.mjs",
+      "closure.cjs",
+      "closure-fixture.cjs",
+      "assets/**"
+    ],
+    "asarUnpack": [
+      "**/*.node",
+      "node_modules/onnxruntime-node/**",
+      "node_modules/@img/**",
+      "node_modules/sharp/**"
+    ],
+    "extraResources": [
+      {
+        "from": ".cache/models",
+        "to": "models"
+      }
+    ]
+  }
+}

@@ -4,7 +4,7 @@ CVForge será una aplicación local para crear y gestionar CV, importar document
 
 ## Estado actual
 
-La investigación de Europass está terminada y las decisiones de producto están consolidadas. La implementación está autorizada por fases. La siguiente fase es **F1: validación técnica**, todavía pendiente de ejecución. Esta consolidación solo actualiza documentación; no hay una aplicación implementada ni instrucciones de instalación/uso del producto.
+La investigación de Europass está terminada y las decisiones de producto están consolidadas. La implementación está autorizada por fases. La fase actual es **F1: validación técnica, APROBADA; F2 no iniciada**. Hay una prueba aislada en [spikes/f1](spikes/f1/); su estado y límites se registran en [docs/F1_VALIDATION.md](docs/F1_VALIDATION.md). No hay un producto implementado. `.cvproj` permanece en F2.
 
 ## Producto definido
 
@@ -20,9 +20,9 @@ Estas son funcionalidades previstas, no capacidades ya disponibles.
 
 Datos personales, educación, experiencia, habilidades, idiomas, certificaciones, proyectos y secciones personalizadas; dos plantillas originales; ES/EN con traducción real; biblioteca durable local; importación Europass estructurada; PDF y `.cvproj`.
 
-## Stack propuesto para validar en F1
+## Stack y validación técnica F1
 
-Electron, React, TypeScript y Vite; SQLite en worker mediante better-sqlite3; Zod, Tiptap e i18next para validación/edición/interfaz; Chromium para componer PDF y PDF.js para visualizar/importar. pdf-lib es el primer candidato para adjuntos, con qpdf como alternativa si no conserva la calidad requerida. El motor local de traducción ES/EN y sus recursos se seleccionarán/validarán en F1. Linux es el entorno inicial de validación propuesto.
+Electron, React, TypeScript y Vite; SQLite en worker mediante better-sqlite3; Zod, Tiptap e i18next para validación/edición/interfaz; Chromium para componer PDF y PDF.js para visualizar/importar. pdf-lib es el primer candidato para adjuntos, con qpdf como alternativa si no conserva la calidad requerida. Electron/React/TypeScript, SQLite y PDF han superado la prueba F1 en Linux x64. Zod, Tiptap e i18next siguen propuestos para el producto. La traducción ES/EN conserva su exploración previa y queda fuera del criterio de cierre F1 por decisión final del usuario.
 
 La fase comprobará persistencia, empaquetado, composición/lectura PDF, minimización de datos adjuntos y viabilidad de traducción local. Las dependencias y sus versiones no están todavía validadas como conjunto.
 

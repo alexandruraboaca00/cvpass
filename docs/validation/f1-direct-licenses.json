@@ -1,0 +1,150 @@
+[
+  {
+    "package": "@huggingface/transformers",
+    "version": "4.3.1",
+    "license": "Apache-2.0",
+    "purpose": "Exploración ES/EN previa; no ejecutada ni ampliada en el cierre",
+    "evidence": [
+      {
+        "file": "LICENSE",
+        "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+      }
+    ]
+  },
+  {
+    "package": "better-sqlite3",
+    "version": "13.0.3",
+    "license": "MIT",
+    "purpose": "Persistencia SQLite en worker",
+    "evidence": [
+      {
+        "file": "LICENSE",
+        "sha256": "09856b52897c91ab67e7456ef43067019f31dfd3b87fda72e655736b1ebdee55"
+      }
+    ]
+  },
+  {
+    "package": "pdf-lib",
+    "version": "1.17.1",
+    "license": "MIT",
+    "purpose": "Adjuntar/retirar payload e inspección de objetos PDF",
+    "evidence": [
+      {
+        "file": "LICENSE.md",
+        "sha256": "f2c9fc00fdb66eb99ac156ba52d734af66d8d309f65753ae809ad34ee2883bcb"
+      }
+    ]
+  },
+  {
+    "package": "pdfjs-dist",
+    "version": "6.4.299",
+    "license": "Apache-2.0",
+    "purpose": "Visor, texto, etiquetas, anotaciones y extracción de payload",
+    "evidence": [
+      {
+        "file": "LICENSE",
+        "sha256": "0d542e0c8804e39aa7f37eb00da5a762149dc682d7829451287e11b938e94594"
+      }
+    ]
+  },
+  {
+    "package": "react",
+    "version": "19.3.1",
+    "license": "MIT",
+    "purpose": "UI mínima de la prueba",
+    "evidence": [
+      {
+        "file": "LICENSE",
+        "sha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93"
+      }
+    ]
+  },
+  {
+    "package": "react-dom",
+    "version": "19.3.1",
+    "license": "MIT",
+    "purpose": "Montaje de UI",
+    "evidence": [
+      {
+        "file": "LICENSE",
+        "sha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93"
+      }
+    ]
+  },
+  {
+    "package": "@types/react",
+    "version": "19.3.0",
+    "license": "MIT",
+    "purpose": "Tipos de React para validación",
+    "evidence": [
+      {
+        "file": "LICENSE",
+        "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+      }
+    ]
+  },
+  {
+    "package": "@types/react-dom",
+    "version": "19.3.0",
+    "license": "MIT",
+    "purpose": "Tipos de React DOM para validación",
+    "evidence": [
+      {
+        "file": "LICENSE",
+        "sha256": "c2cfccb812fe482101a8f04597dfc5a9991a6b2748266c47ac91b6a5aae15383"
+      }
+    ]
+  },
+  {
+    "package": "electron",
+    "version": "44.7.2",
+    "license": "MIT",
+    "purpose": "Runtime Chromium/Node empaquetado",
+    "evidence": [
+      {
+        "file": "LICENSE",
+        "sha256": "5154e165bd6c2cc0cfbcd8916498c7abab0497923bafcd5cb07673fe8480087d"
+      }
+    ]
+  },
+  {
+    "package": "electron-builder",
+    "version": "26.15.3",
+    "license": "MIT",
+    "purpose": "Empaquetado Linux y reconstrucción nativa",
+    "evidence": [
+      {
+        "file": "LICENSE",
+        "sha256": "bed8d0ab3e6031817f775a641ff37313b0f5591bc8ba0ed79b978dafbd4231ce"
+      }
+    ]
+  },
+  {
+    "package": "typescript",
+    "version": "7.0.2",
+    "license": "Apache-2.0",
+    "purpose": "Comprobación de TSX",
+    "evidence": [
+      {
+        "file": "LICENSE",
+        "sha256": "a7d00bfd54525bc694b6e32f64c7ebcf5e6b7ae3657be5cc12767bce74654a47"
+      },
+      {
+        "file": "NOTICE.txt",
+        "sha256": "f5c708b59114507b8b27b48181b6883d106bbca0c1634bbee45b5e344237b66b"
+      }
+    ]
+  },
+  {
+    "package": "vite",
+    "version": "8.3.4",
+    "license": "MIT",
+    "purpose": "Bundle local de la UI",
+    "evidence": [
+      {
+        "file": "LICENSE.md",
+        "sha256": "a47172e44a86a7e2cd1c16282341f7726ec60caafe3a6166fe3e0602005b6fa6"
+      }
+    ]
+  }
+]

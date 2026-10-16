@@ -1,6 +1,6 @@
 # Requisitos de CVForge
 
-Versión 0.2 · 15 de octubre de 2026 · Decisiones de producto consolidadas por el usuario. Implementación autorizada por fases; F1 es la siguiente fase y no se ejecuta en esta consolidación documental. Ninguna funcionalidad se presenta como implementada.
+Versión 0.3 · 16 de octubre de 2026 · Decisiones de producto consolidadas por el usuario. Implementación autorizada por fases; F1 está aprobada con el alcance de cierre fijado por el usuario; véase [registro F1](F1_VALIDATION.md). Ninguna funcionalidad se presenta como implementada.
 
 ## Base y alcance de la especificación
 
@@ -104,7 +104,7 @@ El PDF no contiene un `.cvproj` completo: usa un contrato reducido de exportaci�
 
 Flujo: CV español → opcionalmente duplicar → elegir English → generar propuestas → revisar campos sensibles y cambios necesarios → crear/fijar revisión recuperable del estado previo → confirmar contenido e idioma de forma atómica → CV inglés. Una traducción incompleta o fallida no se presenta como un CV completamente traducido; cualquier mezcla aceptada se hace explícita en la revisión.
 
-El motor de traducción local y su empaquetado son una elección técnica pendiente de F1. La traducción automática forma parte del MVP, no queda relegada a una mejora opcional. No se enviará contenido a servicios externos de forma implícita.
+El motor de traducción local y su empaquetado siguen pendientes para la integración de producto; por decisión final del usuario, no son criterio de cierre F1. La traducción automática forma parte del MVP, no queda relegada a una mejora opcional. No se enviará contenido a servicios externos de forma implícita.
 
 ## Funcionalidades obligatorias de la versión 1 completa [D]
 
@@ -132,7 +132,7 @@ En el MVP, tipos todavía no editables se conservan como información no mapeada
 
 | ID | Requisito y aceptación propuesta |
 | --- | --- |
-| NF-01 Autonomía | Con red desactivada desde el arranque y recursos locales instalados: abrir, editar, traducir ES/EN, confirmar, cerrar, reabrir, previsualizar, importar y exportar los formatos del MVP. Sin caducidad temporal del contenido local. El motor/modelo de traducción debe validarse en F1. |
+| NF-01 Autonomía | Con red desactivada desde el arranque y recursos locales instalados: abrir, editar, traducir ES/EN, confirmar, cerrar, reabrir, previsualizar, importar y exportar los formatos del MVP. Sin caducidad temporal del contenido local. El motor/modelo de traducción deberá validarse antes de aceptar este requisito del MVP; no es criterio de cierre F1. |
 | NF-02 Durabilidad | Transacciones atómicas; conflictos de revisión detectados; error de escritura visible. Probar cierre forzado, disco lleno y restauración de copia. Una confirmación reconocida debe sobrevivir al reinicio; el borrador se ofrece aparte. |
 | NF-03 PDF | A4 inicial, texto seleccionable, enlaces activos, fuentes con licencia y glifos verificados. Títulos unidos al inicio del contenido, sin recortes/solapes ni página vacía artificial. La columna lateral debe mantener lectura comprensible al extraer texto y usar tecnología de asistencia. Comprobar también un lector externo al visor propio. |
 | NF-04 Accesibilidad | Formularios y reordenación utilizables con teclado; etiquetas, foco y errores anunciables; contraste verificable. Comprobar etiquetado y orden de lectura del PDF. No declarar conformidad PDF/UA por activar una opción del motor. |
@@ -162,4 +162,4 @@ La investigación no determina qué stack usa Europass, la causa del botón desh
 
 Las decisiones de perfil, biblioteca automática, `.cvproj` completo, PDF limitado a su exportación, traducción real A/B/C, importación inteligente, diseños propios y MVP están cerradas por el usuario. F0 queda completada a nivel de decisiones de producto.
 
-F1 debe seleccionar/validar motor local de traducción, empaquetado, persistencia, composición y adjuntos PDF con minimización efectiva, rendimiento y accesibilidad. Las dependencias/versiones siguen siendo propuestas técnicas hasta superar esa puerta; no se exige volver a aprobar las decisiones de producto ya cerradas. Esta tarea solo consolida documentación y no inicia F1.
+F1 ha validado empaquetado, persistencia, composición y adjuntos PDF con minimización efectiva y lectura en el corpus de prueba. Por decisión final del usuario, la traducción no es criterio necesario de su cierre y no se desarrolla más en F1; sigue siendo requisito de producto en las fases posteriores. Las dependencias/versiones y sus límites validados constan en el registro F1; no se exige volver a aprobar las decisiones de producto ya cerradas. La reanudación autorizada se limita a F1; `.cvproj` comienza en F2.
