@@ -1,6 +1,6 @@
 # Arquitectura propuesta
 
-Versión 0.5 · 16 de octubre de 2026 · F1 cerrada; F2 aprobada e integrada en main. Biblioteca/persistencia F3 aprobadas por el usuario e integradas en main mediante merge commit; editor pendiente. Véanse [aceptación F2](f2/VALIDATION.md) y [validación F3](f3/VALIDATION.md).
+Versión 0.6 · 16 de octubre de 2026 · F1/F2/F3 aprobadas e integradas en main. Editor principal F4 aprobado por el usuario e integrado en main mediante merge commit desde `f4-core-editor`. Véanse [aceptación F2](f2/VALIDATION.md), [validación F3](f3/VALIDATION.md) y [arquitectura/validación F4](f4/EDITOR.md). F5 no iniciada.
 
 ## Decisión principal [D]
 
@@ -62,6 +62,12 @@ flowchart TD
 El proceso principal de Electron gestiona ventanas, diálogos de archivos y el puente de operaciones. Se limita el trabajo pesado mediante workers y una cola de generación de PDF. El renderer de edición usa aislamiento de contexto, sandbox y `nodeIntegration` desactivado; el preload expone métodos concretos con validación, no acceso general al sistema. Esta configuración sigue la [guía de seguridad de Electron](https://www.electronjs.org/docs/latest/tutorial/security).
 
 ## Frontend [D]
+
+El primer editor conectado al dominio y SQLite está implementado en F4 para
+datos personales, educación y experiencia. El puente permitido, el sobre de
+borradores, la protección de cierre y el adaptador Tiptap se documentan en
+[f4/EDITOR.md](f4/EDITOR.md). El esquema de persistencia F3 y los formatos F2 no
+cambian. El resto de este diseño describe también componentes de fases futuras.
 
 - **React + TypeScript + Vite:** aplicación cliente, sin necesidad de renderizado de servidor. Vite es una de las opciones documentadas para una aplicación React propia. [Documentación de React](https://react.dev/learn/build-a-react-app-from-scratch).
 - Formularios controlados por casos de uso del dominio y validación compartida con **Zod**. La validación de interfaz no sustituye la validación antes de persistir/importar. [Documentación de Zod](https://zod.dev/).
@@ -220,7 +226,7 @@ Una memoria sensible no empareja automáticamente títulos ambiguos por texto: i
 | Versionar una plantilla cambia su aspecto histórico. | Mantener versiones disponibles; si falta una, proponer sustitución y comunicar que el PDF original sigue siendo la referencia visual. No prometer bytes idénticos entre motores/versiones. |
 | Los objetivos de rapidez no se cumplen. | Medición sobre equipo/corpus fijados; perfilar y ajustar antes de declarar el MVP, sin recortar contenido silenciosamente. |
 
-La autorización general para implementar está concedida y las decisiones de producto están cerradas. La fase actual es **F3, aprobada por el usuario e integrada en main mediante merge commit**; véase [validación F3](f3/VALIDATION.md). F1 permanece cerrada con sus límites. F4 no iniciada.
+La autorización general para implementar está concedida y las decisiones de producto están cerradas. La fase actual es **F4, aprobada por el usuario e integrada en main mediante merge commit desde `f4-core-editor`**; véase [validación F4](f4/VALIDATION.md). F1/F2/F3/F4 permanecen aprobadas e integradas en main, con sus límites. F5 no iniciada.
 
 ## Resultado de la puerta F1 — 16 de octubre de 2026
 

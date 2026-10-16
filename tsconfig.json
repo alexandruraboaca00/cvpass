@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2023",
+    "jsx": "react-jsx",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "lib": [
@@ -21,6 +22,8 @@
   },
   "include": [
     "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.cts",
     "tests/**/*.ts"
   ]
 }

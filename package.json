@@ -3,26 +3,45 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "main": "dist/src/desktop/main.js",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && vite build",
+    "start": "electron .",
+    "setup:electron": "install-electron",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "npm run build && node --test dist/tests/*.test.js",
     "test:f1": "npm test --prefix spikes/f1",
+    "test:f4": "npm run build && node --test dist/tests/editor.test.js dist/tests/editor-rich.test.js",
+    "test:f4:ui": "playwright test --config playwright.config.ts",
+    "validate:f4:offline": "node scripts/f4-offline-check.mjs",
     "test:f2": "npm run build && node --test dist/tests/domain.test.js dist/tests/language-revisions.test.js dist/tests/invariants.test.js dist/tests/migrations.test.js dist/tests/portable.test.js",
     "test:f3": "npm run build && node --test dist/tests/sqlite-storage.test.js dist/tests/sqlite-migrations.test.js dist/tests/library.test.js dist/tests/drafts.test.js dist/tests/local-host.test.js dist/tests/storage-failures.test.js dist/tests/project-files.test.js",
     "validate:f3:electron": "npm run build && node scripts/f3-electron-check.mjs"
   },
   "dependencies": {
+    "@tiptap/core": "3.32.0",
+    "@tiptap/extension-list": "3.32.0",
+    "@tiptap/pm": "3.32.0",
+    "@tiptap/react": "3.32.0",
+    "@tiptap/starter-kit": "3.32.0",
     "better-sqlite3": "13.0.3",
     "fflate": "0.8.3",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "zod": "4.6.7"
   },
   "devDependencies": {
+    "@playwright/test": "1.64.1",
     "@types/better-sqlite3": "9.6.0",
     "@types/node": "26.6.5",
-    "typescript": "7.0.2"
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "electron": "44.7.2",
+    "typescript": "7.0.2",
+    "vite": "8.3.4"
   },
   "allowScripts": {
+    "electron@44.7.2": true,
     "better-sqlite3@13.0.3": true
   }
 }

@@ -4,7 +4,7 @@ CVForge será una aplicación local para crear y gestionar CV, importar document
 
 ## Estado actual
 
-La investigación de Europass está terminada y las decisiones de producto están consolidadas. La fase actual es **F3: biblioteca SQLite, persistencia y recuperación aprobadas por el usuario e integradas en `main` mediante merge commit desde `f3-persistence-library`**. [Validación F3](docs/f3/VALIDATION.md). F2 está integrada en `main`; F1 permanece cerrada en [docs/F1_VALIDATION.md](docs/F1_VALIDATION.md). No hay editor completo. F4 no iniciada.
+La investigación de Europass está terminada y las decisiones de producto están consolidadas. **F4 tiene el editor de datos personales, educación y experiencia aprobado por el usuario e integrado en `main` mediante merge commit desde `f4-core-editor`**. [Implementación](docs/f4/EDITOR.md), [validación](docs/f4/VALIDATION.md). F1/F2/F3/F4 están aprobadas e integradas en `main`; F1 permanece cerrada. F5 no se ha iniciado. El MVP completo sigue pendiente.
 
 ## Producto definido
 
@@ -22,7 +22,7 @@ Datos personales, educación, experiencia, habilidades, idiomas, certificaciones
 
 ## Stack y validación técnica F1
 
-Electron, React, TypeScript y Vite; SQLite en worker mediante better-sqlite3; Zod, Tiptap e i18next para validación/edición/interfaz; Chromium para componer PDF y PDF.js para visualizar/importar. pdf-lib es el primer candidato para adjuntos, con qpdf como alternativa si no conserva la calidad requerida. Electron/React/TypeScript, SQLite y PDF han superado la prueba F1 en Linux x64. Zod está integrado en F2/F3; Tiptap e i18next siguen propuestos para el producto. La traducción ES/EN conserva su exploración previa y queda fuera del criterio de cierre F1 por decisión final del usuario.
+Electron, React, TypeScript y Vite; SQLite en worker mediante better-sqlite3; Zod y Tiptap para validación/edición. i18next sigue propuesto para las fases de idiomas. Chromium/PDF.js y el payload PDF tienen su validación técnica F1; su integración completa en el editor conserva las fases del roadmap. Zod está integrado desde F2 y Tiptap limitado al árbol del dominio desde F4. La traducción ES/EN conserva su exploración previa y queda fuera del criterio de cierre F1 por decisión final del usuario.
 
 El resultado acotado y las versiones concretas del spike figuran en el registro F1. La integración del producto completo sigue el roadmap.
 
@@ -74,3 +74,26 @@ El harness opcional `npm run validate:f3:electron` reutiliza una copia del runti
 Linux ya instalado de F1, con otra aplicación técnica y sin modificar el spike.
 No es una dependencia de producción. `scripts/f3-offline-check.mjs` requiere
 iniciarse dentro de un namespace Linux sin red; procedimiento en el registro F3.
+
+## Editor F4
+
+```bash
+npm run setup:electron
+npm run build
+npm start
+```
+
+La aplicación abre la biblioteca real bajo `userData` de Electron. No carga datos
+sintéticos en producción. Confirmar/Cancelar, foto, periodos parciales, texto
+enriquecido, inclusión y orden reutilizan dominio/persistencia F2/F3. Para probar:
+
+```bash
+npm run test:f4
+npm run test:f4:ui
+npm run validate:f4:offline
+```
+
+Las pruebas UI necesitan una sesión gráfica Linux. El ensayo offline usa
+`unshare`, `ip` y loopback exclusivamente para CDP local. No ejecutar dos suites
+de UI a la vez sobre el mismo escritorio si se quiere comprobar el foco.
+El [registro F4](docs/f4/VALIDATION.md) detalla método, límites y resultados.
