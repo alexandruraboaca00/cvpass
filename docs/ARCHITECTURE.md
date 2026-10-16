@@ -1,6 +1,6 @@
 # Arquitectura propuesta
 
-Versión 0.4 · 16 de octubre de 2026 · F1 cerrada; dominio y contratos iniciales F2 aprobados e integrados en main, sin biblioteca ni editor de producto. Véase [aceptación F2](f2/VALIDATION.md).
+Versión 0.5 · 16 de octubre de 2026 · F1 cerrada; F2 aprobada e integrada en main. Biblioteca/persistencia F3 implementadas y validadas en rama, pendiente de aprobación del usuario para fusionar; editor pendiente. Véanse [aceptación F2](f2/VALIDATION.md) y [validación F3](f3/VALIDATION.md).
 
 ## Decisión principal [D]
 
@@ -220,7 +220,7 @@ Una memoria sensible no empareja automáticamente títulos ambiguos por texto: i
 | Versionar una plantilla cambia su aspecto histórico. | Mantener versiones disponibles; si falta una, proponer sustitución y comunicar que el PDF original sigue siendo la referencia visual. No prometer bytes idénticos entre motores/versiones. |
 | Los objetivos de rapidez no se cumplen. | Medición sobre equipo/corpus fijados; perfilar y ajustar antes de declarar el MVP, sin recortar contenido silenciosamente. |
 
-La autorización general para implementar está concedida y las decisiones de producto están cerradas. La fase actual es **F2, aprobada e integrada en main mediante merge commit**; véase [aceptación F2](f2/VALIDATION.md). F1 permanece cerrada con sus límites; F3 no se inicia.
+La autorización general para implementar está concedida y las decisiones de producto están cerradas. La fase actual es **F3, implementada y validada técnicamente en su rama**, pendiente de aprobación del usuario para fusionar; véase [validación F3](f3/VALIDATION.md). F1 permanece cerrada con sus límites. F4 no iniciada.
 
 ## Resultado de la puerta F1 — 16 de octubre de 2026
 
@@ -244,3 +244,27 @@ en memoria. No es el flujo de backup/restauración durable de F3. ExportProjecti
 y ExportPayload son contratos distintos del proyecto privado; no se cambia el
 motor PDF F1. [Diseño implementado y límites](f2/IMPLEMENTATION.md),
 [formato portable](f2/CVPROJ.md).
+
+## Concreción técnica F3
+
+`src/application` define LibraryRepository y coordina confirmaciones, recuperación,
+borradores y portabilidad mediante contratos. `src/adapters/sqlite` implementa el
+puerto con un worker, better-sqlite3 13.0.3 y almacenamiento SQLite v2. El dominio
+F2 no cambia ni importa SQLite/Node/Electron. No hay acceso SQL desde renderer.
+
+El host recibe app.getPath('userData') y abre `library/library.sqlite3`. Secciones,
+entradas, ajustes, inclusión, orden, idioma y aprobaciones C permanecen en snapshots
+versionados; las relaciones SQL protegen entidades/revisiones/plantillas/activos/
+borradores. Generación global y revisión esperada previenen sobrescrituras. WAL,
+FULL, claves foráneas y transacción compuesta preceden al reconocimiento de éxito.
+
+Los BLOB son deduplicados por hash y conservados por todas sus referencias,
+incluidas bases de borrador e historia. Restaurar conserva el estado sustituido y
+crea una revisión nueva. Las migraciones y la sustitución de workspace crean antes
+un backup SQLite consistente. `.cvproj` v1 se integra sin ampliar el formato, con
+exportación atómica a archivo y restauración transaccional de CV/workspace.
+
+[PERSISTENCE.md](f3/PERSISTENCE.md) documenta esquema, recuperación, política de
+eliminación y límites reales. Se han probado dos procesos reales de Electron,
+cierre forzado, fallo de disco SQLite, migraciones fallidas y ejecución sin red.
+El harness no implementa UI/preload final ni altera el ejecutable F1.

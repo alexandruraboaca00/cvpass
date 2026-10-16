@@ -1,12 +1,12 @@
 # Roadmap de implementación
 
-Versión 0.2 · 15 de octubre de 2026 · Decisiones de producto consolidadas e implementación autorizada por fases. **Fase actual: F2 aprobada por el usuario e integrada en `main` mediante merge commit. F3 no iniciada.** Véase [aceptación F2](f2/VALIDATION.md).
+Versión 0.3 · 16 de octubre de 2026 · Decisiones de producto consolidadas e implementación autorizada por fases. **Fase actual: F3 implementada y APROBADA en validación técnica en `f3-persistence-library`; pendiente de aprobación del usuario para fusionar. F4 no iniciada.** Véase [validación F3](f3/VALIDATION.md). F2 sigue integrada en main.
 
 ## Alcance y criterio de avance [D]
 
 Las fases concretan las decisiones finales del usuario [D], descritas en [REQUIREMENTS.md](REQUIREMENTS.md), [ARCHITECTURE.md](ARCHITECTURE.md) y [DATA_MODEL.md](DATA_MODEL.md). La evidencia histórica principal está en [23 — Cierre](research/23-cierre-investigacion-y-criterios.md), [28 — Mejoras](research/28-mejoras-necesarias-y-aceptacion.md) y [29](research/29-simulacion-caducidad-y-recuperacion.md). Las propuestas históricas incompatibles no prevalecen sobre esta especificación.
 
-La investigación ha terminado y la implementación está autorizada. No hay esperas de 48 horas ni acciones manuales pendientes en Europass. Las comprobaciones siguientes se harán sobre nuestra aplicación; las pruebas de Europass no las sustituyen. La orden vigente autoriza la integración y publicación de F2; F1 permanece cerrada y F3 no se inicia.
+La investigación ha terminado y la implementación está autorizada. No hay esperas de 48 horas ni acciones manuales pendientes en Europass. Las comprobaciones siguientes se harán sobre nuestra aplicación; las pruebas de Europass no las sustituyen. La orden vigente autorizó implementar F3 en su rama, sin fusionarla ni iniciar F4. F1 permanece cerrada y F2 integrada.
 
 Cada fase debe entregar un resultado revisable y superar su criterio antes de ampliar alcance. Se fija entonces la versión de dependencias utilizada y se conserva la evidencia de aceptación. No se asignan fechas sin estimar sobre los primeros resultados.
 
@@ -44,7 +44,7 @@ Por decisión final del usuario para este cierre, la traducción no forma parte 
 
 ## F2 — Dominio, invariantes y formato versionado
 
-**Estado: APROBADA por el usuario e integrada en `main` desde `f2-domain-model` mediante merge commit — 16 de octubre de 2026.** 30 tests F2, TypeScript/build y regresión F1 pasan. Contrato `.cvproj` inicial `cv/workspace` implementado en memoria. [Evidencia y límites](f2/VALIDATION.md). F3 no iniciada; requiere nueva autorización.
+**Estado: APROBADA por el usuario e integrada en `main` desde `f2-domain-model` mediante merge commit — 16 de octubre de 2026.** 30 tests F2, TypeScript/build y regresión F1 pasan. Contrato `.cvproj` inicial `cv/workspace` implementado en memoria. [Evidencia y límites](f2/VALIDATION.md). La persistencia de F3 conserva estos contratos.
 
 **Depende de:** F1. **Salida:** modelo independiente de UI/SQLite y contrato portable inicial.
 
@@ -55,6 +55,8 @@ Por decisión final del usuario para este cierre, la traducción no forma parte 
 **Aceptación:** fechas parciales/final sola sin invenciones; errores concretos de periodo/título; CEFR parcial conservado; memoria sensible obsoleta identificable. Importar una traducción visible sola no inventa original ni aprobación. No hay mapa permanente de narrativas por idioma; payload sin referencias privadas. Un formato futuro/hash incorrecto no causa guardado con pérdida. Pruebas de contratos y migraciones, sin reflejar detalles internos.
 
 ## F3 — Biblioteca, persistencia y recuperación
+
+**Estado: APROBADA en validación técnica — 16 de octubre de 2026; rama `f3-persistence-library`, pendiente de aprobación del usuario para fusionar.** SQLite real en worker, esquema/migraciones explícitas, biblioteca independiente, borradores recuperables, checkpoints durables, activos por hash y copias/restauración `.cvproj` CV/workspace sin ampliar v1. 39 tests F3 + 30 F2, TypeScript/build y regresión F1 3/3 pasan. Dos procesos reales de Electron, SIGKILL, SQLITE_FULL, migración fallida y red deshabilitada probados. [Evidencia](f3/VALIDATION.md), [decisiones/límites](f3/PERSISTENCE.md). F4 no iniciada.
 
 **Depende de:** F2. **Salida:** biblioteca automática con perfil, CV, borradores, revisiones/checkpoints y copias `.cvproj`.
 
@@ -219,4 +221,4 @@ Nuevos motores/memorias de traducción, diseños, ajuste de extensión, catálog
 
 ## Decisiones que siguen pendientes [P]
 
-F0 está cerrada por las decisiones finales del usuario. F1 está aprobada con versiones, mediciones y límites en [F1_VALIDATION.md](F1_VALIDATION.md). La traducción queda fuera de sus criterios de cierre por instrucción final del usuario; no se presenta como validada para el producto. F2 está aprobada e integrada en `main` con los límites del contrato inicial en [f2/VALIDATION.md](f2/VALIDATION.md); F3 no iniciada.
+F0 está cerrada por las decisiones finales del usuario. F1 está aprobada con versiones, mediciones y límites en [F1_VALIDATION.md](F1_VALIDATION.md). La traducción queda fuera de sus criterios de cierre por instrucción final del usuario; no se presenta como validada para el producto. F2 está aprobada e integrada en `main` con los límites del contrato inicial en [f2/VALIDATION.md](f2/VALIDATION.md). F3 está implementada y validada en rama [con evidencia propia](f3/VALIDATION.md), pendiente de aprobación del usuario para fusionar. No se inicia F4.

@@ -1,0 +1,210 @@
+{
+  "phase": "F3",
+  "date": "2026-10-16",
+  "assessment": "APROBADA_TECNICAMENTE",
+  "branch": "f3-persistence-library",
+  "validatedCodeCommit": "9cb7df35065b809e53a31e1f188a845257cbdb0d",
+  "mainCommit": "a1880e1e2e7de86d856c537ec5e43abcb136d155",
+  "merged": false,
+  "userApprovalToMerge": "pending",
+  "f4Started": false,
+  "runtime": {
+    "node": "v26.11.1",
+    "platform": "linux",
+    "arch": "x64",
+    "electron": {
+      "electron": "44.7.2",
+      "node": "24.21.0",
+      "modules": "149"
+    }
+  },
+  "versions": {
+    "storageSchema": 2,
+    "domainModel": 1,
+    "projectFormat": 1,
+    "betterSqlite3": "13.0.3",
+    "sqlite": "3.53.4"
+  },
+  "tests": {
+    "all": {
+      "tests": 69,
+      "pass": 69,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0
+    },
+    "f2": {
+      "tests": 30,
+      "pass": 30,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0
+    },
+    "f3Offline": {
+      "tests": 39,
+      "pass": 39,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0
+    },
+    "f1": {
+      "tests": 3,
+      "pass": 3,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0
+    }
+  },
+  "typecheck": {
+    "command": "npm run typecheck",
+    "exitCode": 0
+  },
+  "build": {
+    "command": "npm run build",
+    "exitCode": 0
+  },
+  "offline": {
+    "method": "unshare --user --map-current-user --net before starting Node/Electron",
+    "routes": [],
+    "interfaces": [],
+    "externalConnection": "ENETUNREACH",
+    "commands": [
+      {
+        "name": "f3-tests",
+        "command": "npm",
+        "args": [
+          "run",
+          "test:f3"
+        ],
+        "code": 0,
+        "signal": null
+      },
+      {
+        "name": "electron",
+        "command": "node",
+        "args": [
+          "scripts/f3-electron-check.mjs"
+        ],
+        "code": 0,
+        "signal": null
+      }
+    ]
+  },
+  "electron": {
+    "method": "two real Electron main processes, dedicated SQLite workers, technical harness without renderer",
+    "f1AsarUnchanged": true,
+    "digestBeforeRecovery": "43d28db89ef3e772e44379842427e19c0a1f3af1ef9e1ad55cac43714a63e62a",
+    "digestMatched": true,
+    "draftRecovered": true,
+    "checkpointRestored": true,
+    "portableReopened": true,
+    "health": {
+      "schemaVersion": 2,
+      "sqliteVersion": "3.53.4",
+      "integrity": [
+        "ok"
+      ],
+      "foreignKeyViolations": 0,
+      "journalMode": "wal",
+      "synchronous": 2,
+      "counts": {
+        "entities": 3,
+        "revisions": 4,
+        "drafts": 0,
+        "assets": 1,
+        "blobs": 1,
+        "templates": 1
+      }
+    }
+  },
+  "f1Regression": {
+    "method": "unshare --user --map-current-user --net",
+    "routes": [],
+    "interfaces": [],
+    "externalConnection": "ENETUNREACH",
+    "commands": [
+      {
+        "mode": "create",
+        "args": [
+          "--closure",
+          "--create"
+        ],
+        "exitCode": 0,
+        "signal": null
+      },
+      {
+        "mode": "reopen",
+        "args": [
+          "--closure"
+        ],
+        "exitCode": 0,
+        "signal": null
+      }
+    ],
+    "testsExitCode": 0,
+    "sourcesAndEvidenceUnchanged": true,
+    "appAsarSha256": "19f919bae6f4f69bcea17872d68deea2ce62710a175ebe0166b4d1a714f0f7e8"
+  },
+  "failureInjection": {
+    "postAcknowledgementCrash": "real SIGKILL child process",
+    "transactionInterruption": "real SIGKILL after entity writes before COMMIT",
+    "diskFull": "real SQLITE_FULL from max_page_count",
+    "migration": "real v1 library plus a failing v2 DDL transaction"
+  },
+  "projectFiles": {
+    "roundTripAfterNewInstance": true,
+    "atomicPublicationAndFsync": true,
+    "noImplicitOverwrite": true,
+    "corruptionLeavesLibraryUnchanged": true,
+    "formatUnchanged": true
+  },
+  "privacy": {
+    "syntheticDataOnly": true,
+    "workerErrorsContainOnlyCodes": true,
+    "pdfPayloadExcludesDraftsHistoryHiddenAndOtherDocuments": true,
+    "noRemoteResourcesIntroduced": true
+  },
+  "incidents": [
+    {
+      "kind": "restricted_graphical_environment",
+      "initialF1Attempt": "FAIL",
+      "initialTests": {
+        "pass": 1,
+        "fail": 2
+      },
+      "reason": "dconf runtime read-only and GPU process crashes; missing closure reports",
+      "resolution": "rerun outside filesystem sandbox while retaining the isolated network namespace; 3/3 pass",
+      "f1SourceChanged": false
+    },
+    {
+      "kind": "test_clock",
+      "resolution": "explicit synthetic clock after fixture timestamps; backwards-clock rejection also tested"
+    },
+    {
+      "kind": "storage_directory_check",
+      "resolution": "guard scoped to actual CVForge repository, including symbolic parent resolution"
+    },
+    {
+      "kind": "temporary_filesystem",
+      "resolution": "copy Electron runtime across filesystems; project temporaries use the destination directory"
+    }
+  ],
+  "rootDependencyAudit": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    }
+  },
+  "limits": [
+    "Linux x64 only validated",
+    "No final editor/preload/installer",
+    "Library-wide generation and metadata snapshot writes; 100-CV p95 not measured",
+    "cvproj v1 excludes drafts only after explicit resolution or acknowledgement; SQLite backups include them",
+    "No automatic SQLite corruption repair or forensic erasure",
+    "No F4 or automatic translation implementation"
+  ]
+}

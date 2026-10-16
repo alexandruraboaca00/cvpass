@@ -1,6 +1,7 @@
 # F3 — Persistencia y biblioteca local
 
-Estado inicial: implementación en `f3-persistence-library`; aceptación pendiente.
+Estado: implementación y validación técnica completadas en `f3-persistence-library`;
+pendiente de aprobación del usuario para fusionar. [Evidencia](VALIDATION.md).
 Base aprobada: `a1880e1` en main. No se inicia F4.
 
 ## Arquitectura
@@ -52,8 +53,8 @@ referencia. No existe una lectura de archivos arbitrarios para resolver assets.
 ## Límite de esta entrega
 
 No hay editor, formularios finales, traductor, importador Europass ni nuevos
-contratos PDF. `.cvproj` conserva su formato F2; la integración y sus validaciones
-se registrarán al completar esta fase. Las incidencias aplazadas de F1 permanecen
+contratos PDF. `.cvproj` conserva su formato F2, con integración a biblioteca y
+archivo validada en esta fase. Las incidencias aplazadas de F1 permanecen
 fuera del alcance.
 
 ## Confirmación, borradores e historial
