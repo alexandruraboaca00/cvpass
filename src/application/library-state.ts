@@ -4,7 +4,7 @@ import {
   assertDataTree, parse, validateEntity, validateProject, referencedAssets, templateKey,
   canonical, validateResources, checkMap,
 } from '../domain/index.js';
-import type { Entity, ProjectSnapshot } from '../domain/index.js';
+import type { Entity } from '../domain/index.js';
 import type { FormDraft, LibraryContent, Resources, ProjectData } from './contracts.js';
 import { reject } from './contracts.js';
 
@@ -57,6 +57,18 @@ export function validateLibrary(s: LibraryContent): LibraryContent {
   const owners = new Set(currentEntities(s).map(e => e.id));
   if (s.revisions.some(r => !owners.has(r.entityId))) reject('REVISION_OWNER_MISSING');
   const confirmed = projectFromState(s);
+  const owned = new Set<string>();
+  function collectIds(value: unknown): void {
+    if (!value || typeof value !== 'object') return;
+    if (Array.isArray(value)) { value.forEach(collectIds); return; }
+    for (const [key,v] of Object.entries(value)) {
+      if (['sourceRef','catalog','templateRef'].includes(key)) continue;
+      if (key === 'id' && typeof v === 'string') owned.add(v); else collectIds(v);
+    }
+  }
+  owned.add(s.workspace.id); currentEntities(s).forEach(collectIds); s.revisions.forEach(r => { owned.add(r.id); collectIds(r.snapshot); });
+  s.drafts.forEach(d => { owned.add(d.id); collectIds(d.baseSnapshot); });
+  if (Object.keys(s.assetsById).some(id => owned.has(id))) reject('ASSET_ID_COLLISION');
   const ids = new Set<string>([s.workspace.id, ...currentEntities(s).map(e => e.id), ...s.revisions.map(r => r.id), ...Object.keys(s.assetsById)]);
   const requiredAssets = new Set(Object.keys(confirmed.snapshot.assetsById));
   const requiredTemplates = new Set(confirmed.snapshot.templates.map(templateKey));
@@ -87,16 +99,23 @@ export function validateLibrary(s: LibraryContent): LibraryContent {
   return structuredClone(s);
 }
 export function addResources(s: LibraryContent, r: Resources): void {
+  if (r.assetsById) { parse(AssetMapSchema,r.assetsById); checkMap(r.assetsById,['assetsById']); }
   for (const [id, asset] of Object.entries(r.assetsById ?? {})) {
     if (s.assetsById[id] && canonical(s.assetsById[id]) !== canonical(asset)) reject('ASSET_ID_CONFLICT');
     s.assetsById[id] = structuredClone(asset);
   }
   for (const t of r.templates ?? []) {
+    parse(TemplateSchema,t);
     const old = s.templates.find(x => templateKey(x) === templateKey(t));
     if (old && canonical(old) !== canonical(t)) reject('TEMPLATE_VERSION_CONFLICT');
     if (!old) s.templates.push(structuredClone(t));
   }
   for (const [hash, bytes] of r.blobs ?? []) s.blobs.set(hash, new Uint8Array(bytes));
+  // Reject unused incoming data instead of accepting an upload and silently dropping it.
+  const required = structuredClone(s); collectUnused(required);
+  if (Object.keys(r.assetsById ?? {}).some(id => !required.assetsById[id]) ||
+      (r.templates ?? []).some(t => !required.templates.some(x => templateKey(x) === templateKey(t))) ||
+      [...(r.blobs ?? new Map()).keys()].some(hash => !required.blobs.has(hash))) reject('RESOURCE_UNREFERENCED');
 }
 export function collectUnused(s: LibraryContent): void {
   const all = [...currentEntities(s), ...s.revisions.map(r => r.snapshot), ...s.drafts.map(d => d.baseSnapshot)];

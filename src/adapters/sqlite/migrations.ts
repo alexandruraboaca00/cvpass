@@ -124,12 +124,3 @@ export async function migrateStorage(db: Database.Database, directory: string, s
     if ((db.pragma('foreign_key_check') as unknown[]).length) reject('MIGRATION_FOREIGN_KEY_FAILURE');
   }).exclusive();
 }
-
-// Internal test seam for upgrading a genuine v1 database; not exposed over the worker protocol.
-export function createV1Storage(db: Database.Database): void {
-  const step = migrations[0]!;
-  db.transaction(() => {
-    db.exec(step.sql); db.prepare('INSERT INTO schema_migrations VALUES (?,?,?,?)').run(1, step.name, checksum(step), new Date().toISOString());
-    db.pragma(`application_id = ${APPLICATION_ID}`); db.pragma('user_version = 1');
-  })();
-}

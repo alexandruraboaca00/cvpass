@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3';
 import { chmodSync, existsSync, lstatSync, mkdirSync, realpathSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join, resolve, relative } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { canonical, referencedAssets, templateKey } from '../../domain/index.js';
@@ -10,16 +10,19 @@ import { reject } from '../../application/contracts.js';
 import { currentEntities, validateLibrary } from '../../application/library-state.js';
 import { verifyAssetBytes } from '../asset-bytes.js';
 import { decodeJson } from '../json.js';
-import { checkStorageVersion, migrateStorage, privateSubdirectory, STORAGE_SCHEMA_VERSION } from './migrations.js';
+import { checkStorageVersion, migrateStorage, privateSubdirectory } from './migrations.js';
 import type { StorageMigration } from './migrations.js';
 
 export const DATABASE_NAME = 'library.sqlite3';
 function privateDirectory(input: string): string {
   const directory = resolve(input);
+  let existing = directory;
+  while (!existsSync(existing) && dirname(existing) !== existing) existing = dirname(existing);
+  const physicalDirectory = resolve(realpathSync(existing),relative(existing,directory));
   // The trusted main process supplies userData/library; tests use a fresh temporary directory.
   for (let at = dirname(fileURLToPath(import.meta.url)); ; at = dirname(at)) {
     if (existsSync(join(at, '.git'))) {
-      if (directory === at || directory.startsWith(at + '/')) reject('STORAGE_INSIDE_REPOSITORY');
+      if (physicalDirectory === at || physicalDirectory.startsWith(at + '/')) reject('STORAGE_INSIDE_REPOSITORY');
       break;
     }
     if (dirname(at) === at) break;
@@ -35,7 +38,7 @@ type RevisionRow = {id:string; entity_id:string; number:number; cause:string; re
 export interface EngineOptions {
   migrations?: readonly StorageMigration[];
   // Fault injection stays inside the adapter's tests, never in IPC/production worker messages.
-  transactionProbe?: (stage: 'afterEntities' | 'beforeCommit') => void;
+  transactionProbe?: (stage: 'beforeWrite' | 'afterEntities' | 'beforeCommit', database: Database.Database) => void;
 }
 export class SqliteEngine {
   private constructor(private readonly db: Database.Database, private readonly directory: string, private readonly options: EngineOptions) {}
@@ -121,6 +124,7 @@ export class SqliteEngine {
       const generation = this.db.prepare<[], {generation:number}>('SELECT generation FROM workspace WHERE slot=1').get()?.generation ?? null;
       if (generation !== expectedGeneration) reject('LIBRARY_CONFLICT');
       const next = (generation ?? -1) + 1;
+      this.options.transactionProbe?.('beforeWrite',this.db);
       // Remove dependency indexes first. They are rebuilt in the same transaction.
       for (const table of ['entity_assets','revision_assets','template_assets','draft_assets','draft_templates']) this.db.exec(`DELETE FROM ${table}`);
       // Keep entities/revisions until dependency rows are gone; replacement is atomic to readers.
@@ -135,7 +139,7 @@ export class SqliteEngine {
       const insertEntity = this.db.prepare('INSERT INTO entities VALUES (?,?,?,?,?,?,?,?,?,1)');
       currentEntities(s).forEach(e => insertEntity.run(e.id, s.workspace.id, e.kind, e.revision, e.kind === 'cv' ? e.name : null, e.kind === 'cv' ? e.documentLocale : null,
         e.kind === 'cv' ? e.presentation.templateRef.id : null, e.kind === 'cv' ? e.presentation.templateRef.version : null, canonical(e)));
-      this.options.transactionProbe?.('afterEntities');
+      this.options.transactionProbe?.('afterEntities',this.db);
       const insertRevision = this.db.prepare('INSERT INTO revisions VALUES (?,?,?,?,?,?,?,1)');
       s.revisions.forEach(r => insertRevision.run(r.id,r.entityId,r.number,r.cause,r.retention,r.createdAt,canonical(r.snapshot)));
       const insertDraft = this.db.prepare('INSERT INTO drafts VALUES (?,?,?,?,?)');
@@ -154,7 +158,7 @@ export class SqliteEngine {
         refs.forEach(t => linkDraftTemplate.run(d.id,t.id,t.version));
       });
       this.db.exec('DELETE FROM blobs WHERE sha256 NOT IN (SELECT sha256 FROM assets)');
-      this.options.transactionProbe?.('beforeCommit');
+      this.options.transactionProbe?.('beforeCommit',this.db);
       if ((this.db.pragma('foreign_key_check') as unknown[]).length) reject('STORAGE_FOREIGN_KEY_FAILURE');
       return next;
     }).immediate();
