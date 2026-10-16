@@ -35,3 +35,22 @@ Comprobación del bloque: 5 tests de dominio PASS, TypeScript PASS, 3 tests F1 P
   campos seleccionados. No se enlaza con el perfil mutable.
 
 Comprobación del bloque: 10 tests de dominio PASS, TypeScript PASS, 3 tests F1 PASS.
+
+## Tercer bloque
+
+- Contrato privado versionado de CV y workspace, assets y revisiones necesarias.
+  Exportar un CV selecciona únicamente su cierre de dependencias, no el perfil
+  ni otros CV del workspace. El contenido oculto sí pertenece al proyecto.
+- `.cvproj` v1: ZIP STORE, manifest.json, snapshot.json y assets por SHA-256.
+  Manifiesto y modelo tienen versiones separadas. Comprobación de CRC, hashes,
+  nombres/headers locales y directorio central, límites, duplicados y symlinks.
+  Los archivos nunca se extraen al sistema de archivos para validarlos.
+- JSON UTF-8 estricto con claves duplicadas y peligrosas rechazadas, profundidad
+  acotada y sin correcciones de datos. Un formato antiguo/desconocido se rechaza
+  sin reescritura: no existe una migración real publicada que podamos inventar.
+- Se verifican bytes/hash/dimensiones de activos; PNG RGB/RGBA de 8 bits sin
+  entrelazado con stream completo comprobado. ExportPayload admite solo PNG
+  preparado sin chunks de metadatos, con hash/dimensiones propios.
+
+Comprobación del bloque: 17 tests PASS, TypeScript PASS, 3 tests F1 PASS.
+Queda la revisión final de invariantes y documentación del contrato inicial.

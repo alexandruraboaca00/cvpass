@@ -28,11 +28,31 @@ export function same(a: unknown, b: unknown): boolean { return canonical(a) === 
 export function canonical(value: unknown): string {
   if (value === null || typeof value !== 'object') return JSON.stringify(value);
   if (Array.isArray(value)) return `[${value.map(canonical).join(',')}]`;
-  return `{${Object.entries(value).filter(([, v]) => v !== undefined).sort(([a], [b]) => a.localeCompare(b, 'en')).map(([k, v]) => `${JSON.stringify(k)}:${canonical(v)}`).join(',')}}`;
+  return `{${Object.entries(value).filter(([, v]) => v !== undefined).sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0).map(([k, v]) => `${JSON.stringify(k)}:${canonical(v)}`).join(',')}}`;
 }
 export function assertOrder(order: string[], keys: string[], path: (string | number)[]): void {
   if (order.length !== keys.length || new Set(order).size !== order.length || keys.some(id => !order.includes(id))) fail('order.notPermutation', path);
 }
 export function checkMap<T extends { id: string }>(map: Record<string, T>, path: (string | number)[]): void {
   for (const [key, value] of Object.entries(map)) if (key !== value.id) fail('id.mapKeyMismatch', [...path, key]);
+}
+
+// Bound untrusted object graphs before schema validation (no cycles or prototypes).
+export function assertDataTree(value:unknown,maxDepth=128):void {
+  const ancestors=new Set<object>();let nodes=0;
+  function visit(v:unknown,depth:number):void {
+    if(++nodes>200_000||depth>maxDepth)fail('data.limit');
+    if(v===null||typeof v==='boolean'||typeof v==='string')return;
+    if(typeof v==='number'){if(!Number.isFinite(v))fail('data.nonFinite');return;}
+    if(typeof v!=='object')fail('data.notJson');
+    if(ancestors.has(v))fail('data.cycle');
+    const proto=Object.getPrototypeOf(v);
+    if(!Array.isArray(v)&&proto!==Object.prototype&&proto!==null)fail('data.prototype');
+    ancestors.add(v);
+    for(const [key,x]of Object.entries(v)){
+      if(['__proto__','prototype','constructor'].includes(key))fail('data.unsafeKey');visit(x,depth+1);
+    }
+    ancestors.delete(v);
+  }
+  visit(value,0);
 }

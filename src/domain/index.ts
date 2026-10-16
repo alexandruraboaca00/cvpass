@@ -7,3 +7,4 @@ export * from './language.js';
 export * from './revisions.js';
 export * from './assets.js';
 export * from './export.js';
+export * from './project.js';

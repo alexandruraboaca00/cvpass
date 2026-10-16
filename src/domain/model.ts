@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { IdSchema, NonBlank, Timestamp, DocumentLocale, Locale, Sha256, WebUrl, parse, assertOrder, checkMap, fail } from './primitives.js';
+import { IdSchema, NonBlank, Timestamp, DocumentLocale, Locale, Sha256, WebUrl, parse, assertOrder, checkMap, fail, assertDataTree } from './primitives.js';
 import { PartialDateSchema, PeriodSchema } from './dates.js';
 import { TextFieldSchema, LiteralSchema, NarrativeSchema, SensitiveSchema, RichNarrativeSchema, ApprovalSchema } from './content.js';
 
@@ -60,7 +60,7 @@ export const CvSectionSchema = ProfileSectionSchema.extend({ included: z.boolean
 export const TemplateSchema = z.strictObject({ id: NonBlank, version: z.int().positive(), rendererContractVersion: z.literal(1), layout: z.enum(['singleColumn','twoColumn']), capabilities: z.array(SectionKindSchema), resourceRefs: z.array(z.strictObject({ assetId: IdSchema, license: NonBlank, attribution: NonBlank })) });
 export type TemplateDefinition = z.infer<typeof TemplateSchema>;
 export const PersonalVisibilitySchema = z.strictObject({ displayName: z.boolean(), givenName: z.boolean(), familyName: z.boolean(), otherNames: z.boolean(), headline: z.boolean(), about: z.boolean(), birthDate: z.boolean(), nationalities: z.boolean(), gender: z.boolean(), identifiers: z.boolean(), contacts: z.array(IdSchema), addresses: z.array(IdSchema) });
-export const PresentationSchema = z.strictObject({ templateRef: z.strictObject({ id: NonBlank, version: z.int().positive() }), density: z.enum(['compact','normal','spacious']), accentColor: z.string().regex(/^#[0-9a-fA-F]{6}$/), fontFamily: NonBlank, page: z.literal('A4'), numbering: z.boolean(), datePrecision: z.enum(['year','month','day']), showCefrGuide: z.boolean(), personalFieldVisibility: PersonalVisibilitySchema });
+export const PresentationSchema = z.strictObject({ templateRef: z.strictObject({ id: NonBlank, version: z.int().positive() }), density: z.enum(['compact','normal','spacious']), accentColor: z.string().regex(/^#[0-9a-fA-F]{6}$/), fontFamily: z.string().regex(/^[A-Za-z0-9 _-]{1,80}$/), page: z.literal('A4'), numbering: z.boolean(), datePrecision: z.enum(['year','month','day']), showCefrGuide: z.boolean(), personalFieldVisibility: PersonalVisibilitySchema });
 const entityBase = { id: IdSchema, revision: z.int().nonnegative(), createdAt: Timestamp, updatedAt: Timestamp, personalInformation: PersonalSchema, sensitiveTranslationMemory: z.record(IdSchema,ApprovalSchema) };
 export const MasterProfileSchema = z.strictObject({ ...entityBase, kind: z.literal('profile'), sectionsById: z.record(IdSchema,ProfileSectionSchema), sectionOrder: z.array(IdSchema) });
 export const CvDocumentSchema = z.strictObject({ ...entityBase, kind: z.literal('cv'), name: NonBlank, documentTitle: TextFieldSchema.nullable(), documentLocale: DocumentLocale, sectionsById: z.record(IdSchema,CvSectionSchema), sectionOrder: z.array(IdSchema), presentation: PresentationSchema });
@@ -72,6 +72,7 @@ export const AssetMapSchema = z.record(IdSchema,AssetSchema);
 const allowed: Record<SectionKind, Entry['kind'][]> = { education:['education'], work:['work'], skills:['skill'], languages:['nativeLanguage','foreignLanguage'], certifications:['certification'], projects:['project'], custom:['custom'] };
 export function entryIds(section: ProfileSection): string[] { return section.kind === 'skills' ? [...section.ungroupedSkillIds,...section.groupOrder.flatMap(id => section.groupsById[id]!.skillIds)] : section.entryOrder!; }
 export function validateEntity(input: unknown): Entity {
+  assertDataTree(input);
   const entity = parse(z.discriminatedUnion('kind',[MasterProfileSchema,CvDocumentSchema]),input);
   if (entity.updatedAt < entity.createdAt) fail('timestamp.inverted');
   checkMap(entity.sectionsById,['sectionsById']); checkMap(entity.sensitiveTranslationMemory,['sensitiveTranslationMemory']);
@@ -81,7 +82,7 @@ export function validateEntity(input: unknown): Entity {
     if (!value || typeof value !== 'object') return;
     if (Array.isArray(value)) { value.forEach((v,i)=>unique(v,[...path,i])); return; }
     for (const [key,v] of Object.entries(value)) {
-      if (key === 'sourceRef') continue; // Provenance references the original profile, never a dependency.
+      if (['sourceRef','catalog','templateRef'].includes(key)) continue; // Provenance references the original profile, never a dependency.
       if (key === 'id' && typeof v === 'string') { if (seen.has(v)) fail('id.duplicate',[...path,key]); seen.add(v); }
       else unique(v,[...path,key]);
     }

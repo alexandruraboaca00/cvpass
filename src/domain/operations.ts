@@ -21,7 +21,7 @@ function remapMaterialized(profile: MasterProfile,ctx: DomainContext): {material
     if(!v||typeof v!=='object')return;
     if(Array.isArray(v)){v.forEach(collect);return;}
     for(const [key,value]of Object.entries(v)){
-      if(key==='sourceRef')continue;
+      if(['sourceRef','catalog','templateRef'].includes(key))continue;
       if(key==='id'&&typeof value==='string')idMap.set(value,parse(IdSchema,ctx.newId()));else collect(value);
     }
   }
@@ -31,7 +31,7 @@ function remapMaterialized(profile: MasterProfile,ctx: DomainContext): {material
   function copy(v:unknown,parent=''):unknown {
     if(Array.isArray(v))return v.map(x=>typeof x==='string'&&lists.has(parent)?idMap.get(x)??x:copy(x));
     if(!v||typeof v!=='object')return v;
-    return Object.fromEntries(Object.entries(v).map(([key,value])=>[idMap.get(key)??key,key==='sourceRef'?structuredClone(value):typeof value==='string'&&refs.has(key)?idMap.get(value)??value:copy(value,key)]));
+    return Object.fromEntries(Object.entries(v).map(([key,value])=>[idMap.get(key)??key,['sourceRef','catalog','templateRef'].includes(key)?structuredClone(value):typeof value==='string'&&refs.has(key)?idMap.get(value)??value:copy(value,key)]));
   }
   return {materialized:copy(profile) as MasterProfile,idMap};
 }
