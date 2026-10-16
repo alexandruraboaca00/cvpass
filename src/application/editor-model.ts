@@ -1,7 +1,6 @@
 import { z } from 'zod';
 import {
-  A, B, DomainError, PartialDateSchema, RichTextSchema, SensitiveSchema,
-  assertDataTree, canonical, createSection, editSensitiveSource, keepOriginal, parse,
+  DomainError, PartialDateSchema, assertDataTree, canonical, parse,
   plainText, richText, validateCv,
 } from '../domain/index.js';
 import type { CvDocument, CvEntry, DomainContext, PartialDate, RichNarrative, RichTextDoc, TextField } from '../domain/index.js';
@@ -133,6 +132,15 @@ export function candidateFromForm(base:CvDocument,form:EditorForm,ctx:DomainCont
     if (raw !== '' && (!/^\d+(\.\d+)?$/.test(raw) || !Number.isFinite(Number(raw)))) issues.push({path,message:'Introduce un número válido.'});
     else { try { setLeaf(cv,path,raw === '' ? null : Number(raw)); } catch { issues.push({path,message:'Campo numérico inválido.'}); } }
   }
+  // A new repeatable address needs at least one value; an empty row must not
+  // become an invalid empty literal when the F2 visible projection is built.
+  const addresses:[string,CvDocument['personalInformation']['addresses'][number]][]=[];
+  if(form.target.kind==='personal')cv.personalInformation.addresses.forEach((a,index)=>addresses.push([`personalInformation.addresses.${index}`,a]));
+  if(form.target.kind==='entry'){
+    const entry=cv.sectionsById[form.target.sectionId]!.entriesById[form.target.entryId]!;
+    if(entry.kind==='education'&&entry.fields.address)addresses.push([entryPath(form.target.sectionId,form.target.entryId)+'.fields.address',entry.fields.address]);
+  }
+  for(const [path,address] of addresses)if(![...address.lines,address.locality,address.region,address.postalCode,address.countryCode,address.original].some(value=>value?.trim()))issues.push({path:path+'.lines',message:'Indica al menos un dato de dirección o retira esta dirección.'});
   if (form.target.kind === 'entry') cv.sectionsById[form.target.sectionId]!.entriesById[form.target.entryId]!.updatedAt = ctx.now();
   if (issues.length) throw new EditorValidationError(issues);
   try { return validateCv(cv); } catch (error) {

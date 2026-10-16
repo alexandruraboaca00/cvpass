@@ -17,7 +17,7 @@ export interface EditorLibraryView {
   recovery:{id:string;cvId:string;name:string;conflict:boolean}[];
 }
 export interface EditorDocumentView {cv:CvDocument;photo:PhotoView|null}
-export interface PhotoView {mediaType:string;bytes:Uint8Array;crop:{x:number;y:number;width:number;height:number}}
+export interface PhotoView {mediaType:string;bytes:Uint8Array;dimensions:{width:number;height:number};crop:{x:number;y:number;width:number;height:number}}
 interface ActiveForm { form:EditorForm; draft:FormDraft; autosaver:DraftAutosaver; resources:Resources }
 export class CoreEditorService {
   private active:ActiveForm|null = null;
@@ -54,7 +54,7 @@ export class CoreEditorService {
     if (!asset) reject('ASSET_NOT_FOUND');
     const bytes = content.blobs.get(asset.sha256) ?? this.active?.resources.blobs?.get(asset.sha256);
     if (!bytes) reject('ASSET_BYTES_MISSING');
-    return {mediaType:asset.mediaType,bytes:new Uint8Array(bytes),crop:placement.crop};
+    return {mediaType:asset.mediaType,bytes:new Uint8Array(bytes),dimensions:asset.dimensions!,crop:placement.crop};
   }
   async addSection(cvId:string,expectedRevision:number,kind:'education'|'work'):Promise<EditorDocumentView> {
     this.idle(); parse(z.enum(['education','work']),kind);

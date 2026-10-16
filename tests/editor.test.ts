@@ -8,6 +8,7 @@ import { createExportProjection } from '../src/domain/index.js';
 import { makeAsset } from '../src/adapters/asset-bytes.js';
 import { libraryFixture, runtimeContext } from './library-helpers.js';
 import { syntheticPng } from './fixtures.js';
+import { cvprojCodec } from '../src/adapters/library-cvproj.js';
 
 async function setup(t:TestContext) {
   const fixture = await libraryFixture(t,false), editor = new CoreEditorService(fixture.library,runtimeContext);
@@ -116,8 +117,12 @@ test('F4 reorder C,A,B needs confirmation, survives restart, and cancel leaves o
   let form = await f.editor.begin(cv.id,cv.revision,{kind:'order',sectionId}); form.cv.sectionsById[sectionId]!.entryOrder = [c!,a!,b!];
   f.editor.stage(form); assert.deepEqual((await f.library.openCv(cv.id)).sectionsById[sectionId]!.entryOrder,[a,b,c]);
   await f.editor.cancel(); form = await f.editor.begin(cv.id,cv.revision,{kind:'order',sectionId}); form.cv.sectionsById[sectionId]!.entryOrder = [c!,a!,b!];
-  cv = (await f.editor.confirm(form)).cv; await f.editor.close(); const reopened = await f.open();
+  cv = (await f.editor.confirm(form)).cv;
+  cv=(await f.editor.addSection(cv.id,cv.revision,'work')).cv;const sectionOrder=[...cv.sectionOrder].reverse();
+  form=await f.editor.begin(cv.id,cv.revision,{kind:'order',sectionId:null});form.cv.sectionOrder=sectionOrder;cv=(await f.editor.confirm(form)).cv;
+  await f.editor.close(); const reopened = await f.open();
   assert.deepEqual((await reopened.library.openCv(cv.id)).sectionsById[sectionId]!.entryOrder,[c,a,b]);
+  assert.deepEqual((await reopened.library.openCv(cv.id)).sectionOrder,sectionOrder);
 });
 test('F4 deletion is explicit, removes only target, retains history; stale edits and out-of-scope writes are rejected',async t => {
   const f = await setup(t); let cv = (await f.editor.addSection(f.cv.id,f.cv.revision,'education')).cv;
@@ -142,4 +147,33 @@ test('F4 keeps profile and other CV independent and existing sensitive approvals
   assert.deepEqual(after.content.workspace.cvsById[other],before.content.workspace.cvsById[other]);
   assert.deepEqual(after.content.workspace.cvsById[cv.id]!.sensitiveTranslationMemory,cv.sensitiveTranslationMemory);
   assert.deepEqual(after.content.workspace.cvsById[cv.id]!.sectionsById,cv.sectionsById);
+  const portable=cvprojCodec.decode(await f.library.exportCvproj(cv.id));
+  if(portable.snapshot.scope !== 'cv')throw new Error('scope');
+  assert.deepEqual(portable.snapshot.cv,after.content.workspace.cvsById[cv.id]);
+  assert(portable.snapshot.revisions.length>0);assert.equal(portable.snapshot.assetsById[cv.personalInformation.photo!.assetId]!.sha256,before.content.assetsById[cv.personalInformation.photo!.assetId]!.sha256);
+});
+test('F4 inverted/ongoing periods and invalid numbers keep raw input; a corrected form can confirm',async t=>{
+  const f=await setup(t);let cv=(await f.editor.addSection(f.cv.id,f.cv.revision,'education')).cv;
+  const sectionId=cv.sectionOrder[0]!,form=await f.editor.begin(cv.id,cv.revision,{kind:'newEntry',sectionId});setTitle(form,'Título sintético');
+  if(form.target.kind !== 'entry')throw new Error('target');
+  const path=entryPath(sectionId,form.target.entryId)+'.fields',entry=form.cv.sectionsById[sectionId]!.entriesById[form.target.entryId]!;
+  if(entry.kind !== 'education')throw new Error('kind');
+  form.rawDates[path+'.period.start']='2024-12';form.rawDates[path+'.period.end']='2020';
+  await assert.rejects(f.editor.confirm(form),/EDITOR_VALIDATION/);
+  assert.equal(((await f.library.recoverableDrafts())[0]!.draft.values as EditorForm).rawDates[path+'.period.end'],'2020');
+  entry.fields.period.ongoing=true;form.rawDates[path+'.period.end']='2025';
+  await assert.rejects(f.editor.confirm(form),/EDITOR_VALIDATION/);assert.equal(form.rawDates[path+'.period.end'],'2025');
+  form.rawDates[path+'.period.end']='';form.rawNumbers[path+'.eqf']='not-a-number';
+  await assert.rejects(f.editor.confirm(form),/EDITOR_VALIDATION/);
+  assert.equal(((await f.library.recoverableDrafts())[0]!.draft.values as EditorForm).rawNumbers[path+'.eqf'],'not-a-number');
+  form.rawNumbers[path+'.eqf']='6';cv=(await f.editor.confirm(form)).cv;
+  const saved=cv.sectionsById[sectionId]!.entriesById[form.target.entryId]!;if(saved.kind!=='education')throw new Error('kind');
+  assert.deepEqual(saved.fields.period,{start:{precision:'month',year:2024,month:12},end:null,ongoing:true});assert.equal(saved.fields.eqf,6);
+});
+test('F4 an empty repeatable address remains a draft until given data; confirmed location has a valid visible projection',async t=>{
+  const f=await setup(t),form=await f.editor.begin(f.cv.id,f.cv.revision,{kind:'personal'}),id=runtimeContext.newId();
+  form.cv.personalInformation.addresses.push({id,lines:[],locality:null,region:null,postalCode:null,countryCode:null,original:null});form.cv.presentation.personalFieldVisibility.addresses.push(id);
+  await assert.rejects(f.editor.confirm(form),/EDITOR_VALIDATION/);assert.equal((await f.library.openCv(f.cv.id)).personalInformation.addresses.length,0);
+  form.cv.personalInformation.addresses[0]!.locality='Ciudad Sintética';const {cv}=await f.editor.confirm(form);
+  assert(JSON.stringify(createExportProjection(cv)).includes('Ciudad Sintética'));
 });
