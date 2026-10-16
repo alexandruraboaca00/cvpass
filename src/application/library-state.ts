@@ -13,7 +13,7 @@ const refSchema = z.strictObject({ id: z.string().min(1), version: z.int().posit
 const DraftSchema = z.strictObject({
   id: IdSchema, entityId: IdSchema, baseRevision: z.int().nonnegative(),
   baseSnapshot: z.unknown(), version: z.int().nonnegative(), createdAt: Timestamp, updatedAt: Timestamp,
-  targetPath: z.array(z.string().max(200)).max(32), values: z.unknown(),
+  targetPath: z.array(z.string().max(200)).max(32), values: z.unknown().refine(v => v !== undefined,'draft.valuesRequired'),
   rawDateInputs: z.record(z.string().max(200), z.string().max(1000)),
   assetIds: z.array(IdSchema), templateRefs: z.array(refSchema),
 });

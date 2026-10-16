@@ -110,6 +110,8 @@ test('draft resource and identity errors fail explicitly instead of silently dis
   await assert.rejects(library.updateDraft(draft.id,0,{values:{},rawDateInputs:{},assetIds:[runtimeContext.newId()],templateRefs:[]}),/DRAFT_ASSET_MISSING/);
   const redirected = {values:{},rawDateInputs:{},assetIds:[],templateRefs:[],entityId:runtimeContext.newId()};
   await assert.rejects(library.updateDraft(draft.id,0,redirected));
+  const missingValues = {values:{},rawDateInputs:{},assetIds:[],templateRefs:[]}; Reflect.deleteProperty(missingValues,'values');
+  await assert.rejects(library.updateDraft(draft.id,0,missingValues),/draft.valuesRequired/);
   const bytes = syntheticPng(5,3), asset = makeAsset(runtimeContext.newId(),bytes,'photo','image/png');
   await assert.rejects(library.updateDraft(draft.id,0,{values:{},rawDateInputs:{},assetIds:[],templateRefs:[]},{assetsById:{[asset.id]:asset},blobs:new Map([[asset.sha256,bytes]])}),/RESOURCE_UNREFERENCED/);
   assert.deepEqual(await library.snapshot(),before);
