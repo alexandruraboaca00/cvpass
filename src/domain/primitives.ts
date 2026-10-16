@@ -43,11 +43,14 @@ export function assertDataTree(value:unknown,maxDepth=128):void {
   function visit(v:unknown,depth:number):void {
     if(++nodes>200_000||depth>maxDepth)fail('data.limit');
     if(v===null||typeof v==='boolean'||typeof v==='string')return;
-    if(typeof v==='number'){if(!Number.isFinite(v))fail('data.nonFinite');return;}
+    if(typeof v==='number'){if(!Number.isFinite(v))fail('data.nonFinite');if(Object.is(v,-0))fail('data.negativeZero');return;}
     if(typeof v!=='object')fail('data.notJson');
     if(ancestors.has(v))fail('data.cycle');
     const proto=Object.getPrototypeOf(v);
     if(!Array.isArray(v)&&proto!==Object.prototype&&proto!==null)fail('data.prototype');
+    if(Object.getOwnPropertySymbols(v).length)fail('data.symbolKey');
+    if(Array.isArray(v)&&Object.keys(v).length!==v.length)fail('data.sparseOrExtendedArray');
+    for(const descriptor of Object.values(Object.getOwnPropertyDescriptors(v)))if(descriptor.get||descriptor.set)fail('data.accessor');
     ancestors.add(v);
     for(const [key,x]of Object.entries(v)){
       if(['__proto__','prototype','constructor'].includes(key))fail('data.unsafeKey');visit(x,depth+1);

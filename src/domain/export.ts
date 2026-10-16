@@ -20,11 +20,35 @@ const value=z.union([Text,
 const fieldName=z.enum(['displayName','givenName','familyName','otherNames','headline','about','contacts','addresses','birthDate','nationalities','gender','identifiers','photo','title','organization','period','location','eqf','web','address','fieldOfStudy','grade','thesis','subjects','nationalClassification','credits','validity','description','links','position','employer','sector','department','contact','label','language','proficiency','issuer','issued','learningMode']);
 const datum=z.strictObject({field:fieldName,values:z.array(value).min(1)});
 const entry=z.strictObject({kind:z.enum(['education','work','skill','nativeLanguage','foreignLanguage','certification','project','custom']),fields:z.array(datum)});
-const section=z.strictObject({kind:SectionKindSchema,title:z.array(Text).nullable(),entries:z.array(entry).min(1),groups:z.array(z.strictObject({name:z.array(Text),entryIndices:z.array(z.int().nonnegative())}))});
+const section=z.strictObject({kind:SectionKindSchema,title:z.array(Text).min(1).nullable(),entries:z.array(entry).min(1),groups:z.array(z.strictObject({name:z.array(Text).min(1),entryIndices:z.array(z.int().nonnegative()).min(1)}))});
 export const ExportProjectionSchema=z.strictObject({
-  locale:z.enum(['es','en']),documentTitle:z.array(Text).nullable(),
-  presentation:z.strictObject({templateRef:z.strictObject({id:NonBlank,version:z.int().positive()}),density:z.enum(['compact','normal','spacious']),accentColor:z.string().regex(/^#[0-9a-fA-F]{6}$/),fontFamily:NonBlank,page:z.literal('A4'),numbering:z.boolean(),showCefrGuide:z.boolean()}),
+  locale:z.enum(['es','en']),documentTitle:z.array(Text).min(1).nullable(),
+  presentation:z.strictObject({templateRef:z.strictObject({id:NonBlank,version:z.int().positive()}),density:z.enum(['compact','normal','spacious']),accentColor:z.string().regex(/^#[0-9a-fA-F]{6}$/),fontFamily:z.string().regex(/^[A-Za-z0-9 _-]{1,80}$/),page:z.literal('A4'),numbering:z.boolean(),showCefrGuide:z.boolean()}),
   personal:z.array(datum),sections:z.array(section),images:z.array(ExportImageSchema),
+}).superRefine((p,ctx)=>{
+  const issue=(message:string)=>ctx.addIssue({code:'custom',message});
+  const personalKeys=new Set(['displayName','givenName','familyName','otherNames','headline','about','contacts','addresses','birthDate','nationalities','gender','identifiers','photo']);
+  const imageRefs=new Set<string>();
+  const checkFields=(fields:z.infer<typeof datum>[])=>{
+    if(new Set(fields.map(f=>f.field)).size!==fields.length)issue('export.duplicateField');
+    for(const f of fields)for(const v of f.values){
+      if(v.type==='image'){if(f.field!=='photo')issue('export.imageField');imageRefs.add(v.sha256);}
+      if(v.type==='date'&&!['birthDate','issued'].includes(f.field))issue('export.dateField');
+      if(v.type==='period'&&!['period','validity'].includes(f.field))issue('export.periodField');
+      if(v.type==='cefr'&&f.field!=='proficiency')issue('export.cefrField');
+      if(v.type==='number'&&!['eqf','credits'].includes(f.field))issue('export.numberField');
+    }
+  };
+  checkFields(p.personal);if(p.personal.some(f=>!personalKeys.has(f.field)))issue('export.personalField');
+  const association:Record<string,string[]>={education:['education'],work:['work'],skills:['skill'],languages:['nativeLanguage','foreignLanguage'],certifications:['certification'],projects:['project'],custom:['custom']};
+  const fieldsByKind:Record<string,string[]>={education:['title','organization','period','location','eqf','web','address','fieldOfStudy','grade','thesis','subjects','nationalClassification','credits','validity','description','links'],work:['position','employer','period','location','sector','department','web','contact','description','links'],skill:['label'],nativeLanguage:['language'],foreignLanguage:['language','proficiency'],certification:['title','issuer','issued','learningMode','description','links'],project:['title','period','description','links'],custom:['title','period','description','links']};
+  for(const s of p.sections){
+    if(s.kind!=='skills'&&s.groups.length)issue('export.groupsOutsideSkills');
+    const grouped=new Set<number>();for(const g of s.groups)for(const i of g.entryIndices){if(i>=s.entries.length||grouped.has(i))issue('export.groupReference');grouped.add(i);}
+    for(const e of s.entries){if(!association[s.kind]!.includes(e.kind))issue('export.entryAssociation');checkFields(e.fields);if(e.fields.some(f=>!fieldsByKind[e.kind]!.includes(f.field)))issue('export.entryField');}
+  }
+  const images=new Set(p.images.map(i=>i.sha256));
+  if(images.size!==p.images.length||images.size!==imageRefs.size||[...imageRefs].some(hash=>!images.has(hash)))issue('export.imageReference');
 });
 export type ExportProjection=z.infer<typeof ExportProjectionSchema>;
 export const ExportPayloadSchema=z.strictObject({format:z.literal('cvforge-export-payload'),pdfPayloadFormatVersion:z.literal(1),projection:ExportProjectionSchema});

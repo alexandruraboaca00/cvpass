@@ -1,7 +1,7 @@
 import { selectedApprovals } from './language.js';
 import { parse, fail, IdSchema, Timestamp, assertOrder } from './primitives.js';
 import type { DomainContext } from './primitives.js';
-import { validateProfile, validateCv, PersonalSchema } from './model.js';
+import { validateProfile, validateCv, PersonalSchema, TemplateSchema } from './model.js';
 import type { CvDocument, Entity, MasterProfile, PersonalInformation, ProfileSection, TemplateDefinition } from './model.js';
 export function contextStamp(ctx: DomainContext): { id: string; createdAt: string; updatedAt: string; revision: number } {
   const at=parse(Timestamp,ctx.now()); return {id:parse(IdSchema,ctx.newId()),createdAt:at,updatedAt:at,revision:0};
@@ -13,19 +13,21 @@ export function createProfile(personal: PersonalInformation,ctx: DomainContext):
   return validateProfile({...contextStamp(ctx),kind:'profile',personalInformation:personal,sectionsById:{},sectionOrder:[],sensitiveTranslationMemory:{}});
 }
 export function createSection(kind: ProfileSection['kind'],ctx: DomainContext,title: ProfileSection['title']=null): ProfileSection {
+  if(kind==='custom'&&!title)fail('section.titleRequired');
   return {id:parse(IdSchema,ctx.newId()),kind,title,entriesById:{},entryOrder:kind==='skills'?null:[],groupsById:{},groupOrder:[],ungroupedSkillIds:[]};
 }
 function remapMaterialized(profile: MasterProfile,ctx: DomainContext): {materialized:MasterProfile;idMap:Map<string,string>} {
-  const idMap=new Map<string,string>();
+  const idMap=new Map<string,string>(),sourceIds=new Set<string>();
   function collect(v:unknown):void {
     if(!v||typeof v!=='object')return;
     if(Array.isArray(v)){v.forEach(collect);return;}
     for(const [key,value]of Object.entries(v)){
       if(['sourceRef','catalog','templateRef'].includes(key))continue;
-      if(key==='id'&&typeof value==='string')idMap.set(value,parse(IdSchema,ctx.newId()));else collect(value);
+      if(key==='id'&&typeof value==='string')sourceIds.add(value);else collect(value);
     }
   }
   collect(profile);
+  const assigned=new Set<string>();for(const sourceId of sourceIds){const id=parse(IdSchema,ctx.newId());if(sourceIds.has(id)||assigned.has(id))fail('id.materializationCollision');assigned.add(id);idMap.set(sourceId,id);}
   const refs=new Set(['id','approvalId','groupId']);
   const lists=new Set(['sectionOrder','entryOrder','groupOrder','ungroupedSkillIds','skillIds','contacts','addresses']);
   function copy(v:unknown,parent=''):unknown {
@@ -36,7 +38,7 @@ function remapMaterialized(profile: MasterProfile,ctx: DomainContext): {material
   return {materialized:copy(profile) as MasterProfile,idMap};
 }
 export function createCvFromProfile(profile: MasterProfile,options: {name:string;documentLocale:'es'|'en';template:TemplateDefinition;sectionIds:string[]},ctx:DomainContext):CvDocument {
-  const original=validateProfile(profile);
+  const original=validateProfile(profile);parse(TemplateSchema,options.template);
   if(new Set(options.sectionIds).size!==options.sectionIds.length||options.sectionIds.some(id=>!original.sectionsById[id]))fail('selection.invalid');
   // Explicit section selection; the caller controls the chosen profile content.
   const selected=structuredClone(original);
@@ -71,4 +73,11 @@ export function includeSection(cv:CvDocument,id:string,included:boolean):CvDocum
 }
 export function includeEntry(cv:CvDocument,sectionId:string,entryId:string,included:boolean):CvDocument {
   const copy=validateCv(cv);const entry=copy.sectionsById[sectionId]?.entriesById[entryId];if(!entry)fail('entry.notFound',[sectionId,entryId]);entry.included=included;return validateCv(copy);
+}
+
+export function reorderEntries<T extends Entity>(entity:T,sectionId:string,order:string[]):T {
+ const copy=(entity.kind==='cv'?validateCv(entity):validateProfile(entity)) as T;const section=copy.sectionsById[sectionId];
+ if(!section)fail('section.notFound',[sectionId]);if(section.kind==='skills')fail('skills.useGroupOrder',[sectionId]);
+ assertOrder(order,Object.keys(section.entriesById),[sectionId,'entryOrder']);section.entryOrder=[...order];
+ return (copy.kind==='cv'?validateCv(copy):validateProfile(copy)) as T;
 }

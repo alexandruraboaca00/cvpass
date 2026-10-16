@@ -5,7 +5,7 @@ import { encodeCvproj, decodeCvproj, detectCvproj, UnsupportedProjectVersion, en
 import { readStoredZip, writeStoredZip, WORKSPACE_LIMITS, CV_LIMITS } from '../src/adapters/zip-store.js';
 import { encodeJson, decodeJson } from '../src/adapters/json.js';
 import { sha256, makeAsset, verifyAssetBytes } from '../src/adapters/asset-bytes.js';
-import { projectForCv, createExportProjection, validateProject, DOMAIN_MODEL_VERSION, ExportPayloadSchema, parse } from '../src/domain/index.js';
+import { projectForCv, createExportProjection, validateProject, DOMAIN_MODEL_VERSION, resolveSensitive, ExportPayloadSchema, parse } from '../src/domain/index.js';
 import { completeProjectFixture, syntheticPng } from './fixtures.js';
 const at='2026-10-16T12:00:00.000Z';
 function rewrite(zip:Uint8Array,edit:(files:Record<string,Uint8Array>)=>void):Uint8Array {const files=Object.fromEntries(readStoredZip(zip,WORKSPACE_LIMITS));edit(files);return writeStoredZip(files);}
@@ -18,6 +18,8 @@ test('workspace cvproj round-trip preserves every MVP area, CEFR partial, hidden
  assert.deepEqual(detectCvproj(bytes),{format:'cvforge-project',projectFormatVersion:1,domainModelVersion:DOMAIN_MODEL_VERSION});
  if(decoded.snapshot.scope!=='workspace')throw new Error('fixture');
  const cv=decoded.snapshot.workspace.cvsById[firstCv(data.snapshot)]!;
+ const education=Object.values(cv.sectionsById).find(s=>s.kind==='education')!,qualification=Object.values(education.entriesById)[0]!;if(qualification.kind!=='education')throw new Error('fixture');
+ assert.deepEqual(resolveSensitive(qualification.fields.title,cv.sensitiveTranslationMemory).map(v=>v.role),['translation','original']);assert.equal(Object.keys(cv.sensitiveTranslationMemory).length,1);
  const languages=Object.values(cv.sectionsById).find(s=>s.kind==='languages')!;
  const foreign=Object.values(languages.entriesById).find(e=>e.kind==='foreignLanguage')!;if(foreign.kind!=='foreignLanguage')throw new Error('fixture');
  assert.deepEqual(foreign.fields.proficiency,{listening:null,reading:null,spokenInteraction:'B1',spokenProduction:null,writing:null});
@@ -35,12 +37,15 @@ test('payload is a separate strict contract: visible-only dates, prepared image 
  const source=completeProjectFixture(),single=projectForCv(source.snapshot,firstCv(source.snapshot));if(single.scope!=='cv')throw new Error('fixture');
  single.cv.presentation.personalFieldVisibility.birthDate=true;single.cv.presentation.datePrecision='year';
  assert.throws(()=>createExportProjection(single.cv),/export.imagePreparationRequired/);
+ single.cv.personalInformation.photo!.visible=false;assert.equal(createExportProjection(single.cv).images.length,0);single.cv.personalInformation.photo!.visible=true;
  const image=syntheticPng(2,2),prepared={sha256:sha256(image),mediaType:'image/png' as const,width:2,height:2,dataBase64:Buffer.from(image).toString('base64')};
  const projection=createExportProjection(single.cv,()=>prepared),bytes=encodeExportPayload(projection),decoded=decodeExportPayload(bytes),text=new TextDecoder().decode(bytes);
  assert.deepEqual(decoded.projection,projection);assert(!text.includes('PRIVATE_ORIGINAL_METADATA'));assert(!text.includes(single.cv.name));assert(!text.includes('"day":19'));assert(!text.includes('profileEntryId'));assert(!text.includes('retention'));
  assert.equal(detectCvproj(bytes).format,'unknown');assert.throws(()=>parse(ExportPayloadSchema,{...decoded,project:single}));
  const original=source.blobs.values().next().value!;
- assert.throws(()=>encodeExportPayload({...projection,images:[{...prepared,sha256:sha256(original),width:4,dataBase64:Buffer.from(original).toString('base64')}]}),/export.imageNotNormalized/);
+ const unnormalized=structuredClone(projection);unnormalized.images=[{...prepared,sha256:sha256(original),width:4,dataBase64:Buffer.from(original).toString('base64')}];
+ for(const f of unnormalized.personal)for(const v of f.values)if(v.type==='image')v.sha256=sha256(original);
+ assert.throws(()=>encodeExportPayload(unnormalized),/export.imageNotNormalized/);
 });
 test('rejects future/old versions, corrupt bytes, mismatched hashes, unknown fields and incorrect scope without mutating input',()=>{
  const source=completeProjectFixture(),good=encodeCvproj(source,at),copy=new Uint8Array(good);
@@ -76,4 +81,9 @@ test('asset hashes, dimensions and complete PNG bytes are verified; absent/orpha
 test('strict JSON rejects duplicated escaped keys, pollution, invalid UTF8, excessive depth and non-finite numbers',()=>{
  for(const s of ['{"x":1,"\\u0078":2}','{"__proto__":{}}','[1,]','1e999','[NaN]','[] garbage','['.repeat(130)+']'.repeat(130)])assert.throws(()=>decodeJson(new TextEncoder().encode(s)));
  assert.throws(()=>decodeJson(new Uint8Array([0xff])));assert.deepEqual(decodeJson(encodeJson({name:'Sintético Ș',x:[1,true,null]})),{name:'Sintético Ș',x:[1,true,null]});
+});
+test('empty workspace is a portable data contract; output limits reject before packaging',()=>{
+ const snapshot={scope:'workspace' as const,workspace:{id:'00000000-0000-4000-8000-999999000001',profile:null,cvsById:{},cvOrder:[],settings:{uiLocale:'es' as const}},revisions:[],assetsById:{},templates:[]};
+ const data={snapshot,blobs:new Map<string,Uint8Array>()},bytes=encodeCvproj(data,at);assert.deepEqual(decodeCvproj(bytes).snapshot,snapshot);
+ assert.throws(()=>encodeCvproj(data,at,{workspace:{...WORKSPACE_LIMITS,inputBytes:20}}),/outputLimit/);
 });

@@ -54,3 +54,21 @@ Comprobación del bloque: 10 tests de dominio PASS, TypeScript PASS, 3 tests F1 
 
 Comprobación del bloque: 17 tests PASS, TypeScript PASS, 3 tests F1 PASS.
 Queda la revisión final de invariantes y documentación del contrato inicial.
+
+## Revisión de invariantes
+
+- IDs propios separados de referencias externas de plantilla/catálogo/procedencia;
+  materialización que rechaza IDs reutilizados y recuperación sin alias mutables.
+- Una revisión no puede representar dos snapshots diferentes ni usar IDs de otro
+  propietario. Se conservan assets usados únicamente por checkpoints antiguos.
+- ExportPayload rechaza claves ajenas, campos duplicados, imágenes sin uso,
+  referencias de grupos fuera de rango y asociaciones sección/entrada inválidas.
+- Spans protegidos en narrativa simple y enriquecida, con offsets UTF-16 sobre
+  el texto aplanado; no se persisten variantes narrativas por idioma.
+- Frontera explícita de migración en memoria con copia exacta de bytes originales,
+  pasos ascendentes únicos y resultado revalidado. Fixture v0 exclusivamente
+  sintética; el lector normal sigue rechazando v0/futuro. No hay migración de un
+  formato histórico desplegado ni guardado/restauración de biblioteca F3.
+
+Comprobación del bloque: 30 tests PASS, TypeScript PASS, 3 tests F1 PASS.
+La auditoría de las dependencias nuevas de F2 no detecta vulnerabilidades.

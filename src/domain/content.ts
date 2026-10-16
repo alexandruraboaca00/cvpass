@@ -23,7 +23,10 @@ export const NarrativeSchema = z.strictObject({ class: z.literal('A'), current: 
     if (s.end <= s.start || f.current.value.slice(s.start, s.end) !== s.value || (i > 0 && sorted[i - 1]!.end > s.start)) ctx.addIssue({ code: 'custom', path: ['protectedSpans'], message: 'span.invalid' });
   }
 });
-export const RichNarrativeSchema = z.strictObject({ class: z.literal('A'), current: z.strictObject({ value: RichTextSchema, locale: Locale }), revision: z.int().positive() });
+export const RichNarrativeSchema = z.strictObject({ class: z.literal('A'), current: z.strictObject({ value: RichTextSchema, locale: Locale }), revision: z.int().positive(), protectedSpans: z.array(Span) }).superRefine((f,ctx)=>{
+  const text=richText(f.current.value),sorted=[...f.protectedSpans].sort((a,b)=>a.start-b.start);
+  for(let i=0;i<sorted.length;i++){const span=sorted[i]!;if(span.end<=span.start||text.slice(span.start,span.end)!==span.value||(i>0&&sorted[i-1]!.end>span.start))ctx.addIssue({code:'custom',path:['protectedSpans'],message:'span.invalid'});}
+});
 export const LiteralSchema = z.strictObject({ class: z.literal('B'), value: NonBlank, locale: Locale, protection: z.enum(['person', 'organization', 'brand', 'identifier', 'term']) });
 export const SensitiveContextSchema = z.strictObject({ fieldKind: NonBlank, organization: NonBlank.optional(), domain: NonBlank.optional() });
 export const SensitiveOriginalSchema = z.strictObject({ value: NonBlank, locale: Locale, revision: z.int().positive() });
@@ -37,7 +40,7 @@ export const SensitiveSchema = z.strictObject({
   if (s.decision === 'importedVisible') {
     const roles = s.importedVisibleVariants.map(v => v.role);
     const expected = s.displayMode === 'translationAndOriginal' ? ['translation', 'original'] : [s.displayMode];
-    if (roles.join() !== expected.join() || s.approvalId !== null || s.original !== null) ctx.addIssue({ code: 'custom', message: 'sensitive.invalidImported' });
+    if (roles.join() !== expected.join() || s.outputLocale !== s.importedVisibleVariants[0]?.locale || s.approvalId !== null || s.original !== null) ctx.addIssue({ code: 'custom', message: 'sensitive.invalidImported' });
   } else if (!s.original || s.importedVisibleVariants.length || (s.decision === 'useApproval') !== (s.approvalId !== null) || (s.decision === 'keepOriginal' && s.displayMode !== 'original')) ctx.addIssue({ code: 'custom', message: 'sensitive.invalidDecision' });
 });
 export const ApprovalSchema = z.strictObject({ id: IdSchema, source: SensitiveOriginalSchema, context: SensitiveContextSchema, value: NonBlank, locale: Locale, approvedAt: Timestamp, provenance: z.enum(['user', 'transferred']) });

@@ -8,7 +8,7 @@ export function validateLimits(limits:ArchiveLimits):void{for(const n of Object.
 export const safePath=(name:string):boolean=>name==='manifest.json'||name==='snapshot.json'||/^assets\/[a-f0-9]{64}$/.test(name);
 export function writeStoredZip(files:Record<string,Uint8Array>):Uint8Array{
  for(const path of Object.keys(files))if(!safePath(path))fail('archive.unsafePath');
- return zipSync(files,{level:0,mtime:new Date('2020-01-01T00:00:00.000Z')});
+ return zipSync(files,{level:0,mtime:new Date(2020,0,1,0,0,0)});
 }
 // v1 deliberately accepts only ZIP STORE. No inflater runs on untrusted archive data.
 // Validate directory AND local headers; do not trust declared sizes alone.
@@ -25,12 +25,15 @@ export function readStoredZip(input:Uint8Array,limits:ArchiveLimits):Map<string,
   const flags=b.readUInt16LE(at+8),method=b.readUInt16LE(at+10),crc=b.readUInt32LE(at+16),compressed=b.readUInt32LE(at+20),size=b.readUInt32LE(at+24),nameLen=b.readUInt16LE(at+28),extra=b.readUInt16LE(at+30),comment=b.readUInt16LE(at+32),disk=b.readUInt16LE(at+34),attrs=b.readUInt32LE(at+38),local=b.readUInt32LE(at+42);
   if(flags&~0x800||method!==0||compressed!==size||disk||compressed===0xffffffff||local===0xffffffff)fail('archive.unsupportedCompressionOrFlags');
   if(((attrs>>>16)&0xf000)===0xa000)fail('archive.symlink');
+  if(![0,0x8000].includes((attrs>>>16)&0xf000))fail('archive.specialFile');
+  if(extra||comment)fail('archive.unsupportedMetadata');
   if(at+46+nameLen+extra+comment>end)fail('archive.invalidEntry');
   let name:string;try{name=new TextDecoder('utf-8',{fatal:true}).decode(b.subarray(at+46,at+46+nameLen));}catch{fail('archive.invalidName');}
   if(!safePath(name))fail('archive.unsafePath');if(entries.has(name))fail('archive.duplicatePath');
   total+=size;if(total>limits.expandedBytes)fail('archive.expandedLimit');if(name.endsWith('.json')&&size>limits.controlBytes)fail('archive.controlLimit');
   if(local+30>central||b.readUInt32LE(local)!==0x04034b50)fail('archive.invalidLocalHeader');
   const localNameLen=b.readUInt16LE(local+26),localExtra=b.readUInt16LE(local+28),start=local+30+localNameLen+localExtra,finish=start+size;
+  if(localExtra)fail('archive.unsupportedMetadata');
   if(finish>central||b.readUInt16LE(local+6)!==flags||b.readUInt16LE(local+8)!==method||b.readUInt32LE(local+14)!==crc||b.readUInt32LE(local+18)!==compressed||b.readUInt32LE(local+22)!==size||!b.subarray(local+30,local+30+localNameLen).equals(b.subarray(at+46,at+46+nameLen)))fail('archive.localMismatch');
   const bytes=b.subarray(start,finish);if(crc32(bytes)!==crc)fail('archive.crc');entries.set(name,bytes);ranges.push([local,finish]);at+=46+nameLen+extra+comment;
  }

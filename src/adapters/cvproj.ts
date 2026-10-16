@@ -1,13 +1,13 @@
 import { z } from 'zod';
-import { parse, fail, Timestamp, Sha256, validateProject, DOMAIN_MODEL_VERSION, entitiesOf, templateKey, ExportPayloadSchema } from '../domain/index.js';
+import { parse, fail, Timestamp, Sha256, validateProject, DOMAIN_MODEL_VERSION, projectForCv, ExportPayloadSchema } from '../domain/index.js';
 import type { ProjectSnapshot, ExportPayload, ExportProjection } from '../domain/index.js';
 import { sha256, verifyAssetBytes, verifyExportImage } from './asset-bytes.js';
 import { encodeJson, decodeJson } from './json.js';
-import { readStoredZip, writeStoredZip, CV_LIMITS, WORKSPACE_LIMITS } from './zip-store.js';
+import { readStoredZip, writeStoredZip, CV_LIMITS, WORKSPACE_LIMITS, validateLimits } from './zip-store.js';
 import type { ArchiveLimits } from './zip-store.js';
 export const PROJECT_FORMAT_VERSION=1;
 const fileSchema=z.strictObject({path:z.string(),byteLength:z.int().nonnegative(),sha256:Sha256});
-export const ProjectManifestSchema=z.strictObject({format:z.literal('cvforge-project'),projectFormatVersion:z.literal(1),domainModelVersion:z.literal(1),scope:z.enum(['cv','workspace']),payloadPolicy:z.literal('complete-private-project'),createdAt:Timestamp,creator:z.strictObject({name:z.literal('CVForge'),appVersion:z.literal('0.1.0')}),files:z.array(fileSchema)});
+export const ProjectManifestSchema=z.strictObject({format:z.literal('cvforge-project'),projectFormatVersion:z.literal(1),domainModelVersion:z.literal(1),scope:z.enum(['cv','workspace']),payloadPolicy:z.literal('complete-private-project'),createdAt:Timestamp,creator:z.strictObject({name:z.literal('CVForge'),appVersion:z.string().regex(/^\d+\.\d+\.\d+(?:[-+][A-Za-z0-9.-]+)?$/)}),files:z.array(fileSchema)});
 export interface ProjectData{snapshot:ProjectSnapshot;blobs:Map<string,Uint8Array>}
 export interface ProjectLimits{cv?:ArchiveLimits;workspace?:ArchiveLimits}
 export class UnsupportedProjectVersion extends Error{constructor(public readonly projectVersion:unknown,public readonly modelVersion:unknown){super('cvproj.unsupportedVersion');this.name='UnsupportedProjectVersion';}}
@@ -29,10 +29,13 @@ export function encodeCvproj(data:ProjectData,createdAt:string,options:ProjectLi
  files['manifest.json']=encodeJson(manifest);
  if(Object.keys(files).length>limits.files||Object.values(files).reduce((n,b)=>n+b.length,0)>limits.expandedBytes)fail('archive.outputLimit');
  for(const [path,bytes]of Object.entries(files))if(path.endsWith('.json')&&bytes.length>limits.controlBytes)fail('archive.controlLimit');
+ const estimatedBytes=22+Object.entries(files).reduce((total,[name,bytes])=>total+76+2*new TextEncoder().encode(name).length+bytes.length,0);
+ if(estimatedBytes>limits.inputBytes)fail('archive.outputLimit');
  const result=writeStoredZip(files);if(result.length>limits.inputBytes)fail('archive.outputLimit');return result;
 }
 export function decodeCvproj(input:Uint8Array,options:ProjectLimits={}):ProjectData{
- const initial=options.workspace??WORKSPACE_LIMITS;
+ const cvLimits=options.cv??CV_LIMITS,workspaceLimits=options.workspace??WORKSPACE_LIMITS;validateLimits(cvLimits);validateLimits(workspaceLimits);
+ const initial=Object.fromEntries(Object.keys(cvLimits).map(k=>[k,Math.max(cvLimits[k as keyof ArchiveLimits],workspaceLimits[k as keyof ArchiveLimits])])) as unknown as ArchiveLimits;
  let files=readStoredZip(input,initial);let manifest=manifestOf(files,initial);
  const limits=selectedLimits(manifest.scope,options);files=readStoredZip(input,limits);manifest=manifestOf(files,limits);
  const listed=new Set<string>();
@@ -55,4 +58,10 @@ export function encodeExportPayload(projection:ExportProjection):Uint8Array{
 }
 export function decodeExportPayload(bytes:Uint8Array):ExportPayload{
  const payload=parse(ExportPayloadSchema,decodeJson(bytes));payload.projection.images.forEach(verifyExportImage);return payload;
+}
+
+export function selectCvData(source:ProjectData,cvId:string):ProjectData {
+ const snapshot=projectForCv(source.snapshot,cvId);const required=new Set(Object.values(snapshot.assetsById).map(a=>a.sha256));
+ const blobs=new Map<string,Uint8Array>();for(const hash of required){const b=source.blobs.get(hash);if(!b)fail('cvproj.missingBlob');blobs.set(hash,new Uint8Array(b));}
+ return {snapshot,blobs};
 }
