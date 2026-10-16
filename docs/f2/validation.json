@@ -1,0 +1,140 @@
+{
+  "date": "2026-10-16",
+  "result": "APROBADA",
+  "branch": "f2-domain-model",
+  "codeCommit": "c137cd6",
+  "merged": false,
+  "f3Started": false,
+  "f2": {
+    "tests": {
+      "total": 30,
+      "passed": 30,
+      "failed": 0,
+      "skipped": 0,
+      "names": [
+        "creates a profile and materializes a CV with independent IDs and nested data",
+        "selection, section ordering and reversible visibility preserve content",
+        "rejects unknown fields, duplicate IDs, wrong associations and blank required data",
+        "partial dates, leap days, end-only and ongoing periods never invent precision",
+        "linguistic fields keep one active narrative and validate locales, spans and safe rich text",
+        "domain boundary imports only its own modules and Zod",
+        "skill groups have one ordering model and every skill belongs exactly once",
+        "rejects inconsistent revision snapshots, absent template/resources and asset ID collisions",
+        "CV export selects blob dependencies while preserving assets of old pinned revisions",
+        "rich narrative protected spans survive the project without a permanent language map",
+        "entry reordering preserves fields, visibility and rich semantics; native names need no generic title",
+        "JSON/domain graph validation rejects cycles, non-data accessors and sparse arrays without inventing values",
+        "export contract rejects unrelated images, duplicate fields and wrong section associations",
+        "document and model versions are independent; supported archives keep scope-specific limits",
+        "materialization rejects an ID provider that attempts to reuse source identities",
+        "sensitive review preserves originals and approved contextual translations in display order",
+        "importing only visible translation never invents original or approval",
+        "pinned checkpoint is independent, restore creates another revision and foreign owner is rejected",
+        "visible projection excludes hidden sections/entries and private data; project preserves them",
+        "materialization copies only approval memory for explicitly selected content",
+        "current schema is independently revalidated and keeps an exact recoverable input copy",
+        "explicit synthetic migration preserves original bytes, rejects unknown future and validates the result",
+        "workspace cvproj round-trip preserves every MVP area, CEFR partial, hidden data and pinned revision",
+        "single-CV cvproj contains only that CV and its dependency closure, not the profile or other CVs",
+        "payload is a separate strict contract: visible-only dates, prepared image and no history/original bytes",
+        "rejects future/old versions, corrupt bytes, mismatched hashes, unknown fields and incorrect scope without mutating input",
+        "rejects unsafe paths, symlinks, duplicate names, compressed entries and resource limits before extraction",
+        "asset hashes, dimensions and complete PNG bytes are verified; absent/orphan assets are rejected",
+        "strict JSON rejects duplicated escaped keys, pollution, invalid UTF8, excessive depth and non-finite numbers",
+        "empty workspace is a portable data contract; output limits reject before packaging"
+      ]
+    },
+    "typecheck": "PASS",
+    "build": "PASS",
+    "audit": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    }
+  },
+  "f1": {
+    "filesUnchanged": true,
+    "baselineCommit": "4c19c98a23d04be6f95f9469c5c191ac8beeb640",
+    "packagedAsarHashUnchanged": "19f919bae6f4f69bcea17872d68deea2ce62710a175ebe0166b4d1a714f0f7e8",
+    "offline": {
+      "method": "unshare --user --map-current-user --net",
+      "routes": [],
+      "interfaces": [],
+      "externalConnection": "ENETUNREACH",
+      "commands": [
+        {
+          "mode": "create",
+          "args": [
+            "--closure",
+            "--create"
+          ],
+          "exitCode": 0,
+          "signal": null
+        },
+        {
+          "mode": "reopen",
+          "args": [
+            "--closure"
+          ],
+          "exitCode": 0,
+          "signal": null
+        }
+      ],
+      "testsExitCode": 0
+    },
+    "tests": {
+      "total": 3,
+      "passed": 3,
+      "failed": 0
+    }
+  },
+  "inputs": {
+    "src/domain/assets.ts": "69deb37e9c44b3a22471b06495ef268ccc02449aed5c8b03e3bd0a0ff96d887e",
+    "src/domain/content.ts": "59343a35540cf572540b8f9a6a60ac885c08c5cb8b3f2f2f37ba58652e230482",
+    "src/domain/dates.ts": "3515e06edb67a6d702eed60cb7e547c0e45cf4d6dfca56cbc731318dcddd154c",
+    "src/domain/export.ts": "02c54e04b708c11aab0c7931acac92d6d1af6f9d30ccb0d2778a0bcd42eac640",
+    "src/domain/index.ts": "c257d04ed4558d8044432c1e0b404b981b35e72fe22d9a47a1ad8fbdaf3e1bb5",
+    "src/domain/language.ts": "094a751b78060faaa9b1aaf0794f269260c94d3d87439917ea398b5484e7d463",
+    "src/domain/model.ts": "a9cbd6e547f1453d2c5047d73a7d55a14e210d7d9ae88d0214585354fe1a505b",
+    "src/domain/operations.ts": "d5bf9749dcf7dbb8c2a0eeab59958298774d408902923ddeacd46c06f2feb825",
+    "src/domain/primitives.ts": "36c78a6169e15e172466a4a903b0342817ad660efbbc8158b930f1283c765fb2",
+    "src/domain/project.ts": "1493a8a35b83f70e18e732a11acd76f0331a193b5b672714ca3a3bb2d18e01c7",
+    "src/domain/revisions.ts": "d69edf24856d3c360a50aae5908ce81b5e9e324bd4f10e4b5e639a6a13009039",
+    "src/adapters/asset-bytes.ts": "15502c79fe7d41912dd90581623ddddeb720f19923c7eb919ebfaff4b2d50fc8",
+    "src/adapters/cvproj.ts": "bdff400cf6d1bf69088402f0d549817e33a886b9804d23192fb5327aebc3b26b",
+    "src/adapters/json.ts": "cbe7f45a50693d6e8d8d51df301e1851493c51f33871232514397b97f400b2f2",
+    "src/adapters/migrations.ts": "49d3989c2b44443d7bb3bed1dfac3b764e68cdba6364200702fada2cf76f9311",
+    "src/adapters/zip-store.ts": "4493def933c55d2bd101afab91cb9c1387a991cd79751944c96350caa919f7b2",
+    "tests/domain.test.ts": "d1eb8fb122d67064736c3c2d81b7de52cdf0c37284843330795135c9f31378b2",
+    "tests/fixtures.ts": "4ca18f7995ba2f01150c6be93af430037644bed509884a13fe3102638409330f",
+    "tests/invariants.test.ts": "e26d3c38eca965cf9c03902c2b8a35ed1d032e67108e1d09a980fdf13de06e0b",
+    "tests/language-revisions.test.ts": "03ba1af34c32326ce3c81ec00104d6ece119281e81ed5867e76f7e2445a8b898",
+    "tests/migrations.test.ts": "dc90f0f83fd1ba622f19667b67e352a0a9018f94e6153b3eaea4e52ca588732b",
+    "tests/portable.test.ts": "ceab1a908ec2b0494acb46daa854d43423d91b1a216b08ea017e0c7917fb9283"
+  },
+  "dependencies": [
+    {
+      "name": "zod",
+      "version": "4.6.7",
+      "license": "MIT"
+    },
+    {
+      "name": "fflate",
+      "version": "0.8.3",
+      "license": "MIT"
+    },
+    {
+      "name": "typescript",
+      "version": "7.0.2",
+      "license": "Apache-2.0"
+    },
+    {
+      "name": "@types/node",
+      "version": "26.6.5",
+      "license": "MIT"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # Modelo de datos de CVForge
 
-Versión 0.2 · 15 de octubre de 2026 · Modelo conceptual alineado con las decisiones finales del usuario. Detalles técnicos por validar en F1; no es un esquema implementado.
+Versión 0.3 · 16 de octubre de 2026 · Especificación conceptual y concreción F2. El dominio MVP, revisiones en memoria y contrato portable inicial están implementados; correspondencias y límites en [f2/IMPLEMENTATION.md](f2/IMPLEMENTATION.md). El inventario V1 y los flujos de biblioteca/importación posteriores siguen siendo especificación, no código implementado.
 
 ## Convenciones y principios [D]
 
@@ -323,3 +323,14 @@ La copia completa de workspace recupera perfil, CV, activos, decisiones, memoria
 7. Un formato o dato no soportado se comunica y preserva en el ámbito privado adecuado; no desaparece por guardar.
 8. `.cvproj` permite recuperar completamente el proyecto de su alcance. El PDF solo permite reconstruir lo representado en esa exportación, sin depender de Europass ni añadir información privada no mostrada.
 9. Toda traducción completa aplicada referencia un checkpoint previo recuperable; copiar/editar/traducir un CV no modifica el perfil ni otros CV.
+
+## Concreción implementada en F2
+
+El modelo de código y la especificación no se equiparan por nombre de tipo.
+[f2/IMPLEMENTATION.md](f2/IMPLEMENTATION.md) registra sus correspondencias y límites:
+assets con metadatos/bytes separados, estado sensible derivado, copias por IDs,
+workspace como dato portable, revisiones sin persistencia y plantillas declarativas.
+[CVPROJ.md](f2/CVPROJ.md) fija el ZIP STORE y manifiesto v1, scopes CV/workspace,
+límites y migración explícita sin compatibilidad legacy inventada. Los campos de
+importación F6 y los tipos V1 que aún no pertenecen al esquema se rechazan, nunca
+se eliminan al abrir y volver a guardar. [Aceptación F2](f2/VALIDATION.md).

@@ -4,7 +4,7 @@ CVForge será una aplicación local para crear y gestionar CV, importar document
 
 ## Estado actual
 
-La investigación de Europass está terminada y las decisiones de producto están consolidadas. La implementación está autorizada por fases. La fase actual es **F1: validación técnica, APROBADA; F2 no iniciada**. Hay una prueba aislada en [spikes/f1](spikes/f1/); su estado y límites se registran en [docs/F1_VALIDATION.md](docs/F1_VALIDATION.md). No hay un producto implementado. `.cvproj` permanece en F2.
+La investigación de Europass está terminada y las decisiones de producto están consolidadas. La implementación está autorizada por fases. La fase actual es **F2: dominio y contrato portable inicial implementados y validados en `f2-domain-model`, pendiente de aprobación para fusionar**. F1 permanece cerrada en [docs/F1_VALIDATION.md](docs/F1_VALIDATION.md). No hay editor completo ni biblioteca de producto. F3 no iniciada.
 
 ## Producto definido
 
@@ -38,3 +38,21 @@ La fase comprobará persistencia, empaquetado, composición/lectura PDF, minimiz
 | [Investigación histórica](docs/research/) | Evidencia funcional de Europass, con sus límites y propuestas originales. |
 
 Los diseños, código y recursos del producto serán propios o tendrán licencia compatible. Los CV personales y artefactos privados de investigación quedan fuera de Git; los tests usarán datos sintéticos.
+
+## Dominio y formato inicial F2
+
+`src/domain` contiene entidades, fechas, idiomas A/B/C, revisiones y proyección
+visible; `src/adapters` contiene el codec `.cvproj` CV/workspace versionado en
+memoria. No depende del spike F1 ni ejecuta su traductor.
+
+```bash
+npm ci
+npm test
+npm run typecheck
+npm run build
+```
+
+[Implementación y límites](docs/f2/IMPLEMENTATION.md), [formato](docs/f2/CVPROJ.md)
+y [aceptación](docs/f2/VALIDATION.md). Las operaciones de guardado automático y
+restauración de biblioteca pertenecen a F3. No se fusiona ni avanza de fase sin
+aprobación del usuario.
