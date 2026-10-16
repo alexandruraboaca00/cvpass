@@ -1,0 +1,14 @@
+{
+  "name": "cvforge-domain",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && node --test dist/tests/*.test.js",
+    "test:f1": "npm test --prefix spikes/f1"
+  },
+  "dependencies": {"zod": "4.6.7", "fflate": "0.8.3"},
+  "devDependencies": {"typescript": "7.0.2", "@types/node": "26.6.5"}
+}
