@@ -1,6 +1,6 @@
 # Modelo de datos de CVForge
 
-Versión 0.5 · 17 de octubre de 2026 · Especificación conceptual y concreciones F2/F3/F5. El dominio MVP y el contrato portable inicial están implementados; correspondencias y límites en [f2/IMPLEMENTATION.md](f2/IMPLEMENTATION.md). La biblioteca, revisiones, activos y borradores son durables en F3; [esquema y límites](f3/PERSISTENCE.md). El inventario V1 y los importadores posteriores siguen siendo especificación.
+Versión 0.6 · 17 de octubre de 2026 · Especificación conceptual y concreciones F2/F3/F5/F6. El dominio MVP y el contrato portable inicial están implementados; correspondencias y límites en [f2/IMPLEMENTATION.md](f2/IMPLEMENTATION.md). La biblioteca, revisiones, activos y borradores son durables en F3; [esquema y límites](f3/PERSISTENCE.md). La importación estructurada F6 se concreta en [f6/IMPORT.md](f6/IMPORT.md); inventario V1 e importadores genéricos siguen siendo especificación.
 
 ## Convenciones y principios [D]
 
@@ -331,9 +331,9 @@ El modelo de código y la especificación no se equiparan por nombre de tipo.
 assets con metadatos/bytes separados, estado sensible derivado, copias por IDs,
 workspace como dato portable, revisiones sin persistencia y plantillas declarativas.
 [CVPROJ.md](f2/CVPROJ.md) fija el ZIP STORE y manifiesto v1, scopes CV/workspace,
-límites y migración explícita sin compatibilidad legacy inventada. Los campos de
-importación F6 y los tipos V1 que aún no pertenecen al esquema se rechazan, nunca
-se eliminan al abrir y volver a guardar. [Aceptación F2](f2/VALIDATION.md).
+límites y migración explícita sin compatibilidad legacy inventada. Al cierre de F2, los campos de importación F6 quedaban fuera; su concreción actual
+se describe al final de este documento. Los tipos V1 aún desconocidos se rechazan,
+nunca se eliminan al abrir y volver a guardar. [Aceptación F2](f2/VALIDATION.md).
 
 ## Concreción implementada en F3
 
@@ -351,8 +351,8 @@ válido sobre la revisión vigente. Una base vieja no se aplica automáticamente
 
 No se amplía el formato portable F2 para guardar borradores: su exclusión requiere
 resolverlos o aceptarla expresamente. Los backups SQLite sí incluyen ese trabajo.
-SourceArtifact/importadores F6 y campos V1 siguen fuera del contrato inicial;
-claves desconocidas se rechazan. [Validación F3](f3/VALIDATION.md).
+En el contrato inicial F3, SourceArtifact/importadores F6 y campos V1 quedaban
+fuera; la extensión actual F6 se describe abajo. Claves desconocidas se rechazan. [Validación F3](f3/VALIDATION.md).
 
 ## Concreción implementada en F5
 
@@ -375,3 +375,32 @@ C conserva fuente y memoria, con aprobación exacta o decisión explícita. No s
 inventa un original desconocido. El proveedor solo recibe fragmentos traducibles,
 y F5 no instala un motor automático de producto.
 [Correspondencias y límites F5](f5/IMPLEMENTATION.md).
+
+## Concreción implementada en F6
+
+`ImportDraft`/`ImportAnalysis`/`ImportView` son contratos de aplicación transitorios:
+permiten valores obligatorios aún vacíos y fechas crudas inválidas para revisión.
+No se persisten como entidades ni borradores de la biblioteca. Confirmar exige un
+CvDocument válido; Cancelar no deja CV, assets ni recuperación parcial.
+
+CvDocument incorpora `importRecords?`, privado y opcional, con `recordVersion=1`.
+Concreta los nombres conceptuales de la tabla anterior: `source` contiene nombre
+base, hash, tamaño y `assetId`; `candidate` identifica contenido/adjunto y elección;
+`mappings` conserva rutas de origen/destino y `issues` registra vistas previas,
+razones y resolución. El archivo íntegro PDF/XML es Asset de rol `source`, con
+bytes deduplicados. No se añade una entidad SourceArtifact ni tabla SQL separada.
+Los datos no mapeados quedan en el informe y el origen completo, no como campos
+editables inventados. Los estados de análisis/cancelación viven en la sesión;
+solo el registro aceptado viaja con el CV y sus checkpoints.
+
+La extensión tiene versión propia; `.cvproj`/dominio general v1 y SQLite v2 se
+conservan. Lectores antiguos estrictos rechazan la propiedad nueva en lugar de
+perderla silenciosamente. Todo origen requerido queda en el cierre de assets de
+CV/revisiones/`.cvproj`. ExportProjection y el plan lingüístico excluyen el registro
+completo. Las correspondencias históricas no exigen que un campo eliminado siga
+existiendo y remapean sus IDs al copiar.
+
+PDF propio recupera solo proyección visible; `importedVisible` permite corregir
+sus variantes sin inventar original o memoria sensible. Europass usa la evidencia
+lingüística recibida, instituciones literales, fechas parciales y CEFR nullable;
+ninguna adaptación realiza traducción automática. [Alcance y validación](f6/IMPORT.md).

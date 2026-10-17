@@ -1,6 +1,6 @@
 # Arquitectura propuesta
 
-Versión 0.7 · 17 de octubre de 2026 · F1/F2/F3 aprobadas e integradas en main. Editor principal F4 aprobado por el usuario e integrado en main mediante merge commit desde `f4-core-editor`. Véanse [aceptación F2](f2/VALIDATION.md), [validación F3](f3/VALIDATION.md) y [arquitectura/validación F4](f4/EDITOR.md). F5 tiene áreas e idiomas aprobados por el usuario e integrados en main mediante merge commit desde `f5-mvp-sections-languages`; [detalle](f5/IMPLEMENTATION.md). F6 no iniciada.
+Versión 0.8 · 17 de octubre de 2026 · F1/F2/F3 aprobadas e integradas en main. Editor principal F4 aprobado por el usuario e integrado en main mediante merge commit desde `f4-core-editor`. Véanse [aceptación F2](f2/VALIDATION.md), [validación F3](f3/VALIDATION.md) y [arquitectura/validación F4](f4/EDITOR.md). F5 tiene áreas e idiomas aprobados por el usuario e integrados en main mediante merge commit desde `f5-mvp-sections-languages`; [detalle](f5/IMPLEMENTATION.md). F6 implementada en `f6-structured-import`, pendiente de aprobación e integración; [pipeline y límites](f6/IMPORT.md).
 
 ## Decisión principal [D]
 
@@ -226,7 +226,7 @@ Una memoria sensible no empareja automáticamente títulos ambiguos por texto: i
 | Versionar una plantilla cambia su aspecto histórico. | Mantener versiones disponibles; si falta una, proponer sustitución y comunicar que el PDF original sigue siendo la referencia visual. No prometer bytes idénticos entre motores/versiones. |
 | Los objetivos de rapidez no se cumplen. | Medición sobre equipo/corpus fijados; perfilar y ajustar antes de declarar el MVP, sin recortar contenido silenciosamente. |
 
-La autorización general para implementar está concedida y las decisiones de producto están cerradas. La fase actual es **F5, aprobada por el usuario e integrada en main mediante merge commit desde `f5-mvp-sections-languages`**. F1/F2/F3/F4/F5 permanecen aprobadas e integradas en main, con sus límites. El motor automático definitivo sigue pendiente y no cambia el alcance manual/offline autorizado de F5. F6 no se ha iniciado y requiere nueva autorización.
+La autorización general para implementar está concedida y las decisiones de producto están cerradas. La fase actual es **F6, importación estructurada en `f6-structured-import`, pendiente de aprobación e integración**. F1/F2/F3/F4/F5 permanecen aprobadas e integradas en main, con sus límites. El motor automático definitivo sigue pendiente y no cambia el alcance manual/offline autorizado de F5. F7 no se ha iniciado ni se autoriza su comienzo mediante este cierre.
 
 ## Resultado de la puerta F1 — 16 de octubre de 2026
 
@@ -296,3 +296,24 @@ motor automático de producción instalado. Su selección, licencia/distribució
 de recursos y validación offline/calidad sigue pendiente antes de aceptar ese
 requisito del MVP. No bloquea F5 por la instrucción final del usuario.
 [Implementación y límites](f5/IMPLEMENTATION.md), [validación](f5/VALIDATION.md).
+
+## Concreción técnica F6
+
+`StructuredImportPort` recibe bytes seleccionados, nombre base y cancelación.
+El adaptador local analiza en worker PDF.js (solo catálogo/adjuntos), XML saxes y
+HTML parse5 hacia el árbol propio. Nunca solicita texto/layout/OCR ni un proveedor
+remoto. Versiones, hashes, límites y rutas `.cvproj` reutilizan el codec F2.
+
+`StructuredImportService` coordina una propuesta privada en memoria y una revisión
+renderer independiente del autoguardado del editor. Los formularios F4/F5 se
+reutilizan sobre ese estado local; los modales hijos no escriben en biblioteca.
+Una validación completa precede a `LibraryService.addImportedCv`, que crea una
+copia materializada, recursos e historial mediante un único commit SQLite F3.
+La restauración de workspace conserva las guardas y backup F3.
+
+La procedencia opcional/versionada en CvDocument y Asset source usan el esquema
+SQLite v2, sin otra copia normalizada de contenido. ExportProjection y la visita
+lingüística excluyen los registros privados. [IMPORT.md](f6/IMPORT.md) documenta
+seguridad, compatibilidad de lectores, alcance Europass e integridad no autenticada;
+[VALIDATION.md](f6/VALIDATION.md) distingue automatización sintética y aceptación
+local privada. No se implementan plantilla ni preview final F7.
