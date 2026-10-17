@@ -23,7 +23,7 @@ export function copyProjectIdentities(project: ProjectSnapshot, ctx: DomainConte
     assigned.add(next); map.set(id,next);
   });
   const refKeys = new Set(['id','entityId','approvalId','groupId']);
-  const orderKeys = new Set(['sectionOrder','entryOrder','groupOrder','ungroupedSkillIds','skillIds','contacts','addresses','cvOrder']);
+  const orderKeys = new Set(['sectionOrder','entryOrder','groupOrder','ungroupedSkillIds','skillIds','contacts','addresses','cvOrder','targetPath']);
   function copy(value: unknown, parent = ''): unknown {
     if (!value || typeof value !== 'object') return value;
     if (Array.isArray(value)) return value.map(x => typeof x === 'string' && orderKeys.has(parent) ? map.get(x) ?? x : copy(x));
