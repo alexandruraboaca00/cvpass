@@ -57,7 +57,10 @@ export function App(){
     return()=>{unsubscribe();window.removeEventListener('beforeunload',beforeUnload);};
   },[]);
   const change:Change=mutate=>{const next=structuredClone(currentForm.current!);mutate(next);currentForm.current=next;setForm(next);setNotice('');setSaveStatus('Cambios en borrador…');pending.current=pending.current.then(async()=>{unwrap(await api.stage(next));}).catch(report);};
-  const opened=(value:EditorDocumentView)=>{setDocument(value);setPhoto(value.photo);setIssues([]);};
+  const opened=(value:EditorDocumentView)=>{
+    setDocument(value);setPhoto(value.photo);setIssues([]);
+    setLibrary(previous=>previous?{...previous,cvs:previous.cvs.map(item=>item.id===value.cv.id?{...item,name:value.cv.name,revision:value.cv.revision,documentLocale:value.cv.documentLocale}:item)}:previous);
+  };
   const closeForm=(value:EditorDocumentView,confirmed:boolean)=>{opened(value);currentForm.current=null;setForm(null);setSaveStatus('');setNotice(confirmed?'Guardado localmente.':'Cambios cancelados.');void refresh();requestAnimationFrame(()=>{if(returnFocus.current?.isConnected)returnFocus.current.focus();else titleRef.current?.focus();});};
   const begin=(target:BeginEditorTarget)=>{returnFocus.current=window.document.activeElement as HTMLElement;void perform(async()=>{const value=unwrap(await api.begin(document!.cv.id,document!.cv.revision,target));currentForm.current=value;setForm(value);setPhoto(document!.photo);setSaveStatus('Borrador abierto.');});};
   const confirm=(event:FormEvent)=>{event.preventDefault();void perform(async()=>{await pending.current;const result=await api.confirm(currentForm.current!);if(!result.ok){setTimeout(()=>window.document.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus(),0);throw result.error;}closeForm(result.value,true);});};
