@@ -126,8 +126,9 @@ test('F5 deliberately kept narrative retains its real source language rather tha
   const next=applyLanguagePlan(cv,plan,ctx);const section=next.sectionsById[item.path[1]!]!,e=section.entriesById[item.path[3]!]!;if(e.kind!=='project'||e.fields.title.class!=='A')throw new Error('kind');assert.deepEqual(e.fields.title,item.source);assert.equal(e.fields.title.current.locale,'es');assert.equal(next.documentLocale,'en');
 });
 test('F5 user controls A/B/C classification without changing the literal and unknown original is never invented',()=>{
-  const {ctx}=fixture(),c=classifyText(A('Curso Superior Sintético'),'C','es',ctx,'certification');assert.equal(c.class,'C');assert.equal(plainText(c),'Curso Superior Sintético');
+  const {ctx}=fixture(),c=classifyText(A('Curso Superior Sintético'),'C','en',ctx,'certification');assert.equal(c.class,'C');assert.equal(plainText(c),'Curso Superior Sintético');if(c.class!=='C')throw new Error('kind');assert.equal(c.original!.locale,'es');assert.equal(c.outputLocale,'en');
   const b=classifyText(A('AWS Certified Synthetic'),'B','es',ctx,'certification');assert.equal(b.class,'B');
   assert.equal(classifyText(b,'A','es',ctx,'certification').class,'A');
+  const original=classifyText(c,'A','en',ctx,'certification');if(original.class!=='A')throw new Error('kind');assert.equal(original.current.locale,'es');const literal=classifyText(c,'B','en',ctx,'certification');if(literal.class!=='B')throw new Error('kind');assert.equal(literal.locale,'es');
   const unknown=sensitiveFromVisible([{role:'translation',value:'Synthetic visible translation','locale':'en'}],{fieldKind:'certification'},ctx);assert.throws(()=>classifyText(unknown,'A','en',ctx,'certification'));assert.equal(unknown.original,null);
 });

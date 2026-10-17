@@ -159,8 +159,8 @@ export function classifyText(field:TextField,classification:'A'|'B'|'C',locale:s
   if(field.class===classification)return structuredClone(field);
   // Reclassification is explicit; an imported unknown original must first be reviewed by import.
   if(field.class==='C'&&!field.original)fail('translation.classificationHasApproval');
-  const value=plainText(field);
-  if(classification==='A')return {class:'A',current:{value,locale},revision:1,protectedSpans:[]};
-  if(classification==='B')return {class:'B',value,locale,protection:'term'};
-  return {class:'C',id:ctx.newId(),original:{value,locale,revision:1},context:{fieldKind},outputLocale:locale,displayMode:'original',decision:'keepOriginal',approvalId:null,importedVisibleVariants:[]};
+  const value=plainText(field),sourceLocale=field.class==='A'?field.current.locale:field.class==='B'?field.locale:field.original!.locale;
+  if(classification==='A')return {class:'A',current:{value,locale:sourceLocale},revision:1,protectedSpans:[]};
+  if(classification==='B')return {class:'B',value,locale:sourceLocale,protection:'term'};
+  return {class:'C',id:ctx.newId(),original:{value,locale:sourceLocale,revision:1},context:{fieldKind},outputLocale:locale,displayMode:'original',decision:'keepOriginal',approvalId:null,importedVisibleVariants:[]};
 }
