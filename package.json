@@ -17,8 +17,9 @@
     "test:f2": "npm run build && node --test dist/tests/domain.test.js dist/tests/language-revisions.test.js dist/tests/invariants.test.js dist/tests/migrations.test.js dist/tests/portable.test.js",
     "test:f3": "npm run build && node --test dist/tests/sqlite-storage.test.js dist/tests/sqlite-migrations.test.js dist/tests/library.test.js dist/tests/drafts.test.js dist/tests/local-host.test.js dist/tests/storage-failures.test.js dist/tests/project-files.test.js",
     "validate:f3:electron": "npm run build && node scripts/f3-electron-check.mjs",
-    "test:f5": "npm run build && node --test dist/tests/f5-domain.test.js dist/tests/f5-editor.test.js",
-    "test:f5:ui": "playwright test --config playwright.config.ts f5.spec.ts"
+    "test:f5": "npm run build && node --test dist/tests/f5-*.test.js",
+    "test:f5:ui": "playwright test --config playwright.config.ts f5.spec.ts",
+    "validate:f5:offline": "node scripts/f5-offline-check.mjs"
   },
   "dependencies": {
     "@tiptap/core": "3.32.0",
