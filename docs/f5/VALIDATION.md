@@ -183,3 +183,23 @@ Los 32 criterios solicitados están en PASS; no hay FAIL arquitectónico conocid
 para el alcance autorizado. **F5 = APROBADA.** Se conserva la deuda indicada,
 especialmente el motor automático de producto. La rama queda sin fusionar; la
 autorización del usuario sigue pendiente. F6 no se ha iniciado.
+
+## Regresión localizada en el control de integración
+
+Durante la comprobación solicitada antes del merge apareció un fallo intermitente
+en U4: una protección explícita de la presentación personal podía desaparecer
+antes del plan lingüístico. No se fusionó con ese fallo. Una reproducción
+controlada, U5, añade la protección y entrega una transacción real de Tiptap antes
+del siguiente render React: falla sobre el código anterior y pasa con la corrección,
+incluida confirmación y reapertura real.
+
+El callback de texto enriquecido personal tomaba los metadatos del último render,
+en vez del borrador vigente. Ahora actualiza ese borrador como ya hacen los otros
+formularios enriquecidos. No cambia formatos, puertos, proveedor ni alcance de F5.
+U4 también comprueba la protección confirmada antes/después de duplicar y en el
+plan, para localizar inmediatamente una pérdida en la preparación del caso.
+
+Evidencia sintética: `/tmp/cvforge-f5-merge/queued-before-fix` (FAIL esperado) y
+`queued-after-fix` (PASS), con sus logs. Las cifras del cierre original de arriba
+se conservan como registro de aquella ejecución; U5 amplía la suite gráfica F5
+a cinco pruebas para el control de integración.
