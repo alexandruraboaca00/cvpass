@@ -1,0 +1,156 @@
+{
+  "phase": "F5",
+  "conclusion": "APROBADA técnicamente; pendiente aprobación del usuario para fusionar",
+  "generatedAt": "2026-10-17T10:05:16.321512+00:00",
+  "branch": "f5-mvp-sections-languages",
+  "baseMain": "a43e7f86a5af17a9b532a2c711c89dc0de4ce479",
+  "codeCommit": "76ca0ad9c6174f3ae4049773d78b48e2139f8027",
+  "node": {
+    "F2": 30,
+    "F3": 39,
+    "F4": 13,
+    "F5": 32,
+    "total": 114,
+    "failed": 0,
+    "skipped": 0,
+    "log": "/tmp/cvforge-f5-closure/node-source-locale.log"
+  },
+  "typeScript": "PASS",
+  "build": "PASS",
+  "ui": {
+    "onlineF4": {
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "rendererErrors": 0,
+      "httpRequests": 0,
+      "durationMs": 33202,
+      "report": "/tmp/cvforge-f5-closure/revision-f4-ui/report.json"
+    },
+    "onlineF5": {
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "rendererErrors": 0,
+      "httpRequests": 0,
+      "durationMs": 40986,
+      "report": "/tmp/cvforge-f5-closure/revision-f5-ui/report.json"
+    },
+    "offlineF4": {
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "rendererErrors": 0,
+      "httpRequests": 0,
+      "durationMs": 34179,
+      "report": "/tmp/cvforge-f5-closure/offline-final/f4/report.json"
+    },
+    "offlineF5": {
+      "passed": 4,
+      "failed": 0,
+      "skipped": 0,
+      "rendererErrors": 0,
+      "httpRequests": 0,
+      "durationMs": 42060,
+      "report": "/tmp/cvforge-f5-closure/offline-final/f5/report.json"
+    }
+  },
+  "offline": {
+    "method": "Linux user + network namespace; lo up only for local CDP; no external interface or route",
+    "interfaces": [
+      "lo"
+    ],
+    "externalTcp": "ENETUNREACH",
+    "route": "Iface\tDestination\tGateway \tFlags\tRefCnt\tUse\tMetric\tMask\t\tMTU\tWindow\tIRTT",
+    "checks": [
+      {
+        "suite": "f4-ui",
+        "exitCode": 0
+      },
+      {
+        "suite": "f5-ui",
+        "exitCode": 0
+      },
+      {
+        "suite": "f5-domain-application-i18n",
+        "exitCode": 0
+      }
+    ],
+    "nodeF5Passed": 32,
+    "productionAutomaticProviderInstalled": false,
+    "manualTranslationVerified": true
+  },
+  "F1": {
+    "testsPassed": 3,
+    "packaged": true,
+    "networkProof": {
+      "method": "unshare --user --map-current-user --net",
+      "routes": [],
+      "interfaces": [],
+      "externalConnection": "ENETUNREACH",
+      "commands": [
+        {
+          "mode": "create",
+          "args": [
+            "--closure",
+            "--create"
+          ],
+          "exitCode": 0,
+          "signal": null
+        },
+        {
+          "mode": "reopen",
+          "args": [
+            "--closure"
+          ],
+          "exitCode": 0,
+          "signal": null
+        }
+      ],
+      "testsExitCode": 0
+    },
+    "layouts": [
+      {
+        "layout": "simple",
+        "pages": 9,
+        "allPagesPixelIdentical": true
+      },
+      {
+        "layout": "lateral",
+        "pages": 7,
+        "allPagesPixelIdentical": true
+      }
+    ],
+    "receipts": "/tmp/cvforge-f5-f1-regression"
+  },
+  "sqlite": {
+    "realWorkers": true,
+    "realReopen": true,
+    "integrity": "ok",
+    "foreignKeyViolations": 0,
+    "evidence": "Assertions in Node F3/F5 and all UI F4/F5 workflows"
+  },
+  "privacy": {
+    "wholeCvNotSentToProvider": true,
+    "protectedBFragmentsExcluded": true,
+    "pdfProjectionOnlySelectedValues": true,
+    "cvprojKeepsPrivateMemoryAndPinnedHistory": true,
+    "syntheticDataOnly": true
+  },
+  "environment": {
+    "platform": "Linux x64",
+    "node": "v26.11.1",
+    "electron": "44.7.2",
+    "typescript": "7.0.2"
+  },
+  "automaticTranslation": {
+    "contractAndSyntheticTests": true,
+    "manualOfflineWorkflow": true,
+    "productionEngine": "pending",
+    "cloudApisAdded": false,
+    "modelsDownloaded": false
+  },
+  "priorPhaseEvidenceUnmodified": true,
+  "mergedToMain": false,
+  "F6Started": false
+}

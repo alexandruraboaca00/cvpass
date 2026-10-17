@@ -4,7 +4,7 @@
 
 CVForge es una aplicación local para crear y gestionar CV, generar PDF profesionales e importar proyectos/CV existentes. La investigación funcional de Europass está terminada. La implementación está autorizada por el usuario y debe seguir las fases del roadmap.
 
-Fase actual: **F5 — áreas restantes del MVP e idiomas, en implementación autorizada en `f5-mvp-sections-languages`**. F1/F2/F3/F4 están aprobadas e integradas en `main`. F1 permanece cerrada salvo regresión directa de sus invariantes. F5 incluye el contrato de traducción y el workflow manual/revisable; el motor automático definitivo puede quedar pendiente, sin descargar modelos ni usar cloud. No fusionar sin aprobación ni iniciar F6. Mantener la deuda de fases previas fuera de este alcance.
+Fase actual: **F5 — áreas del MVP e idiomas implementados y aprobados técnicamente en `f5-mvp-sections-languages`; pendiente aprobación del usuario para fusionar**. F1/F2/F3/F4 están aprobadas e integradas en `main`. F1 permanece cerrada salvo regresión directa de sus invariantes. Evidencia y límites: [docs/f5/VALIDATION.md](docs/f5/VALIDATION.md), [docs/f5/IMPLEMENTATION.md](docs/f5/IMPLEMENTATION.md). F5 incluye el contrato de traducción y el workflow manual/revisable; el motor automático definitivo puede quedar pendiente, sin descargar modelos ni usar cloud. No fusionar sin aprobación ni iniciar F6. Mantener la deuda de fases previas fuera de este alcance.
 
 ## Especificación vigente
 
