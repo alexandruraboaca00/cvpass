@@ -6,7 +6,10 @@ import { encodePdfAttachment, readPdfPayload } from '../src/adapters/import/pdf-
 import { encodeCvproj, encodeExportPayload } from '../src/adapters/cvproj.js';
 import { decodeJson, encodeJson } from '../src/adapters/json.js';
 import { createExportProjection, createCvFromProfile } from '../src/domain/index.js';
-import { profileFixture, template } from './fixtures.js';
+import { profileFixture, template, syntheticPng } from './fixtures.js';
+import { sha256 } from '../src/adapters/asset-bytes.js';
+import { unzipSync } from 'fflate';
+import { writeStoredZip } from '../src/adapters/zip-store.js';
 import { syntheticPdf, xmlBytes, utf16Xml } from './f6/fixtures.js';
 
 function projection(){const {profile,ctx}=profileFixture(),cv=createCvFromProfile(profile,{name:'Synthetic',documentLocale:'es',template,sectionIds:profile.sectionOrder},ctx);return createExportProjection(cv);}
@@ -39,4 +42,12 @@ test('F6 cvproj uses the existing codec, handles future/corrupt archives and dis
   const {profile,ctx}=profileFixture(),cv=createCvFromProfile(profile,{name:'Synthetic',documentLocale:'es',template,sectionIds:profile.sectionOrder},ctx),bytes=encodeCvproj({snapshot:{scope:'cv',cv,revisions:[],assetsById:{},templates:[template]},blobs:new Map()},ctx.now());
   const own=await analyzeImport(bytes,'renamed.pdf');assert.equal(own.detected,'cvproj');assert.equal(own.candidates[0]!.project!.snapshot.scope,'cv');assert.deepEqual(own.candidates[0]!.draft!.cv,cv);
   const broken=new Uint8Array(bytes);broken[90]=broken[90]!^1;const rejected=await analyzeImport(broken,'broken.cvproj');assert.equal(rejected.code,'CVPROJ_INVALID');assert.equal(rejected.candidates.length,0);
+});
+
+test('F6 future native format and tampered PDF image bytes are rejected, not repaired',async()=>{
+  const {profile,ctx}=profileFixture(),cv=createCvFromProfile(profile,{name:'Synthetic',documentLocale:'es',template,sectionIds:profile.sectionOrder},ctx),png=syntheticPng(1,1),digest=sha256(png),value=projection();
+  value.personal.push({field:'photo',values:[{type:'image',sha256:digest}]});value.images.push({sha256:digest,mediaType:'image/png',width:1,height:1,dataBase64:Buffer.from(png).toString('base64')});
+  assert(readPdfPayload(encodePdfAttachment(value)));const direct=decodeJson(encodeExportPayload(value)) as {projection:typeof value};direct.projection.images[0]!.dataBase64=Buffer.from('corrupt synthetic bytes').toString('base64');assert.throws(()=>readPdfPayload(encodeJson(direct)),/CVFORGE_PAYLOAD_INVALID/);
+  const files=unzipSync(encodeCvproj({snapshot:{scope:'cv',cv,revisions:[],assetsById:{},templates:[template]},blobs:new Map()},ctx.now())),manifest=decodeJson(files['manifest.json']!) as Record<string,unknown>;manifest.projectFormatVersion=99;files['manifest.json']=new Uint8Array(encodeJson(manifest));
+  assert.equal((await analyzeImport(writeStoredZip(files),'future.cvproj')).code,'CVPROJ_VERSION_UNSUPPORTED');
 });

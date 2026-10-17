@@ -23,8 +23,8 @@ export function adaptEuropass(bytes:Uint8Array,ctx:DomainContext,name:string):Eu
   const locale=canonicalLocale?.split('-')[0],draft=emptyImportDraft(ctx,locale==='es'||locale==='en'?locale:null,name),cv=draft.cv;
   const contentLocale=canonicalLocale??'und';draft.localeEvidence=localeSource?`CandidateProfile@languageCode=${localeSource}`:'';
   const used=new Set<XmlNode>(),usedAttributes=new Map<XmlNode,Set<string>>(),assetsById:Record<string,Asset>={},blobs=new Map<string,Uint8Array>();
-  const markAttribute=(node:XmlNode,key:string)=>{const keys=usedAttributes.get(node)??new Set<string>();keys.add(key);usedAttributes.set(node,keys);};
-  const markTree=(node:XmlNode)=>{used.add(node);node.attributes.forEach(a=>markAttribute(node,a.local));node.children.forEach(markTree);};
+  const markAttribute=(node:XmlNode,key:string,uri='')=>{const keys=usedAttributes.get(node)??new Set<string>();keys.add(uri+'|'+key);usedAttributes.set(node,keys);};
+  const markTree=(node:XmlNode)=>{used.add(node);node.attributes.forEach(a=>markAttribute(node,a.local,a.uri));node.children.forEach(markTree);};
   const issue=(kind:ImportIssue['kind'],code:string,node:XmlNode|undefined,targetPath:string[]=[],preview?:string)=>{
     if(draft.issues.length>=1000)importFail('IMPORT_REPORT_LIMIT');
     draft.issues.push({kind,code,sourcePath:node?.path??root.path,targetPath,valuePreview:(preview??node?.text??'').slice(0,2048),resolution:kind==='ignored'?'informational':'pending'});
@@ -65,7 +65,7 @@ export function adaptEuropass(bytes:Uint8Array,ctx:DomainContext,name:string):Eu
   };
   const add=(section:CvSection,entry:CvEntry)=>{section.entriesById[entry.id]=entry;if(section.entryOrder)section.entryOrder.push(entry.id);};
   const path=(section:CvSection,entry:CvEntry)=>['sectionsById',section.id,'entriesById',entry.id,'fields'];
-  used.add(root);root.attributes.forEach(a=>markAttribute(root,a.local));markTree(documentId);markAttribute(profile,'languageCode');
+  used.add(root);markTree(documentId);markAttribute(profile,'languageCode');
   const supplier=child(root,'CandidateSupplier');if(supplier){markTree(supplier);issue('ignored','SOURCE_SUPPLIER_METADATA',supplier);}
   const sourceId=child(profile,'ID',[NS.hr]);if(sourceId){markTree(sourceId);issue('ignored','SOURCE_DOCUMENT_ID',sourceId);}
   if(!draft.documentLocale)issue('review','DOCUMENT_LOCALE_REQUIRED',profile,['documentLocale'],localeSource);
@@ -81,12 +81,15 @@ export function adaptEuropass(bytes:Uint8Array,ctx:DomainContext,name:string):Eu
       else if(channel==='Telephone'){
         const number=scalar(node,'DialNumber',undefined,[NS.oa]),prefix=scalar(node,'CountryDialing')??'';
         if(number)p.contacts.push({id:ctx.newId(),kind:'phone',label,prefix,number});
-      }else if((channel==='Web'||channel==='Social Media')&&uri)p.contacts.push({id:ctx.newId(),kind:channel==='Web'?'website':'social',label,value:uri});
+      }else if((channel==='Web'||channel==='Social Media')&&uri){
+        const index=p.contacts.length;p.contacts.push({id:ctx.newId(),kind:channel==='Web'?'website':'social',label,value:uri});
+        try{if(!['http:','https:'].includes(new URL(uri).protocol))throw new Error();}catch{issue('review','CONTACT_URL_REQUIRES_CORRECTION',child(node,'URI',[NS.oa]),['personalInformation','contacts',String(index),'value'],uri);}
+      }
       const address=child(node,'Address');if(address){
         const id=ctx.newId(),addressPath=['personalInformation','addresses',String(p.addresses.length)];
         const lines=children(address,'AddressLine',[NS.oa]).flatMap(n=>{const t=text(n,[...addressPath,'lines']);return t?[t]:[];});
         const locality=scalar(address,'CityName',[...addressPath,'locality'],[NS.oa]),countryCode=scalar(address,'CountryCode',[...addressPath,'countryCode']),postalCode=scalar(address,'PostalCode',[...addressPath,'postalCode'],[NS.oa]);
-        attr(address,'type');p.addresses.push({id,lines,locality,region:null,countryCode,postalCode,original:null});
+        attr(address,'type');p.addresses.push({id,lines,locality,region:null,countryCode:countryCode?.toUpperCase()??null,postalCode,original:null});
       }
       // Contact mappings identify the source row even when its value needs correction.
       draft.mappings.push({sourcePath:node.path,targetPath:['personalInformation','contacts']});
@@ -100,16 +103,25 @@ export function adaptEuropass(bytes:Uint8Array,ctx:DomainContext,name:string):Eu
     const e=newMvpEntry('education',ctx,contentLocale);if(e.kind!=='education')throw new Error();const p=path(s,e),degree=child(node,'EducationDegree');
     const title=scalar(degree,'DegreeName',[...p,'title'],[NS.hr])??'';e.fields.title=sensitive(title,'qualification');if(!title)issue('review','TITLE_REQUIRED',node,[...p,'title']);
     e.fields.organization=literal(child(node,'OrganizationName',[NS.hr]),[...p,'organization']);e.fields.period=period(child(node,'AttendancePeriod'),[...p,'period']);
-    const comm=child(child(node,'OrganizationContact'),'Communication'),address=child(comm,'Address');
+    const communications=children(child(node,'OrganizationContact'),'Communication'),comm=communications.find(c=>child(c,'Address'))??communications[0],address=child(comm,'Address');
     const city=scalar(address,'CityName',[...p,'location'],[NS.oa]),country=scalar(address,'CountryCode',[...p,'location']);e.fields.location=[city,country].filter(Boolean).join(', ')||null;
-    scalar(comm,'ChannelCode');e.fields.web=scalar(comm,'URI',[...p,'web'],[NS.oa]);
+    for(const communication of communications){
+      const uriNode=child(communication,'URI',[NS.oa]),uri=uriNode?.text.trim();
+      if(uri){
+        const target=!e.fields.web?[...p,'web']:[...p,'links',String(e.fields.links.length),'url'],value=text(uriNode,target)!;
+        if(!e.fields.web)e.fields.web=value;else e.fields.links.push({id:ctx.newId(),label:null,url:value});
+        scalar(communication,'ChannelCode');
+        try{if(!['http:','https:'].includes(new URL(uri).protocol))throw new Error();}catch{issue('invalid','LINK_INVALID',uriNode,target);}
+      }
+      else scalar(communication,'ChannelCode');
+    }
     const eqf=scalar(node,'EducationLevelCode',[...p,'eqf']);if(eqf){draft.rawNumbers[[...p,'eqf'].join('.')]=eqf;e.fields.eqf=/^[1-8]$/.test(eqf)?Number(eqf):null;if(e.fields.eqf===null)issue('invalid','EQF_INVALID',child(node,'EducationLevelCode'),[...p,'eqf']);}
     const study=child(child(child(degree,'FieldOfStudy'),'MainFieldOfStudy'),'ProgramConcentration');const studyText=text(study,[...p,'fieldOfStudy']);if(studyText)e.fields.fieldOfStudy=sensitive(studyText,'fieldOfStudy');
     const fields=child(degree,'FieldOfStudy');if(fields)attr(fields,'typeCode');
     e.fields.nationalClassification=scalar(degree,'NationalClassification',[...p,'nationalClassification']);
     const system=scalar(degree,'CreditType',[...p,'credits','system']),amount=scalar(degree,'NumberOfCredit',[...p,'credits','amount']);
     if(system&&amount&&/^\d+(?:\.\d+)?$/.test(amount))e.fields.credits={system,amount:Number(amount)};else if(system||amount)issue('invalid','CREDITS_INCOMPLETE',degree,[...p,'credits'],canonical({system,amount}));
-    e.fields.description=rich(child(degree,'OccupationalSkillsCovered'),[...p,'description']);e.fields.links=links(node,p);add(s,e);
+    e.fields.description=rich(child(degree,'OccupationalSkillsCovered'),[...p,'description']);e.fields.links.push(...links(node,p));add(s,e);
   }}
   const employers=children(child(profile,'EmploymentHistory'),'EmployerHistory');
   if(employers.length){const s=section('work');for(const employer of employers)for(const node of children(employer,'PositionHistory')){
@@ -184,7 +196,7 @@ export function adaptEuropass(bytes:Uint8Array,ctx:DomainContext,name:string):Eu
   // Every unconsumed meaningful leaf/attribute is reported, with its full original in the source asset.
   function remaining(node:XmlNode):void{
     if(node.text.trim()&&!used.has(node))issue('unsupported','FIELD_UNMAPPED',node);
-    const attributes=node.attributes.filter(a=>!usedAttributes.get(node)?.has(a.local));
+    const attributes=node.attributes.filter(a=>!usedAttributes.get(node)?.has(a.uri+'|'+a.local));
     if(attributes.length)issue('unsupported','ATTRIBUTE_UNMAPPED',node,[],canonical(attributes));
     node.children.forEach(remaining);
   }remaining(root);

@@ -35,10 +35,11 @@ export function validateImportDraft(input:Pick<ImportDraft,'cv'|'rawDates'|'rawN
     try{set(cv,path,parseDateInput(value));}catch{issues.push({path,message:'Fecha inválida. Usa AAAA, AAAA-MM o AAAA-MM-DD con una fecha real.'});}
   }
   const numbers=new Set<string>();for(const s of Object.values(cv.sectionsById))for(const e of Object.values(s.entriesById))if(e.kind==='education'){
-    const base=`sectionsById.${s.id}.entriesById.${e.id}.fields`;numbers.add(base+'.eqf');if(e.fields.credits)numbers.add(base+'.credits.amount');
+    const base=`sectionsById.${s.id}.entriesById.${e.id}.fields`;numbers.add(base+'.eqf');numbers.add(base+'.credits.amount');
   }
   for(const [path,value] of Object.entries(input.rawNumbers)){
     if(!numbers.has(path))importFail('IMPORT_REVIEW_PATH_INVALID');
+    if(path.endsWith('.credits.amount')){const keys=path.split('.'),e=cv.sectionsById[keys[1]!]!.entriesById[keys[3]!]!;if(e.kind==='education'&&!e.fields.credits){if(value!=='')issues.push({path,message:'Indica también el sistema de créditos.'});continue;}}
     if(value!==''&&!/^\d+(?:\.\d+)?$/.test(value))issues.push({path,message:'Introduce un número válido.'});else set(cv,path,value===''?null:Number(value));
   }
   if(issues.length)throw new EditorValidationError(issues);

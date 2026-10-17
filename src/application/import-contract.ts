@@ -22,7 +22,7 @@ export interface ImportAnalysis {
   code:string|null;candidates:ImportCandidate[];
   selectedKey:string|null;selectionReason:'directFile'|'soleCompatible'|'identicalCandidates'|null;
 }
-export interface StructuredImportPort {analyze(bytes:Uint8Array,fileName:string):Promise<ImportAnalysis>}
+export interface StructuredImportPort {analyze(bytes:Uint8Array,fileName:string,signal?:AbortSignal):Promise<ImportAnalysis>}
 export const IMPORT_FILE_LIMIT=50*1024*1024;
 export const IMPORT_WORKSPACE_LIMIT=200*1024*1024;
 export const IMPORT_XML_LIMIT=10*1024*1024;

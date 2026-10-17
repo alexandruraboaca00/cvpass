@@ -31,6 +31,7 @@ export class CoreEditorService {
     return this.list();
   }
   private idle():void { if (this.active) reject('EDITOR_FORM_OPEN'); }
+  hasActiveForm():boolean{return this.active!==null;}
   async list():Promise<EditorLibraryView> {
     const {content} = await this.library.snapshot();
     return {cvs:await this.library.listCvs(),profileName:content.workspace.profile?.personalInformation.displayName ?? null,uiLocale:content.workspace.settings.uiLocale,

@@ -27,8 +27,9 @@ export async function analyzeImport(bytes:Uint8Array,fileName:string,ctx:DomainC
     analysis.detected='cvproj';
     try{
       const project=decodeCvproj(bytes),cv=project.snapshot.scope==='cv'?project.snapshot.cv:null;
-      analysis.candidates.push({key:'project',format:'cvproj',attachmentName:null,sha256:analysis.source.sha256,status:'ready',code:null,project,
-        draft:cv?{cv,rawDates:{},rawNumbers:{},documentLocale:cv.documentLocale,localeEvidence:'cvproj CvDocument.documentLocale',mappings:[],issues:[]}:null});
+      const issues=cv?.importRecords?.flatMap(r=>r.issues.filter(i=>i.resolution==='pending'))??[];
+      analysis.candidates.push({key:'project',format:'cvproj',attachmentName:null,sha256:analysis.source.sha256,status:issues.length?'partial':'ready',code:null,project,
+        draft:cv?{cv,rawDates:{},rawNumbers:{},documentLocale:cv.documentLocale,localeEvidence:'cvproj CvDocument.documentLocale',mappings:[],issues}:null});
     }catch(error){analysis.code=safeCode(error,'CVPROJ_INVALID');}
   }else if(signature==='xml'){
     analysis.detected='xml';analysis.candidates.push(xmlCandidate(bytes,'xml',null,'europassXml'));

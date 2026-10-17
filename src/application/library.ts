@@ -3,7 +3,7 @@ import {
   validateCv, validateEntity, validateProject, restoreCv,
 } from '../domain/index.js';
 import type { CvDocument, DomainContext, Entity, PersonalInformation, Revision, TemplateDefinition } from '../domain/index.js';
-import type { BackupReceipt, FormDraft, LibraryContent, LibraryRecord, LibraryRepository, ProjectCodec, Resources } from './contracts.js';
+import type { BackupReceipt, FormDraft, LibraryContent, LibraryRecord, LibraryRepository, ProjectCodec, Resources, ProjectData } from './contracts.js';
 import { reject } from './contracts.js';
 import { addResources, collectUnused, findEntity, projectFromState, stateFromProject, validateDraft, validateDraftChanges, validateLibrary } from './library-state.js';
 import { copyProjectIdentities } from './copies.js';
@@ -199,16 +199,27 @@ export class LibraryService {
     if (!['copyCv','emptyWorkspace','replaceWorkspace'].includes(options.mode)) reject('IMPORT_MODE_INVALID');
     // Parse/validate before any mutation or backup side effect.
     const data = this.codec.decode(bytes); validateProject(data.snapshot);
-    const r = await this.loaded();
     if (options.mode === 'copyCv') {
-      const project = copyProjectIdentities(data.snapshot,this.ctx);
-      if (project.scope !== 'cv') reject('CV_PROJECT_REQUIRED');
-      r.content.workspace.cvsById[project.cv.id] = project.cv; r.content.workspace.cvOrder.push(project.cv.id);
-      r.content.revisions.push(...project.revisions);
-      const imported = checkpoint(project.cv,this.ctx,'import'); imported.retention = 'pinned'; r.content.revisions.push(imported);
-      addResources(r.content,{assetsById:project.assetsById,templates:project.templates,blobs:data.blobs}); await this.persist(r);
-      return {cvId:project.cv.id};
+      return {cvId:(await this.addImportedCv(data)).id};
     }
+    return this.restoreImportedWorkspace(data,{mode:options.mode,...(options.confirmReplace?{confirmReplace:true as const}:{})});
+  }
+  // Called only by an explicit import confirmation; one commit owns CV/resources/history.
+  async addImportedCv(data:ProjectData):Promise<CvDocument>{
+    const project=copyProjectIdentities(validateProject(data.snapshot),this.ctx);
+    if(project.scope!=='cv')reject('CV_PROJECT_REQUIRED');
+    const r=await this.loaded();
+    if(r.content.workspace.cvsById[project.cv.id]||r.content.workspace.profile?.id===project.cv.id)reject('COPY_ID_COLLISION');
+    r.content.workspace.cvsById[project.cv.id]=project.cv;r.content.workspace.cvOrder.push(project.cv.id);
+    r.content.revisions.push(...project.revisions);
+    const imported=checkpoint(project.cv,this.ctx,'import');imported.retention='pinned';r.content.revisions.push(imported);
+    addResources(r.content,{assetsById:project.assetsById,templates:project.templates,blobs:data.blobs});
+    await this.persist(r);return project.cv;
+  }
+  async restoreImportedWorkspace(data:ProjectData,options:{mode:'emptyWorkspace'|'replaceWorkspace';confirmReplace?:true}):Promise<{backup?:BackupReceipt}>{
+    if(!['emptyWorkspace','replaceWorkspace'].includes(options.mode))reject('IMPORT_MODE_INVALID');
+    validateProject(data.snapshot);if(data.snapshot.scope!=='workspace')reject('WORKSPACE_PROJECT_REQUIRED');
+    const r=await this.loaded();
     const content = stateFromProject(data);
     let backup: BackupReceipt | undefined;
     if (options.mode === 'emptyWorkspace') {

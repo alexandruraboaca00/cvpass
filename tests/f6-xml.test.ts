@@ -49,3 +49,16 @@ test('F6 enriched HTML becomes only the semantic tree, never executable HTML or 
   const result=importRichText('<p>Hello <b>world</b><br><a href="https://example.test">safe</a><a href="javascript:alert(1)">unsafe</a></p><ol style="list-style-type:disc"><li>Bullet</li></ol><script>PRIVATE_SCRIPT</script><img src="https://example.test/no-network">');
   assert(result.degraded);assert.equal(result.doc.content[1]!.kind,'bulletList');assert(!JSON.stringify(result.doc).includes('javascript:'));assert(!richText(result.doc).includes('PRIVATE_SCRIPT'));assert(richText(result.doc).includes('Hello world'));
 });
+test('F6 organization web in a second communication maps safely; lowercase country and scheme-less URLs require distinct handling',()=>{
+  const source=europassXml().replace('<e:EducationLevelCode>6</e:EducationLevelCode>','<e:OrganizationContact><e:Communication><e:ChannelCode>Address</e:ChannelCode><e:Address><o:CityName>Ciudad Sintética</o:CityName></e:Address></e:Communication><e:Communication><e:ChannelCode>Web</e:ChannelCode><o:URI>https://example.test/institute</o:URI></e:Communication></e:OrganizationContact><e:EducationLevelCode>6</e:EducationLevelCode>')
+    .replace('<e:ChannelCode>Web</e:ChannelCode><o:URI>https://example.test/profile</o:URI>','<e:ChannelCode>Web</e:ChannelCode><o:URI>www.example.test/profile</o:URI>')
+    .replace('</e:CandidatePerson>','<e:Communication><e:Address><o:CityName>Ciudad Sintética</o:CityName><e:CountryCode>es</e:CountryCode></e:Address></e:Communication></e:CandidatePerson>');
+  const {draft}=adaptEuropass(new TextEncoder().encode(source),context(),'Synthetic'),e=Object.values(draft.cv.sectionsById).flatMap(s=>Object.values(s.entriesById)).find(e=>e.kind==='education')!;
+  assert(e.kind==='education');assert.equal(e.fields.web,'https://example.test/institute');assert.equal(draft.cv.personalInformation.addresses[0]!.countryCode,'ES');assert(draft.issues.some(i=>i.code==='CONTACT_URL_REQUIRES_CORRECTION'));assert.throws(()=>validateImportDraft(draft));
+  const c=draft.cv.personalInformation.contacts.find(c=>c.kind==='website')!;if(c.kind!=='phone')c.value='https://www.example.test/profile';validateImportDraft(draft);
+});
+
+test('F6 a scheme-less institution web remains editable and blocks confirmation until explicit correction',()=>{
+ const {draft}=adaptEuropass(new TextEncoder().encode(europassXml().replace('<e:EducationLevelCode>6</e:EducationLevelCode>','<e:OrganizationContact><e:Communication><e:ChannelCode>Web</e:ChannelCode><o:URI>www.example.test/institute</o:URI></e:Communication></e:OrganizationContact><e:EducationLevelCode>6</e:EducationLevelCode>')),context(),'Synthetic');
+ const e=Object.values(draft.cv.sectionsById).flatMap(s=>Object.values(s.entriesById)).find(e=>e.kind==='education')!;assert(e.kind==='education');assert.equal(e.fields.web,'www.example.test/institute');assert.throws(()=>validateImportDraft(draft));assert(draft.issues.some(i=>i.code==='LINK_INVALID'));e.fields.web='https://www.example.test/institute';validateImportDraft(draft);
+});

@@ -1,10 +1,17 @@
 import type { EditorLibraryView, EditorDocumentView, PhotoView } from './editor.js';
 import type { EditorForm, EditorIssue, EditorTarget } from './editor-model.js';
 import type { SectionKind } from '../domain/index.js';
+import type { ImportView, ImportReviewInput } from './structured-import.js';
 export type BeginEditorTarget=EditorTarget|{kind:'newEntry';sectionId:string;entryKind?:'nativeLanguage'|'foreignLanguage'}|{kind:'newCustomSection'};
 export interface EditorFailure {code:string;issues:EditorIssue[]}
 export type EditorResult<T> = {ok:true;value:T}|{ok:false;error:EditorFailure};
 export interface EditorApi {
+  importFile(id:string,bytes:Uint8Array,fileName:string):Promise<EditorResult<ImportView>>;
+  importChoose(id:string,key:string):Promise<EditorResult<ImportView>>;
+  importCancel(id:string):Promise<EditorResult<void>>;
+  importConfirm(id:string,input:ImportReviewInput):Promise<EditorResult<{cvId:string}>>;
+  importRestore(id:string,mode:'emptyWorkspace'|'replaceWorkspace',confirmReplace:boolean):Promise<EditorResult<{backup?:{name:string}}>>;
+  importPhoto(id:string,bytes:Uint8Array,mediaType:'image/png'|'image/jpeg'):Promise<EditorResult<{assetId:string;photo:PhotoView}>>;
   list():Promise<EditorResult<EditorLibraryView>>;
   create(name:string,displayName:string):Promise<EditorResult<EditorDocumentView>>;
   open(id:string):Promise<EditorResult<EditorDocumentView>>;
