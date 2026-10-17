@@ -1,6 +1,6 @@
 # Modelo de datos de CVForge
 
-Versión 0.4 · 16 de octubre de 2026 · Especificación conceptual y concreciones F2/F3. El dominio MVP y el contrato portable inicial están implementados; correspondencias y límites en [f2/IMPLEMENTATION.md](f2/IMPLEMENTATION.md). La biblioteca, revisiones, activos y borradores son durables en F3; [esquema y límites](f3/PERSISTENCE.md). El inventario V1 y los importadores posteriores siguen siendo especificación.
+Versión 0.5 · 17 de octubre de 2026 · Especificación conceptual y concreciones F2/F3/F5. El dominio MVP y el contrato portable inicial están implementados; correspondencias y límites en [f2/IMPLEMENTATION.md](f2/IMPLEMENTATION.md). La biblioteca, revisiones, activos y borradores son durables en F3; [esquema y límites](f3/PERSISTENCE.md). El inventario V1 y los importadores posteriores siguen siendo especificación.
 
 ## Convenciones y principios [D]
 
@@ -353,3 +353,25 @@ No se amplía el formato portable F2 para guardar borradores: su exclusión requ
 resolverlos o aceptarla expresamente. Los backups SQLite sí incluyen ese trabajo.
 SourceArtifact/importadores F6 y campos V1 siguen fuera del contrato inicial;
 claves desconocidas se rechazan. [Validación F3](f3/VALIDATION.md).
+
+## Concreción implementada en F5
+
+Se conserva el contrato F2 v1. Los nuevos formularios utilizan sus tipos existentes,
+las cinco destrezas CEFR sin nivel global, grupos con listas únicas y varias
+personalizadas. `collapsed` continúa fuera del contenido. Clasificación A/B/C,
+spans UTF-16 y aprobaciones contextualizadas mantienen sus formatos. Una
+selección de original puede conservar una aprobación válida asociada para
+detectar posteriormente una edición de fuente, sin mostrar esa traducción.
+
+La operación conceptual `TranslationOperation` se concreta como borrador F3:
+`FormDraft.id`, baseSnapshot/revision y `values.languagePlan`. Sus propuestas son
+privadas y temporales, excluidas de `.cvproj`/PDF. El checkpoint previo queda
+identificado por CV/número de revisión y causa beforeTranslation; aplicar crea
+el número siguiente. No hay tabla nueva ni registro perpetuo de propuestas.
+
+A traducida sustituye texto e idioma activos; A conservada expresamente mantiene
+su texto e idioma original y hace explícita la mezcla en el plan. B se conserva;
+C conserva fuente y memoria, con aprobación exacta o decisión explícita. No se
+inventa un original desconocido. El proveedor solo recibe fragmentos traducibles,
+y F5 no instala un motor automático de producto.
+[Correspondencias y límites F5](f5/IMPLEMENTATION.md).

@@ -4,7 +4,7 @@ CVForge será una aplicación local para crear y gestionar CV, importar document
 
 ## Estado actual
 
-La investigación de Europass está terminada y las decisiones de producto están consolidadas. **F4 tiene el editor de datos personales, educación y experiencia aprobado por el usuario e integrado en `main` mediante merge commit desde `f4-core-editor`**. [Implementación](docs/f4/EDITOR.md), [validación](docs/f4/VALIDATION.md). F1/F2/F3/F4 están aprobadas e integradas en `main`; F1 permanece cerrada. F5 no se ha iniciado. El MVP completo sigue pendiente.
+La investigación de Europass está terminada y las decisiones de producto están consolidadas. **F5 está aprobada por el usuario e integrada en `main` mediante merge commit desde `f5-mvp-sections-languages`, con las ocho áreas e idiomas ES/EN**. [Implementación F5](docs/f5/IMPLEMENTATION.md), [validación](docs/f5/VALIDATION.md). F1/F2/F3/F4/F5 están aprobadas e integradas en `main`; F1 permanece cerrada. El contrato `TranslationProvider` sigue desacoplado y el flujo manual/offline es el comportamiento válido actual; el motor automático definitivo queda pendiente. El MVP completo sigue pendiente y F6 no se ha iniciado.
 
 ## Producto definido
 
@@ -22,7 +22,7 @@ Datos personales, educación, experiencia, habilidades, idiomas, certificaciones
 
 ## Stack y validación técnica F1
 
-Electron, React, TypeScript y Vite; SQLite en worker mediante better-sqlite3; Zod y Tiptap para validación/edición. i18next sigue propuesto para las fases de idiomas. Chromium/PDF.js y el payload PDF tienen su validación técnica F1; su integración completa en el editor conserva las fases del roadmap. Zod está integrado desde F2 y Tiptap limitado al árbol del dominio desde F4. La traducción ES/EN conserva su exploración previa y queda fuera del criterio de cierre F1 por decisión final del usuario.
+Electron, React, TypeScript y Vite; SQLite en worker mediante better-sqlite3; Zod y Tiptap para validación/edición. F5 utiliza un catálogo local ES/EN sin nuevas dependencias; el contenido del CV tiene su plan A/B/C independiente. Chromium/PDF.js y el payload PDF tienen su validación técnica F1; su integración completa en el editor conserva las fases del roadmap. Zod está integrado desde F2 y Tiptap limitado al árbol del dominio desde F4. La traducción ES/EN conserva su exploración previa y queda fuera del criterio de cierre F1 por decisión final del usuario.
 
 El resultado acotado y las versiones concretas del spike figuran en el registro F1. La integración del producto completo sigue el roadmap.
 
@@ -97,3 +97,24 @@ Las pruebas UI necesitan una sesión gráfica Linux. El ensayo offline usa
 `unshare`, `ip` y loopback exclusivamente para CDP local. No ejecutar dos suites
 de UI a la vez sobre el mismo escritorio si se quiere comprobar el foco.
 El [registro F4](docs/f4/VALIDATION.md) detalla método, límites y resultados.
+
+## Áreas e idiomas F5
+
+La rama F5 añade habilidades/grupos, lenguas maternas/CEFR parcial, certificaciones,
+proyectos y varias secciones personalizadas. Mantiene Confirmar/Cancelar,
+subborradores de modales, inclusión y orden durable, con UI española/inglesa
+independiente del CV. El plan de cambio de idioma permite revisión manual, nombres
+protegidos y memoria sensible, y conserva un checkpoint antes de aplicar.
+
+```bash
+npm run test:f5
+npm run test:f5:ui
+npm run build
+npm run validate:f5:offline
+```
+
+No hay proveedor automático de producción instalado ni descargas de modelos.
+El contrato TranslationProvider y el flujo manual son el alcance F5 autorizado;
+selección, distribución y calidad del motor automático siguen pendientes antes
+del cierre del MVP. [Alcance/deuda](docs/f5/IMPLEMENTATION.md) y
+[criterios/evidencia](docs/f5/VALIDATION.md). F6 no se ha iniciado.

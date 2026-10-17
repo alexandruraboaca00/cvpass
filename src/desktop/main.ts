@@ -7,9 +7,10 @@ import { openLocalLibrary } from '../host/local-library.js';
 import { CoreEditorService } from '../application/editor.js';
 import { EditorTargetSchema, EditorValidationError } from '../application/editor-model.js';
 import type { EditorForm } from '../application/editor-model.js';
-import { DomainError } from '../domain/index.js';
+import { DomainError, SectionKindSchema } from '../domain/index.js';
 import { makeAsset } from '../adapters/asset-bytes.js';
 import type { EditorFailure } from '../application/editor-contract.js';
+import { translateMessage } from '../ui/messages.js';
 
 app.setName('CVForge');
 // Electron's standard --user-data-dir is useful for isolated synthetic acceptance runs.
@@ -20,11 +21,12 @@ else void run();
 async function run():Promise<void> {
   await app.whenReady();
   const ctx = {newId:randomUUID,now:()=>new Date().toISOString()};
-  let win:BrowserWindow|undefined, closing = false;
+  let win:BrowserWindow|undefined, closing = false, uiLocale:'es'|'en'='es';
+  const message=(key:string,values:Record<string,string|number>={})=>translateMessage(uiLocale,key,values);
   const diagnostic=(event:string):void=>{if(app.commandLine.hasSwitch('cvforge-diagnostics'))console.info('CVForge lifecycle:',event);};
   try {
     const host = await openLocalLibrary(app,ctx), editor = new CoreEditorService(host.library,ctx);
-    await editor.start();
+    uiLocale=(await editor.start()).uiLocale;
     session.defaultSession.setPermissionRequestHandler((_webContents,_permission,callback)=>callback(false));
     session.defaultSession.webRequest.onBeforeRequest((details,callback)=>callback({cancel:!['file:','data:','blob:','devtools:'].includes(new URL(details.url).protocol)}));
     const base = fileURLToPath(new URL('.',import.meta.url));
@@ -36,11 +38,12 @@ async function run():Promise<void> {
     win.webContents.on('will-navigate',event=>event.preventDefault());
     let queue = Promise.resolve<unknown>(undefined);
     const id = z.uuid(), revision = z.int().nonnegative(), none = z.tuple([]);
-    const target = z.union([EditorTargetSchema,z.strictObject({kind:z.literal('newEntry'),sectionId:id})]);
+    const target = z.union([EditorTargetSchema,z.strictObject({kind:z.literal('newEntry'),sectionId:id,entryKind:z.enum(['nativeLanguage','foreignLanguage']).optional()}),z.strictObject({kind:z.literal('newCustomSection')})]);
     const form = z.custom<EditorForm>(value => !!value && typeof value === 'object');
     const schemas = {
       list:none,create:z.tuple([z.string().min(1).max(1000),z.string().max(1000)]),open:z.tuple([id]),
-      addSection:z.tuple([id,revision,z.enum(['education','work'])]),begin:z.tuple([id,revision,target]),
+      addSection:z.tuple([id,revision,SectionKindSchema.exclude(['custom'])]),begin:z.tuple([id,revision,target]),
+      setUiLocale:z.tuple([z.enum(['es','en'])]),duplicate:z.tuple([id,revision,z.string().min(1).max(1000)]),revisions:z.tuple([id]),restore:z.tuple([id,revision,id]),
       stage:z.tuple([form]),confirm:z.tuple([form]),cancel:none,
       photo:z.tuple([z.instanceof(Uint8Array).refine(b=>b.byteLength>0&&b.byteLength<=10*1024*1024),z.enum(['image/png','image/jpeg'])]),
       visibility:z.tuple([id,revision,id,id.nullable(),z.boolean()]),remove:z.tuple([id,revision,id,id.nullable(),z.literal(true)]),
@@ -67,6 +70,7 @@ async function run():Promise<void> {
           } else {
             const operation = editor[envelope.action] as (...values:unknown[])=>unknown;
             value = await operation.apply(editor,args as unknown[]);
+            if(envelope.action==='setUiLocale')uiLocale=args[0] as 'es'|'en';
           }
           return {ok:true,value};
         } catch (error) {
@@ -82,14 +86,14 @@ async function run():Promise<void> {
     win.webContents.on('render-process-gone',()=>{
       diagnostic('renderer gone');
       if(closing)return;
-      void queue.then(()=>editor.close()).catch(()=>dialog.showErrorBox('CVForge — borrador pendiente','La ventana se ha cerrado inesperadamente y no se ha podido completar el guardado del borrador. El contenido confirmado se conserva.')).finally(()=>{closing=true;win!.destroy();app.quit();});
+      void queue.then(()=>editor.close()).catch(()=>dialog.showErrorBox(message('CVForge — borrador pendiente'),message('La ventana se ha cerrado inesperadamente y no se ha podido completar el guardado del borrador. El contenido confirmado se conserva.'))).finally(()=>{closing=true;win!.destroy();app.quit();});
     });
     app.on('second-instance',()=>{win?.restore();win?.focus();});
     await win.loadFile(page); win.show();
   } catch (error) {
     // Diagnostic codes contain no CV values, SQL text or local filenames.
     console.error('CVForge startup:',safeCode(error));
-    dialog.showErrorBox('CVForge — almacenamiento no disponible','No se ha abierto la biblioteca. Código: '+safeCode(error));
+    dialog.showErrorBox(message('CVForge — almacenamiento no disponible'),message('No se ha abierto la biblioteca. Código: {code}',{code:safeCode(error)}));
     closing = true; win?.destroy(); app.exit(1);
   }
 }

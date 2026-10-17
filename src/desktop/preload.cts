@@ -4,6 +4,7 @@ const {contextBridge,ipcRenderer} = electron;
 const invoke = (action:string,...args:unknown[]) => ipcRenderer.invoke('cvforge:editor',{action,args});
 const api:EditorApi = {
   list:()=>invoke('list'),create:(...args)=>invoke('create',...args),open:(...args)=>invoke('open',...args),
+  setUiLocale:(...args)=>invoke('setUiLocale',...args),duplicate:(...args)=>invoke('duplicate',...args),revisions:(...args)=>invoke('revisions',...args),restore:(...args)=>invoke('restore',...args),
   addSection:(...args)=>invoke('addSection',...args),begin:(...args)=>invoke('begin',...args),
   stage:(...args)=>invoke('stage',...args),confirm:(...args)=>invoke('confirm',...args),cancel:()=>invoke('cancel'),
   photo:(...args)=>invoke('photo',...args),visibility:(...args)=>invoke('visibility',...args),remove:(...args)=>invoke('remove',...args),

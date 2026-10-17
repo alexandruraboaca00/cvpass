@@ -1,6 +1,6 @@
 # Arquitectura propuesta
 
-Versión 0.6 · 16 de octubre de 2026 · F1/F2/F3 aprobadas e integradas en main. Editor principal F4 aprobado por el usuario e integrado en main mediante merge commit desde `f4-core-editor`. Véanse [aceptación F2](f2/VALIDATION.md), [validación F3](f3/VALIDATION.md) y [arquitectura/validación F4](f4/EDITOR.md). F5 no iniciada.
+Versión 0.7 · 17 de octubre de 2026 · F1/F2/F3 aprobadas e integradas en main. Editor principal F4 aprobado por el usuario e integrado en main mediante merge commit desde `f4-core-editor`. Véanse [aceptación F2](f2/VALIDATION.md), [validación F3](f3/VALIDATION.md) y [arquitectura/validación F4](f4/EDITOR.md). F5 tiene áreas e idiomas aprobados por el usuario e integrados en main mediante merge commit desde `f5-mvp-sections-languages`; [detalle](f5/IMPLEMENTATION.md). F6 no iniciada.
 
 ## Decisión principal [D]
 
@@ -72,7 +72,7 @@ cambian. El resto de este diseño describe también componentes de fases futuras
 - **React + TypeScript + Vite:** aplicación cliente, sin necesidad de renderizado de servidor. Vite es una de las opciones documentadas para una aplicación React propia. [Documentación de React](https://react.dev/learn/build-a-react-app-from-scratch).
 - Formularios controlados por casos de uso del dominio y validación compartida con **Zod**. La validación de interfaz no sustituye la validación antes de persistir/importar. [Documentación de Zod](https://zod.dev/).
 - **Tiptap**, limitado a extensiones básicas de texto, listas, enlaces, negrita y cursiva. Se serializa a un árbol semántico nuestro, nunca al formato interno del editor como contrato permanente. No se necesitan sus servicios de nube o extensiones comerciales. [StarterKit de Tiptap](https://tiptap.dev/docs/editor/extensions/functionality/starterkit).
-- **i18next** para textos de interfaz y etiquetas; `Intl` para presentación localizada de números/fechas cuando proceda. El contenido del CV tiene su propio mecanismo de variantes. [Documentación de i18next](https://www.i18next.com/overview/getting-started).
+- **Catálogo local ES/EN** en F5 para mensajes de interfaz, interpolación nominal y contexto React. Se concreta la propuesta i18next sin añadir una dependencia para dos idiomas; más idiomas/plurales quedan para evolución. El contenido del CV no se localiza con este catálogo y tiene su workflow A/B/C independiente. [Implementación F5](f5/IMPLEMENTATION.md).
 - Componentes reutilizables: cabecera de sección, resumen de entrada, marco de formulario, periodo de fecha, contactos/enlaces repetibles, editor enriquecido, campo con traducciones, selector de activos y revisión de importación. Las reglas obligatorias pertenecen al tipo de entrada, no a un formulario genérico que fuerce campos inexistentes.
 
 El formulario usa una copia temporal. Abrir un modal de grupo de habilidades o fechas de permiso crea un subborrador: su Confirmar afecta al borrador padre; Cancelar el formulario padre descarta todo lo que aún no esté confirmado. Este patrón es nuestro y está motivado por los flujos anidados observados en [05](research/05-habilidades.md) y [23](research/23-cierre-investigacion-y-criterios.md).
@@ -193,7 +193,7 @@ Se mantienen tres ejes independientes:
 
 Cambiar el idioma del CV inicia una operación completa: opcionalmente duplicar → congelar revisión base → clasificar A/B/C → generar propuestas → revisar → fijar revisión recuperable previa → aplicar contenido e idioma en una transacción. La interfaz permite corregir narrativa y exige una decisión para cada término sensible pendiente. Elegir conservar un original es una decisión válida, registrada y visible en la revisión. Cancelar, fallo o conflicto de revisión dejan contenido e idioma anteriores intactos.
 
-Un puerto de dominio `TranslationProvider` permite evaluar un motor local ES/EN en worker, con recursos/modelos y licencias por validar antes de integrar la traducción de producto. No es i18next: este solo localiza interfaz/etiquetas. La exploración previa de F1 se conserva; las comprobaciones adicionales de distribución, calidad, memoria/latencia, cancelación y protección de términos quedan fuera de este cierre. No se introduce ningún envío implícito del CV a servicios remotos.
+Un puerto de dominio `TranslationProvider` permite evaluar un motor local ES/EN en worker, con recursos/modelos y licencias por validar antes de integrar la traducción de producto. Es independiente del catálogo ES/EN que localiza interfaz/etiquetas. F5 concreta el puerto y la revisión manual sin instalar motor, por la instrucción final del usuario; la traducción automática sigue pendiente de producto y no bloquea ese cierre. La exploración previa de F1 se conserva; las comprobaciones adicionales de distribución, calidad, memoria/latencia, cancelación y protección de términos quedan fuera de este cierre. No se introduce ningún envío implícito del CV a servicios remotos.
 
 - **A:** traducir narrativa y conservar como texto activo el resultado confirmado. Las propuestas son temporales y no generan un diccionario permanente de cada versión narrativa; la revisión anterior proporciona recuperación.
 - **B:** mantener personas, instituciones, empresas, marcas, contactos e identificadores literalmente, también cuando estén incrustados en narraciones. Proteger/restaurar esos fragmentos y comprobar que el motor no los perdió o alteró.
@@ -210,7 +210,7 @@ Una memoria sensible no empareja automáticamente títulos ambiguos por texto: i
 | ADR-03 PDF | HTML/CSS propio → Chromium → PDF.js. | React-PDF u otro compositor si falla la puerta técnica; requiere adaptar los diseños. Evitar dos motores simultáneos para preview/exportación. Un servidor PDF añadiría una dependencia al ciclo local. |
 | ADR-04 Portabilidad | `.cvproj` completo; `ExportPayload` separado y limitado a lo representado en el PDF. | Un proyecto completo dentro del PDF filtraría datos excluidos. XML Europass queda como adaptador, sin obligación de exportarlo. |
 | ADR-05 Propagación | CV materializado, independiente del perfil. | Referencias vivas simplifican propagación, pero podrían cambiar un CV preparado sin una decisión visible. Se prefiere transferencia explícita. |
-| ADR-06 Idiomas | Traducción real ES/EN en el MVP, clases A/B/C y revisión recuperable previa. Memoria persistente para términos sensibles aprobados. | Cambiar solo etiquetas no cumple el producto. Retener todas las variantes narrativas perpetuamente añade datos innecesarios; se conserva texto activo y recuperación por revisiones. Motor local pendiente de F1. |
+| ADR-06 Idiomas | Traducción real ES/EN en el MVP, clases A/B/C y revisión recuperable previa. Memoria persistente para términos sensibles aprobados. | Cambiar solo etiquetas no cumple el producto. Retener todas las variantes narrativas perpetuamente añade datos innecesarios; se conserva texto activo y recuperación por revisiones. Motor automático definitivo pendiente de producto; contrato y flujo manual F5 separados de su selección. |
 | ADR-07 Distribución | Recursos locales y empaquetado reproducible con electron-builder; AppImage inicial propuesto. | Confirmar plataforma/formato con el usuario. Fijar versiones estables y validar binarios nativos en F1. [Documentación Linux estable de electron-builder](https://www.electron.build/v26/docs/linux/). |
 | ADR-08 Adjuntos | pdf-lib como primer candidato, qpdf como alternativa. | Su aceptación depende de la conservación del PDF generado, especialmente etiquetado y enlaces. Ninguna biblioteca queda validada por mencionarla aquí. |
 
@@ -222,11 +222,11 @@ Una memoria sensible no empareja automáticamente títulos ambiguos por texto: i
 | El módulo SQLite no se empaqueta o degrada la interfaz. | Probar transacción, cierre/reapertura y worker en el ejecutable distribuible, con activos. |
 | XML variantes/campos desconocidos producen pérdidas. | Informe de mapeo, corpus conocido y casos sintéticos; recuperación semántica comparada y conservación del origen. |
 | El payload filtra contenido no representado. | Proyección por lista permitida, serializador aislado y pruebas con marcadores ocultos, traducciones alternativas, fechas reducidas y recortes/EXIF. Si falla, no se exporta ese payload. |
-| La traducción altera nombres o inventa equivalencias. | Motor local por evaluar en F1, protección B, revisión C, checkpoint previo y aplicación atómica. No declarar el MVP sin traducción real ES/EN. |
+| La traducción altera nombres o inventa equivalencias. | Motor automático pendiente de producto, protección B, revisión C, checkpoint previo y aplicación atómica; flujo manual F5 con alcance declarado. No declarar el MVP sin traducción real ES/EN. |
 | Versionar una plantilla cambia su aspecto histórico. | Mantener versiones disponibles; si falta una, proponer sustitución y comunicar que el PDF original sigue siendo la referencia visual. No prometer bytes idénticos entre motores/versiones. |
 | Los objetivos de rapidez no se cumplen. | Medición sobre equipo/corpus fijados; perfilar y ajustar antes de declarar el MVP, sin recortar contenido silenciosamente. |
 
-La autorización general para implementar está concedida y las decisiones de producto están cerradas. La fase actual es **F4, aprobada por el usuario e integrada en main mediante merge commit desde `f4-core-editor`**; véase [validación F4](f4/VALIDATION.md). F1/F2/F3/F4 permanecen aprobadas e integradas en main, con sus límites. F5 no iniciada.
+La autorización general para implementar está concedida y las decisiones de producto están cerradas. La fase actual es **F5, aprobada por el usuario e integrada en main mediante merge commit desde `f5-mvp-sections-languages`**. F1/F2/F3/F4/F5 permanecen aprobadas e integradas en main, con sus límites. El motor automático definitivo sigue pendiente y no cambia el alcance manual/offline autorizado de F5. F6 no se ha iniciado y requiere nueva autorización.
 
 ## Resultado de la puerta F1 — 16 de octubre de 2026
 
@@ -274,3 +274,25 @@ exportación atómica a archivo y restauración transaccional de CV/workspace.
 eliminación y límites reales. Se han probado dos procesos reales de Electron,
 cierre forzado, fallo de disco SQLite, migraciones fallidas y ejecución sin red.
 El harness no implementa UI/preload final ni altera el ejecutable F1.
+
+## Concreción técnica F5
+
+Las ocho áreas se conectan al dominio y repositorio reales. Habilidades conservan
+listas únicas por grupo/Sin agrupar; lenguas nativas y cinco CEFR independientes;
+certificaciones, proyectos y múltiples personalizadas tienen formularios propios.
+Los modales hijos entregan cambios al borrador padre, con portal y submit acotado.
+`uiLocale` persiste en Workspace sin cambiar contenido o revisión de CV.
+
+El plan lingüístico privado se reconstruye desde una revisión base. Traduce solo
+A elegida, conserva B (incluidos spans expresos) y exige decisiones C pendientes;
+reutiliza aprobaciones exactas y señala obsoletas. `confirmDraft` acepta la causa
+`beforeTranslation`: snapshot pinned, nuevo estado y retirada de borrador en una
+transacción F3. Restaurar crea otra revisión. `.cvproj`/dominio/payload v1 y SQLite
+v2 no cambian. No se conserva un diccionario de todas las narrativas.
+
+`TranslationProvider` recibe fragmentos clasificados, sin CV/memorias/contextos B
+completos. El producto F5 funciona mediante traducción y revisión manual: no hay
+motor automático de producción instalado. Su selección, licencia/distribución
+de recursos y validación offline/calidad sigue pendiente antes de aceptar ese
+requisito del MVP. No bloquea F5 por la instrucción final del usuario.
+[Implementación y límites](f5/IMPLEMENTATION.md), [validación](f5/VALIDATION.md).

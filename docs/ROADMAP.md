@@ -1,12 +1,12 @@
 # Roadmap de implementación
 
-Versión 0.4 · 16 de octubre de 2026 · Decisiones de producto consolidadas e implementación autorizada por fases. **Fase actual: F4 aprobada por el usuario e integrada en main mediante merge commit desde `f4-core-editor`. F5 no iniciada.** F1/F2/F3/F4 permanecen aprobadas e integradas en main. Véase [validación F4](f4/VALIDATION.md).
+Versión 0.5 · 17 de octubre de 2026 · Decisiones de producto consolidadas e implementación autorizada por fases. **Fase actual: F5 aprobada por el usuario e integrada en main mediante merge commit desde `f5-mvp-sections-languages`.** F1/F2/F3/F4/F5 permanecen aprobadas e integradas en main. F6 no iniciada. Véanse [validación F4](f4/VALIDATION.md) y [validación F5](f5/VALIDATION.md).
 
 ## Alcance y criterio de avance [D]
 
 Las fases concretan las decisiones finales del usuario [D], descritas en [REQUIREMENTS.md](REQUIREMENTS.md), [ARCHITECTURE.md](ARCHITECTURE.md) y [DATA_MODEL.md](DATA_MODEL.md). La evidencia histórica principal está en [23 — Cierre](research/23-cierre-investigacion-y-criterios.md), [28 — Mejoras](research/28-mejoras-necesarias-y-aceptacion.md) y [29](research/29-simulacion-caducidad-y-recuperacion.md). Las propuestas históricas incompatibles no prevalecen sobre esta especificación.
 
-La investigación ha terminado y la implementación está autorizada. No hay esperas de 48 horas ni acciones manuales pendientes en Europass. Las comprobaciones siguientes se harán sobre nuestra aplicación; las pruebas de Europass no las sustituyen. La orden vigente autoriza integrar y publicar F4, sin iniciar F5 hasta nueva autorización del usuario. F1 permanece cerrada y F2/F3 integradas.
+La investigación ha terminado y la implementación está autorizada. No hay esperas de 48 horas ni acciones manuales pendientes en Europass. Las comprobaciones siguientes se harán sobre nuestra aplicación; las pruebas de Europass no las sustituyen. La orden vigente aprueba F5 y autoriza su integración en main, sin iniciar F6. F1 permanece cerrada y F1–F5 integradas. F6 requiere nueva autorización.
 
 Cada fase debe entregar un resultado revisable y superar su criterio antes de ampliar alcance. Se fija entonces la versión de dependencias utilizada y se conserva la evidencia de aceptación. No se asignan fechas sin estimar sobre los primeros resultados.
 
@@ -68,7 +68,7 @@ Por decisión final del usuario para este cierre, la traducción no forma parte 
 
 ## F4 — Editor de datos personales, educación y experiencia
 
-**Estado: APROBADA por el usuario e integrada en main desde `f4-core-editor` mediante merge commit — 16 de octubre de 2026.** React/Electron conectados a dominio/SQLite reales, formularios separados, Confirmar/Cancelar, foto, fechas parciales, texto enriquecido limitado, inclusión/contraer y orden por teclado. 13 tests F4 de aplicación/codec + 4 flujos de UI real, repetidos sin red; F1 3/3, F2 30/30, F3 39/39 y TypeScript/build pasan. [Implementación/límites](f4/EDITOR.md), [evidencia](f4/VALIDATION.md). F5 no iniciada.
+**Estado: APROBADA por el usuario e integrada en main desde `f4-core-editor` mediante merge commit — 16 de octubre de 2026.** React/Electron conectados a dominio/SQLite reales, formularios separados, Confirmar/Cancelar, foto, fechas parciales, texto enriquecido limitado, inclusión/contraer y orden por teclado. 13 tests F4 de aplicación/codec + 4 flujos de UI real, repetidos sin red; F1 3/3, F2 30/30, F3 39/39 y TypeScript/build pasan. [Implementación/límites](f4/EDITOR.md), [evidencia](f4/VALIDATION.md). Al cerrar F4 todavía no se había iniciado F5; su estado actual figura a continuación.
 
 **Depende de:** F3. **Salida:** editor inicial con resúmenes y los tres formularios principales.
 
@@ -80,17 +80,17 @@ Por decisión final del usuario para este cierre, la traducción no forma parte 
 
 ## F5 — Completar las ocho áreas y los idiomas del MVP
 
-**Estado: no iniciada; requiere aprobación posterior del usuario.**
+**Estado: APROBADA por el usuario e integrada en main mediante merge commit desde `f5-mvp-sections-languages` — 17 de octubre de 2026.** 32 tests F5 y 82 F2–F4, TypeScript/build, 9 flujos reales UI y los mismos flujos + 32 tests F5 sin red pasan en el control previo al merge. Incluye una corrección acotada de pérdida de protección B durante una actualización tardía del formulario personal, reproducida antes/después. F1 regenerada offline 3/3, sin cambios. Interfaz ES/EN, ocho áreas, fuente B/C y checkpoint/manual durables validados. Motor automático de producción pendiente según la instrucción final del usuario. [Implementación](f5/IMPLEMENTATION.md), [criterios/evidencia](f5/VALIDATION.md). F6 no iniciada.
 
-**Depende de:** F4. **Salida:** habilidades/grupos, lenguas, certificaciones, proyectos y personalizadas, más traducción real ES/EN con revisión.
+**Depende de:** F4. **Salida:** habilidades/grupos, lenguas, certificaciones, proyectos y personalizadas, interfaz ES/EN y plan de cambio del contenido con revisión A/B/C. Por la instrucción final del usuario, el contrato TranslationProvider y el flujo manual funcionan sin motor automático definitivo; su selección no bloquea F5 ni autoriza cloud/modelos grandes.
 
 - Habilidades libres, asignación a grupos, renombrado y separación entre desagrupar/eliminar.
 - Varias lenguas maternas y cinco dimensiones CEFR independientes.
 - Varias entradas por sección, varias secciones personalizadas y modales anidados que respeten Cancelar del padre.
-- Interfaz ES/EN independiente del idioma del CV; generar traducción A, mantener B y revisar C, permitiendo corregir y reutilizar aprobaciones sensibles.
+- Interfaz ES/EN independiente del idioma del CV; propuestas A automáticas cuando exista un proveedor autorizado y corrección/entrada manual disponible sin él. Mantener B y revisar C, permitiendo corregir/reutilizar aprobaciones sensibles y señalar las obsoletas. A conservada expresamente mantiene su idioma real.
 - Duplicar antes opcionalmente; checkpoint previo y aplicación atómica de contenido/idioma; Cancelar y conflictos sin cambios parciales.
 
-**Aceptación:** CEFR oral B1 parcial, grupos/custom y borradores anidados conservados. Cambiar a English traduce realmente la narrativa, conserva literalmente una institución y permite revisar una titulación ambigua, elegir traducción + original y reutilizar la aprobación. Cancelar/fallar no cambia idioma/contenido. Se restaura la revisión española y se puede mantener otro CV inglés independiente.
+**Aceptación:** CEFR Listening B1 con otras cuatro dimensiones null, dos grupos/custom con IDs/orden propios y Cancelar padre sin confirmar hijo. Un plan ES→EN permite introducir/revisar narrativa inglesa real, conserva literalmente instituciones/nombres, revisa C y elige original/traducción/ambos con reutilización y obsolescencia. Checkpoint previo y transacción; Cancelar/fallar no cambia contenido/idioma. Reapertura/restauración y copia inglesa independiente; UI ES/CV EN y UI EN/CV ES. La integración/calidad/distribución del motor automático queda pendiente de producto antes del cierre del MVP y no se declara validada por el flujo manual F5.
 
 ## F6 — Importación estructurada y revisión
 
@@ -189,7 +189,7 @@ Por decisión final del usuario para este cierre, la traducción no forma parte 
 | AC-02 Reapertura con alcance | Para ambas plantillas, PDF → biblioteca vacía recupera solo valores/semántica representados y presentación. `.cvproj` → biblioteca vacía recupera todo el CV, incluidos ocultos, originales/memoria sensible, plantilla, activos y revisiones necesarias. No exigir historial ni versiones no impresas al PDF. | F8 |
 | AC-03 Confirmar/Cancelar | Confirmar email ficticio A; editar B; Cancelar. Resumen, revisión y PDF conservan A. Confirmar después B lo conserva tras reinicio. Cancelar no deja un borrador recuperable. | F4 |
 | AC-04 Cierre inesperado | Interrumpir con un borrador; al abrir se ofrece recuperar/descartar sobre la revisión correcta. La última confirmación sigue disponible y el borrador no se exporta como confirmado. | F3 |
-| AC-05 Idiomas | Narrativa española A → English realmente traducida; institución B intacta; titulación C con propuesta/corrección/aprobación y modos original, traducción, traducción + original. Checkpoint previo recuperable, duplicado independiente, conflicto/cancelación sin mutación. `.cvproj` retiene memoria aprobada; PDF solo las variantes impresas; A no crea memoria perpetua de idiomas. | Motor F1; dominio F2; integración F5/F8 |
+| AC-05 Idiomas | Narrativa española A → English realmente traducida; institución B intacta; titulación C con propuesta/corrección/aprobación y modos original, traducción, traducción + original. Checkpoint previo recuperable, duplicado independiente, conflicto/cancelación sin mutación. `.cvproj` retiene memoria aprobada; PDF solo las variantes impresas; A no crea memoria perpetua de idiomas. | Exploración F1; dominio F2; contrato/manual F5; motor de producto pendiente; salida F8 |
 | AC-06 Perfil independiente | Crear dos CV desde el perfil; editar uno y luego el perfil. Ningún otro documento cambia sin selección/revisión explícita. | F3–F5 |
 | AC-07 PDF legible | Texto largo, listas, URL extensa, glifos y foto en ambas plantillas: sin omisión/solape, enlaces activos, lectura lógica, título unido al contenido y comprobación de etiquetas. Preview corresponde al archivo final; comprobar además un lector externo. | F7–F9 |
 | AC-08 Copia recuperable | `.cvproj` completo de workspace → biblioteca vacía: perfil, CV, configuración/plantillas, activos, memoria sensible y checkpoints/historial necesarios. Inyectar fallo de escritura sin éxito falso; recuperar el estado previo a traducción. | F3; cierre F9 |
@@ -209,7 +209,7 @@ Los PDF originales permanecen intactos y privados. Todos los tests usan datos si
 | FR-01, FR-02, FR-12 | F2–F4; aceptación F9 |
 | FR-03, FR-06 | F4; ciclo PDF F8–F9 |
 | FR-04, FR-05 | F5; ciclo PDF F8–F9 |
-| FR-07 | Viabilidad F1, modelo/checkpoint F2–F3, traducción/revisión F5, límites PDF F8 y aceptación F9 |
+| FR-07 | Exploración F1, modelo/checkpoint F2–F3, contrato/revisión/manual F5 y motor pendiente de producto, límites PDF F8 y aceptación F9 |
 | FR-08, FR-09 | F6; ampliación F10/F13 |
 | FR-10, FR-11 | F1, F7, F8; aceptación F9 |
 | FR-13 | F10a, F10b, F10c |
@@ -225,4 +225,4 @@ Nuevos motores/memorias de traducción, diseños, ajuste de extensión, catálog
 
 ## Decisiones que siguen pendientes [P]
 
-F0 está cerrada por las decisiones finales del usuario. F1 está aprobada con versiones, mediciones y límites en [F1_VALIDATION.md](F1_VALIDATION.md). La traducción queda fuera de sus criterios de cierre por instrucción final del usuario; no se presenta como validada para el producto. F2 está aprobada e integrada en `main` con los límites del contrato inicial en [f2/VALIDATION.md](f2/VALIDATION.md). F3 está aprobada por el usuario e integrada en main [con evidencia propia](f3/VALIDATION.md). F4 está [aprobada por el usuario e integrada en main](f4/VALIDATION.md). No se inicia F5.
+F0 está cerrada por las decisiones finales del usuario. F1 está aprobada con versiones, mediciones y límites en [F1_VALIDATION.md](F1_VALIDATION.md). La traducción queda fuera de sus criterios de cierre por instrucción final del usuario; no se presenta como validada para el producto. F2 está aprobada e integrada en `main` con los límites del contrato inicial en [f2/VALIDATION.md](f2/VALIDATION.md). F3 está aprobada por el usuario e integrada en main [con evidencia propia](f3/VALIDATION.md). F4 está [aprobada por el usuario e integrada en main](f4/VALIDATION.md). F5 está aprobada por el usuario e integrada en main con el alcance manual/contrato autorizado; véase [validación F5](f5/VALIDATION.md). El motor automático definitivo permanece pendiente. F6 no se ha iniciado y requiere nueva autorización.

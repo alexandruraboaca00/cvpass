@@ -8,3 +8,6 @@ export * from './revisions.js';
 export * from './assets.js';
 export * from './export.js';
 export * from './project.js';
+export * from './skills.js';
+export * from './translation.js';
+export * from './protected-text.js';
