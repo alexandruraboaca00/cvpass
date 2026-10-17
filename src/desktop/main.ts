@@ -11,6 +11,10 @@ import { DomainError, SectionKindSchema } from '../domain/index.js';
 import { makeAsset } from '../adapters/asset-bytes.js';
 import type { EditorFailure } from '../application/editor-contract.js';
 import { translateMessage } from '../ui/messages.js';
+import { StructuredImportService } from '../application/structured-import.js';
+import type { ImportReviewInput } from '../application/structured-import.js';
+import { LocalStructuredImport } from '../adapters/import/worker-port.js';
+import { IMPORT_WORKSPACE_LIMIT } from '../application/import-contract.js';
 
 app.setName('CVForge');
 // Electron's standard --user-data-dir is useful for isolated synthetic acceptance runs.
@@ -26,6 +30,7 @@ async function run():Promise<void> {
   const diagnostic=(event:string):void=>{if(app.commandLine.hasSwitch('cvforge-diagnostics'))console.info('CVForge lifecycle:',event);};
   try {
     const host = await openLocalLibrary(app,ctx), editor = new CoreEditorService(host.library,ctx);
+    const importer=new StructuredImportService(host.library,new LocalStructuredImport(),ctx);
     uiLocale=(await editor.start()).uiLocale;
     session.defaultSession.setPermissionRequestHandler((_webContents,_permission,callback)=>callback(false));
     session.defaultSession.webRequest.onBeforeRequest((details,callback)=>callback({cancel:!['file:','data:','blob:','devtools:'].includes(new URL(details.url).protocol)}));
@@ -41,6 +46,11 @@ async function run():Promise<void> {
     const target = z.union([EditorTargetSchema,z.strictObject({kind:z.literal('newEntry'),sectionId:id,entryKind:z.enum(['nativeLanguage','foreignLanguage']).optional()}),z.strictObject({kind:z.literal('newCustomSection')})]);
     const form = z.custom<EditorForm>(value => !!value && typeof value === 'object');
     const schemas = {
+      importFile:z.tuple([id,z.instanceof(Uint8Array).refine(b=>b.byteLength>0&&b.byteLength<=IMPORT_WORKSPACE_LIMIT),z.string().min(1).max(255).refine(s=>!/[\/\\\u0000-\u001f]/.test(s))]),
+      importChoose:z.tuple([id,z.string().min(1).max(100)]),importCancel:z.tuple([id]),
+      importConfirm:z.tuple([id,z.custom<ImportReviewInput>(v=>!!v&&typeof v==='object')]),
+      importRestore:z.tuple([id,z.enum(['emptyWorkspace','replaceWorkspace']),z.boolean()]),
+      importPhoto:z.tuple([id,z.instanceof(Uint8Array).refine(b=>b.byteLength>0&&b.byteLength<=10*1024*1024),z.enum(['image/png','image/jpeg'])]),
       list:none,create:z.tuple([z.string().min(1).max(1000),z.string().max(1000)]),open:z.tuple([id]),
       addSection:z.tuple([id,revision,SectionKindSchema.exclude(['custom'])]),begin:z.tuple([id,revision,target]),
       setUiLocale:z.tuple([z.enum(['es','en'])]),duplicate:z.tuple([id,revision,z.string().min(1).max(1000)]),revisions:z.tuple([id]),restore:z.tuple([id,revision,id]),
@@ -57,15 +67,24 @@ async function run():Promise<void> {
           const args = schemas[envelope.action].parse(envelope.args);
           diagnostic('ipc '+envelope.action);
           let value:unknown;
-          if (envelope.action === 'photo') {
-            const bytes = args[0] as Uint8Array, mediaType = args[1] as 'image/png'|'image/jpeg';
+          if(importer.isOpen()&&!envelope.action.startsWith('import')&&!['list','status','flush','close'].includes(envelope.action))throw new Error('IMPORT_ALREADY_OPEN');
+          if(envelope.action==='importFile'){
+            if(editor.hasActiveForm())throw new Error('EDITOR_FORM_OPEN');
+            value=await importer.begin(args[0] as string,args[1] as Uint8Array,args[2] as string);
+          }else if(envelope.action==='importChoose')value=importer.select(args[0] as string,args[1] as string);
+          else if(envelope.action==='importCancel')importer.cancel(args[0] as string);
+          else if(envelope.action==='importConfirm')value=await importer.confirm(args[0] as string,args[1] as ImportReviewInput);
+          else if(envelope.action==='importRestore')value=await importer.confirmWorkspace(args[0] as string,args[1] as 'emptyWorkspace'|'replaceWorkspace',args[2] as boolean);
+          else if (envelope.action === 'photo'||envelope.action==='importPhoto') {
+            const offset=envelope.action==='importPhoto'?1:0,bytes = args[offset] as Uint8Array, mediaType = args[offset+1] as 'image/png'|'image/jpeg';
             // F2 bounds/checks bytes and dimensions before Chromium's decoder is used.
             let asset;
             try { asset = makeAsset(ctx.newId(),bytes,'photo',mediaType); }
             catch { throw new Error('PHOTO_FORMAT_UNSUPPORTED'); }
             if (nativeImage.createFromBuffer(Buffer.from(bytes)).isEmpty()) throw new Error('PHOTO_DECODE_FAILED');
-            value = await editor.stagePhoto(asset,bytes);
+            value = envelope.action==='importPhoto'?importer.stagePhoto(args[0] as string,asset,bytes):await editor.stagePhoto(asset,bytes);
           } else if (envelope.action === 'close') {
+            importer.cancel();
             await editor.close(); closing = true; win!.destroy(); app.quit();
           } else {
             const operation = editor[envelope.action] as (...values:unknown[])=>unknown;
@@ -80,12 +99,18 @@ async function run():Promise<void> {
           return {ok:false,error:issue};
         }
       };
+      const allowedSender=event.sender===win!.webContents&&event.senderFrame===win!.webContents.mainFrame&&event.senderFrame.url===pathToFileURL(page).href;
+      const action=(input as {action?:unknown})?.action;
+      // Cancel is read-only with respect to the library and must interrupt an active parser.
+      if(action==='importCancel')return work();
+      if(action==='close'&&allowedSender){try{importer.cancel();}catch{/* confirmation finishes in the queue before close */}}
       const result = queue.then(work,work); queue = result; return result;
     });
     win.on('close',event=>{diagnostic('window close');if (!closing) {event.preventDefault();win!.webContents.send('cvforge:close-requested');}});
     win.webContents.on('render-process-gone',()=>{
       diagnostic('renderer gone');
       if(closing)return;
+      try{importer.cancel();}catch{/* wait for the confirmed transaction below */}
       void queue.then(()=>editor.close()).catch(()=>dialog.showErrorBox(message('CVForge — borrador pendiente'),message('La ventana se ha cerrado inesperadamente y no se ha podido completar el guardado del borrador. El contenido confirmado se conserva.'))).finally(()=>{closing=true;win!.destroy();app.quit();});
     });
     app.on('second-instance',()=>{win?.restore();win?.focus();});

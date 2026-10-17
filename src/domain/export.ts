@@ -56,6 +56,7 @@ export type ExportPayload=z.infer<typeof ExportPayloadSchema>;
 export type ImagePreparation=(placement:z.infer<typeof ImagePlacementSchema>)=>ExportImage;
 export function createExportProjection(input:CvDocument,prepareImage?:ImagePreparation):ExportProjection {
   const cv=validateCv(input),memory=cv.sensitiveTranslationMemory;
+  if(cv.importRecords?.some(r=>r.issues.some(i=>i.resolution==='pending')))fail('export.importReviewRequired');
   const precision=cv.presentation.datePrecision;
   const field=(f:TextField):z.infer<typeof Text>[] => f.class==='A'?[{type:'text',value:f.current.value,locale:f.current.locale,role:'content'}]:f.class==='B'?[{type:'text',value:f.value,locale:f.locale,role:'literal'}]:resolveSensitive(f,memory).map(v=>({type:'text',value:v.value,locale:v.locale,role:v.role}));
   const literal=(s:string):z.infer<typeof Text>=>({type:'text',value:s,locale:'und',role:'literal'});

@@ -11,3 +11,4 @@ export * from './project.js';
 export * from './skills.js';
 export * from './translation.js';
 export * from './protected-text.js';
+export * from './import-record.js';

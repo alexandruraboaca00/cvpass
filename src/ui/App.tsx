@@ -15,6 +15,7 @@ import { Modal } from './Modal.js';
 import { ClassifiedField, visibleText } from './ClassifiedField.js';
 import { MvpEntryForm } from './MvpEntryForm.js';
 import { SkillsForm } from './SkillsForm.js';
+import { ImportDialog } from './ImportDialog.js';
 import { LanguagePlanForm } from './LanguagePlanForm.js';
 import { useMessages } from './i18n.js';
 import type { Translate } from './i18n.js';
@@ -41,6 +42,7 @@ export function App(){
   const {t,locale,setLocale}=useMessages();
   const [library,setLibrary]=useState<EditorLibraryView|null>(null),[document,setDocument]=useState<EditorDocumentView|null>(null),[form,setForm]=useState<EditorForm|null>(null);
   const [photo,setPhoto]=useState<PhotoView|null>(null),[issues,setIssues]=useState<EditorIssue[]>([]),[error,setError]=useState<EditorFailure|null>(null),[notice,setNotice]=useState('');
+  const [importing,setImporting]=useState(false);
   const [busy,setBusy]=useState(false),[collapsed,setCollapsed]=useState<Set<string>>(new Set()),[creating,setCreating]=useState(false),[cvName,setCvName]=useState(''),[personName,setPersonName]=useState('');
   const [duplicating,setDuplicating]=useState(false),[duplicateName,setDuplicateName]=useState(''),[history,setHistory]=useState<{id:string;number:number;cause:string;pinned:boolean}[]|null>(null),[restoring,setRestoring]=useState<{id:string;number:number}|null>(null);
   const [deleting,setDeleting]=useState<{sectionId:string;entryId:string|null;label:string}|null>(null),[saveStatus,setSaveStatus]=useState('');
@@ -74,6 +76,7 @@ export function App(){
     <button onClick={()=>closeRequested.current()}>{t('Guardar borrador y salir')}</button></header>
     <div className="app-layout"><aside className="library" aria-label={t('Biblioteca de CV')}><h1>{t('Tu biblioteca')}</h1><p className="hint">{t('CV independientes, guardados en este equipo.')}</p>
       <button className="primary" disabled={busy||!!form} onClick={()=>{returnFocus.current=window.document.activeElement as HTMLElement;setCreating(true);setCvName('');setPersonName('');setError(null);}}>{t('Crear CV')}</button>
+      <button disabled={busy||!!form||!library||!!library.recovery.length} onClick={()=>{returnFocus.current=window.document.activeElement as HTMLElement;setImporting(true);setError(null);}}>{t('Importar archivo')}</button>
       {!library?<p>{t('Cargando biblioteca…')}</p>:!library.cvs.length?<p>{t('No hay CV todavía. Crea el primero para empezar.')}</p>:<ul className="cv-list">{library.cvs.map(item=><li key={item.id}><button disabled={busy||!!form} aria-current={cv?.id===item.id?'page':undefined} onClick={()=>{void perform(async()=>{opened(unwrap(await api.open(item.id)));setNotice('');setCollapsed(new Set());requestAnimationFrame(()=>titleRef.current?.focus());});}}>{item.name}<small>{item.hasDraft?t('Borrador pendiente'):t('Revisión {n}',{n:item.revision})}</small></button></li>)}</ul>}
     </aside><main id="main" className="editor-area">
       {!form&&showError()}<p className="status" role="status">{t(notice)}</p>
@@ -107,6 +110,7 @@ export function App(){
         <section className="add-section" aria-label={t('Añadir secciones')}><h2>{t('Añadir sección')}</h2><div className="actions">{(['education','work','skills','languages','certifications','projects'] as const).map(kind=><button key={kind} disabled={busy||blocked} onClick={()=>{void perform(async()=>opened(unwrap(await api.addSection(cv.id,cv.revision,kind))));}}>{t('Añadir sección de {name}',{name:t(sectionLabel(kind)).toLocaleLowerCase(locale)})}</button>)}<button disabled={busy||blocked} onClick={()=>begin({kind:'newCustomSection'})}>{t('Añadir sección personalizada')}</button></div></section>
       </>}
     </main></div>
+    {importing&&<ImportDialog onClose={()=>{setImporting(false);requestAnimationFrame(()=>returnFocus.current?.focus());}} onImported={(cvId,backupName)=>{setImporting(false);void perform(async()=>{await refresh();if(cvId)opened(unwrap(await api.open(cvId)));else{setDocument(null);setPhoto(null);}setNotice(backupName?t('Biblioteca restaurada. Copia de seguridad: {name}',{name:backupName}):'Importación confirmada.');requestAnimationFrame(()=>titleRef.current?.focus());});}}/>}
     {creating&&<Modal title={t('Crear CV')} onCancel={()=>{if(!busy)setCreating(false);}}><form noValidate onSubmit={event=>{event.preventDefault();void perform(async()=>{opened(unwrap(await api.create(cvName,personName)));await refresh();setCreating(false);requestAnimationFrame(()=>titleRef.current?.focus());});}}>
       {showError()}<Field label={t('Nombre del CV en la biblioteca')} required path="name" value={cvName} onChange={setCvName}/>{library?.profileName?<p>{t('Se materializarán los datos personales de tu perfil «{name}». Podrás editarlos en este CV de forma independiente. No se copian secciones.',{name:library.profileName})}</p>:<Field label={t('Nombre para mostrar')} required path="displayName" value={personName} onChange={setPersonName}/>}
       <footer className="form-actions"><button type="button" disabled={busy} onClick={()=>setCreating(false)}>{t('Cancelar')}</button><button className="primary" disabled={busy} type="submit">{t('Crear CV')}</button></footer>

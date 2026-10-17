@@ -2,12 +2,15 @@ import { parse, checkMap, fail } from './primitives.js';
 import { AssetMapSchema, validateEntity, TemplateSchema } from './model.js';
 import type { Entity, Asset, TemplateDefinition } from './model.js';
 export function referencedAssets(entity:Entity):Set<string> {
-  const ids=new Set<string>();if(entity.personalInformation.photo)ids.add(entity.personalInformation.photo.assetId);return ids;
+  const ids=new Set<string>();if(entity.personalInformation.photo)ids.add(entity.personalInformation.photo.assetId);
+  if(entity.kind==='cv')for(const record of entity.importRecords??[])if(record.source.assetId)ids.add(record.source.assetId);
+  return ids;
 }
 export function validateResources(entity:Entity,assets:Record<string,Asset>,templates:TemplateDefinition[]=[]):void {
   const e=validateEntity(entity);parse(AssetMapSchema,assets);checkMap(assets,['assetsById']);
-  for(const id of referencedAssets(e)) {
-    const a=assets[id];if(!a||a.role!=='photo')fail('asset.missingPhoto',[id]);
+  if(e.personalInformation.photo){const id=e.personalInformation.photo.assetId;if(!assets[id]||assets[id]!.role!=='photo')fail('asset.missingPhoto',[id]);}
+  if(e.kind==='cv')for(const record of e.importRecords??[])if(record.source.assetId){
+    const a=assets[record.source.assetId];if(!a||a.role!=='source'||a.sha256!==record.source.sha256||a.byteLength!==record.source.byteLength)fail('asset.missingImportSource');
   }
   for(const t of templates) {
     parse(TemplateSchema,t);

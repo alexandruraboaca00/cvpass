@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { IdSchema, NonBlank, Timestamp, DocumentLocale, Locale, Sha256, WebUrl, parse, assertOrder, checkMap, fail, assertDataTree } from './primitives.js';
 import { PartialDateSchema, PeriodSchema } from './dates.js';
 import { TextFieldSchema, LiteralSchema, NarrativeSchema, SensitiveSchema, RichNarrativeSchema, ApprovalSchema } from './content.js';
+import { ImportRecordSchema } from './import-record.js';
 
 export const SectionKindSchema = z.enum(['education', 'work', 'skills', 'languages', 'certifications', 'projects', 'custom']);
 export type SectionKind = z.infer<typeof SectionKindSchema>;
@@ -63,7 +64,7 @@ export const PersonalVisibilitySchema = z.strictObject({ displayName: z.boolean(
 export const PresentationSchema = z.strictObject({ templateRef: z.strictObject({ id: NonBlank, version: z.int().positive() }), density: z.enum(['compact','normal','spacious']), accentColor: z.string().regex(/^#[0-9a-fA-F]{6}$/), fontFamily: z.string().regex(/^[A-Za-z0-9 _-]{1,80}$/), page: z.literal('A4'), numbering: z.boolean(), datePrecision: z.enum(['year','month','day']), showCefrGuide: z.boolean(), personalFieldVisibility: PersonalVisibilitySchema });
 const entityBase = { id: IdSchema, revision: z.int().nonnegative(), createdAt: Timestamp, updatedAt: Timestamp, personalInformation: PersonalSchema, sensitiveTranslationMemory: z.record(IdSchema,ApprovalSchema) };
 export const MasterProfileSchema = z.strictObject({ ...entityBase, kind: z.literal('profile'), sectionsById: z.record(IdSchema,ProfileSectionSchema), sectionOrder: z.array(IdSchema) });
-export const CvDocumentSchema = z.strictObject({ ...entityBase, kind: z.literal('cv'), name: NonBlank, documentTitle: TextFieldSchema.nullable(), documentLocale: DocumentLocale, sectionsById: z.record(IdSchema,CvSectionSchema), sectionOrder: z.array(IdSchema), presentation: PresentationSchema });
+export const CvDocumentSchema = z.strictObject({ ...entityBase, kind: z.literal('cv'), name: NonBlank, documentTitle: TextFieldSchema.nullable(), documentLocale: DocumentLocale, sectionsById: z.record(IdSchema,CvSectionSchema), sectionOrder: z.array(IdSchema), presentation: PresentationSchema, importRecords:z.array(ImportRecordSchema).max(100).optional() });
 export type MasterProfile = z.infer<typeof MasterProfileSchema>;
 export type CvDocument = z.infer<typeof CvDocumentSchema>;
 export type Entity = MasterProfile | CvDocument;

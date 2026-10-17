@@ -80,7 +80,7 @@ export function buildLanguagePlan(input:CvDocument,targetLocale:'es'|'en'):Langu
     if(obj.class==='A'||obj.class==='C')return;
     if(obj.class==='B'){preserve(path,String(obj.value),'literal',true);return;}
     for(const [key,v] of orderedEntries(obj,path)){
-      if(['sensitiveTranslationMemory','presentation','sourceRef','catalog'].includes(key))continue;
+      if(['sensitiveTranslationMemory','presentation','sourceRef','catalog','importRecords'].includes(key))continue;
       if(typeof v==='string'&&['displayName','givenName','familyName','value','number','url','web','contact','location','name','label','original','locality','region','postalCode','countryCode','code','gender','grade','nationalClassification','system','learningMode'].includes(key)&&!(path.length===0&&key==='name'))preserve([...path,key],v,key==='location'?'location':key==='url'||key==='web'||key==='contact'||key==='number'?'contact':key==='code'?'language':'identifier',['displayName','givenName','familyName','value','number','url','web','contact','location','locality','region'].includes(key));
       else if(Array.isArray(v)&&['otherNames','nationalities','lines'].includes(key))v.forEach((s,i)=>{if(typeof s==='string')preserve([...path,key,String(i)],s,'identifier',key==='otherNames');});
       else collect(v,[...path,key]);
@@ -104,7 +104,7 @@ export function buildLanguagePlan(input:CvDocument,targetLocale:'es'|'en'):Langu
         decision:!source.original?'unreviewed':original?'keepOriginal':approved?'reuse':'unreviewed',proposal:approved?.value ?? (source.approvalId?cv.sensitiveTranslationMemory[source.approvalId]?.value:'') ?? '',
         approvalId:approved?.id ?? null,mode:original?'original':approved?(source.displayMode==='original'?'translation':source.displayMode):'translationAndOriginal'});return;
     }
-    for(const [key,v] of orderedEntries(obj,path))if(!['sensitiveTranslationMemory','presentation','sourceRef','catalog'].includes(key))visit(v,[...path,key]);
+    for(const [key,v] of orderedEntries(obj,path))if(!['sensitiveTranslationMemory','presentation','sourceRef','catalog','importRecords'].includes(key))visit(v,[...path,key]);
   }
   visit(cv,[]);return parse(LanguagePlanSchema,{cvId:cv.id,baseRevision:cv.revision,sourceLocale:cv.documentLocale,targetLocale,fields,preserved});
 }
