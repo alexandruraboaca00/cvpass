@@ -43,7 +43,7 @@ test('F5 multiple native languages have no CEFR; listening B1 only and five inde
   for(const proficiency of [listening,{listening:'A1' as const,reading:'A2' as const,spokenInteraction:'B1' as const,spokenProduction:'C1' as const,writing:'C2' as const}]){
     const form=await f.editor.begin(cv.id,cv.revision,{kind:'newEntry',sectionId,entryKind:'foreignLanguage'}),e=entry(form);if(e.kind!=='foreignLanguage')throw new Error('kind');e.fields.language={code:'en',name:'Inglés sintético'};e.fields.proficiency=proficiency;cv=(await f.editor.confirm(form)).cv;
   }
-  await f.editor.close();const reopened=await f.open(),next=await reopened.library.openCv(cv.id);assert.deepEqual(next,cv);const entries=Object.values(next.sectionsById[sectionId]!.entriesById);
+  await f.editor.close();const reopened=await f.open(),next=await reopened.library.openCv(cv.id);assert.deepEqual(next,cv);const s=next.sectionsById[sectionId]!,entries=s.entryOrder!.map(id=>s.entriesById[id]!);
   const natives=entries.filter(e=>e.kind==='nativeLanguage');assert.equal(natives.length,2);for(const e of natives){assert(!('proficiency' in e.fields));assert(!JSON.stringify(e).includes('C2'));}
   const foreign=entries.filter(e=>e.kind==='foreignLanguage');assert.deepEqual(foreign[0]!.fields.proficiency,listening);assert.deepEqual(Object.keys(foreign[1]!.fields.proficiency),['listening','reading','spokenInteraction','spokenProduction','writing']);
 });
@@ -73,7 +73,8 @@ test('F5 UI locale and document locale are independent, including while editing;
   const f=await setup(t),before=structuredClone(f.cv);await f.editor.setUiLocale('en');assert.equal((await f.editor.list()).uiLocale,'en');assert.deepEqual(await f.library.openCv(before.id),before);
   let form=await f.editor.begin(before.id,before.revision,{kind:'language',targetLocale:'en'});form.languagePlan=manualPlan(form.languagePlan!);let cv=(await f.editor.confirm(form)).cv;
   await f.editor.setUiLocale('es');assert.equal((await f.editor.list()).uiLocale,'es');assert.equal((await f.editor.open(cv.id)).cv.documentLocale,'en');
-  form=await f.editor.begin(cv.id,cv.revision,{kind:'personal'});await f.editor.setUiLocale('en');await f.editor.cancel();assert.deepEqual(await f.library.openCv(cv.id),cv);
+  form=await f.editor.begin(cv.id,cv.revision,{kind:'personal'});form.cv.personalInformation.displayName='Borrador sintético durante cambio de interfaz';f.editor.stage(form);await f.editor.setUiLocale('en');
+  assert.equal(((await f.library.recoverableDrafts())[0]!.draft.values as EditorForm).cv.personalInformation.displayName,form.cv.personalInformation.displayName);await f.editor.cancel();assert.deepEqual(await f.library.openCv(cv.id),cv);
   await f.editor.close();const reopened=await f.open(),editor=new CoreEditorService(reopened.library,ctx);assert.equal((await editor.start()).uiLocale,'en');assert.deepEqual((await editor.open(cv.id)).cv,cv);
 });
 test('F5 cancelling language plan leaves the entire CV, locale and history intact and removes recovery',async t=>{
@@ -113,4 +114,10 @@ test('F5 upgrading editor capabilities preserves version 1 for history and porta
 test('F5 sensitive display selection never leaks an unshown original or approval memory into PDF projection',async t=>{
   const f=await setup(t);let {cv,sectionId}=await section(f,f.cv,'certifications'),form=await f.editor.begin(cv.id,cv.revision,{kind:'newEntry',sectionId});title(form,'PRIVATE_SYNTHETIC_ORIGINAL');const e=entry(form);if(e.kind!=='certification'||e.fields.title.class!=='C')throw new Error('kind');const approved=approveSensitive(e.fields.title,'Visible reviewed certificate','en',ctx,'translation');e.fields.title=approved.field;form.cv.sensitiveTranslationMemory[approved.approval.id]=approved.approval;cv=(await f.editor.confirm(form)).cv;
   const projection=JSON.stringify(createExportProjection(cv));assert(projection.includes('Visible reviewed certificate'));assert(!projection.includes('PRIVATE_SYNTHETIC_ORIGINAL'));assert(!projection.includes(approved.approval.id));assert(!projection.includes('sensitiveTranslationMemory'));assert.equal(resolveSensitive(approved.field,cv.sensitiveTranslationMemory).length,1);
+});
+test('F5 review approved inside a parent draft survives subsequent source/context edits as stale without deletion',async t=>{
+  const f=await setup(t),{cv,sectionId}=await section(f,f.cv,'certifications'),form=await f.editor.begin(cv.id,cv.revision,{kind:'newEntry',sectionId});title(form,'Curso sintético');const e=entry(form);if(e.kind!=='certification'||e.fields.title.class!=='C')throw new Error('kind');
+  const reviewed=approveSensitive(e.fields.title,'Reviewed course','en',ctx);e.fields.title=reviewed.field;form.cv.sensitiveTranslationMemory[reviewed.approval.id]=reviewed.approval;f.editor.stage(form);
+  e.fields.title=editSensitiveSource(e.fields.title,'Curso sintético actualizado','es',{fieldKind:'certification',organization:'Nuevo instituto sintético'});const next=(await f.editor.confirm(form)).cv;
+  assert.deepEqual(next.sensitiveTranslationMemory[reviewed.approval.id],reviewed.approval);const saved=next.sectionsById[sectionId]!.entriesById[e.id]!;if(saved.kind!=='certification'||saved.fields.title.class!=='C')throw new Error('kind');assert.equal(sensitiveReviewState(saved.fields.title,next.sensitiveTranslationMemory),'stale');
 });

@@ -2,7 +2,7 @@ import { z } from 'zod';
 import {
   DomainError, PartialDateSchema, assertDataTree, canonical, parse,
   plainText, richText, validateCv,
-  applyLanguagePlan, buildLanguagePlan, validateLanguagePlan, canonical as encode,
+  applyLanguagePlan, buildLanguagePlan, validateLanguagePlan,
 } from '../domain/index.js';
 import type { CvDocument, CvEntry, DomainContext, LanguagePlan, PartialDate, RichNarrative, RichTextDoc, TextField } from '../domain/index.js';
 
@@ -42,7 +42,7 @@ export function periodLabel(period:{start:PartialDate|null;end:PartialDate|null;
   return [dateInput(period.start),period.ongoing ? 'Actualmente' : dateInput(period.end)].filter(Boolean).join(' → ') || 'Periodo no indicado';
 }
 // Text classification and approved terms survive ordinary editing. Changing a source makes
-// an old approval stale by the F2 rules; F4 does not offer a translation/review workflow.
+// an old approval stale by the F2 rules; reviewed variants are kept in private memory.
 export function editText(field:TextField|null,value:string,locale:string,required=false):TextField|null {
   if (value === '' && !required) return null;
   if (field && plainText(field) === value) return field;
@@ -151,9 +151,22 @@ export function assertEditorScope(base:CvDocument,form:EditorForm):void {
   // Existing approvals are immutable. New approvals must concern an editable C field.
   if(target.kind!=='language'){
     const editable=target.kind==='personal'?proposed.personalInformation:target.kind==='entry'?proposed.sectionsById[target.sectionId]!.entriesById[target.entryId]:target.kind==='skills'?proposed.sectionsById[target.sectionId]:target.kind==='section'?proposed.sectionsById[target.sectionId]!.title:null;
-    const fields:unknown[]=[];const collect=(v:unknown):void=>{if(!v||typeof v!=='object')return;const o=v as Record<string,unknown>;if(o.class==='C'){fields.push(o);return;}Object.values(o).forEach(collect);};collect(editable);
+    const fields:{context:{fieldKind:string}}[]=[];const collect=(v:unknown):void=>{if(!v||typeof v!=='object')return;const o=v as Record<string,unknown>;if(o.class==='C'){fields.push(o as unknown as {context:{fieldKind:string}});return;}Object.values(o).forEach(collect);};collect(editable);
+    const previousEditable=target.kind==='personal'?base.personalInformation:target.kind==='entry'?base.sectionsById[target.sectionId]?.entriesById[target.entryId]:target.kind==='skills'?base.sectionsById[target.sectionId]:target.kind==='section'?base.sectionsById[target.sectionId]?.title:null;
+    collect(previousEditable);
+    // A review may become stale within this same parent draft (source/context edit,
+    // or explicit reclassification). Retain it rather than erasing an approval.
+    const kinds=new Set(fields.map(f=>f.context.fieldKind));
+    if(target.kind==='personal')kinds.add('headline');
+    if(target.kind==='skills'){kinds.add('skill');kinds.add('skillGroup');}
+    if(target.kind==='section')kinds.add('sectionTitle');
+    if(target.kind==='entry'){
+      const e=proposed.sectionsById[target.sectionId]!.entriesById[target.entryId]!;
+      const extra:Record<string,string[]>={education:['qualification','fieldOfStudy','thesis','subject'],work:['position','sector','department'],certification:['certification'],project:['project'],custom:['custom']};
+      for(const kind of extra[e.kind]??[])kinds.add(kind);
+    }
     for(const [id,approval] of Object.entries(proposed.sensitiveTranslationMemory))if(!base.sensitiveTranslationMemory[id]){
-      if(!fields.some(f=>{const c=f as {original:unknown;context:unknown};return encode(c.original)===encode(approval.source)&&encode(c.context)===encode(approval.context);}))throw new Error('EDITOR_APPROVAL_SCOPE');
+      if(!kinds.has(approval.context.fieldKind)||!['es','en'].includes(approval.locale))throw new Error('EDITOR_APPROVAL_SCOPE');
       allowed.sensitiveTranslationMemory[id]=approval;
     }
   }
@@ -199,6 +212,6 @@ export function candidateFromForm(base:CvDocument,form:EditorForm,ctx:DomainCont
 export function validationMessage(message:string):string {
   if (message.includes('period.inverted')) return 'La fecha final es anterior al inicio.';
   if (message.includes('period.ongoingWithEnd')) return 'Actualmente requiere fecha final vacía. Retira la fecha final o desmarca Actualmente.';
-  if (message.includes('span.invalid')) return 'El cambio afecta a un fragmento protegido. Conserva ese fragmento o cancela; su revisión se añadirá en una fase posterior.';
+  if (message.includes('span.invalid')) return 'El cambio afecta a un fragmento protegido. Revisa sus posiciones, retira su protección o cancela.';
   return 'Valor inválido. Revisa el campo: los datos obligatorios no pueden quedar vacíos y los enlaces deben ser válidos.';
 }

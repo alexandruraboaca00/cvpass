@@ -36,7 +36,9 @@ export class CoreEditorService {
     return {cvs:await this.library.listCvs(),profileName:content.workspace.profile?.personalInformation.displayName ?? null,uiLocale:content.workspace.settings.uiLocale,
       recovery:(await this.library.recoverableDrafts()).map(({draft,conflict}) => ({id:draft.id,cvId:draft.entityId,name:content.workspace.cvsById[draft.entityId]?.name ?? 'Perfil',conflict}))};
   }
-  async setUiLocale(locale:'es'|'en'):Promise<EditorLibraryView> {await this.library.setUiLocale(locale);return this.list();}
+  async setUiLocale(locale:'es'|'en'):Promise<EditorLibraryView> {
+    await this.active?.autosaver.flush();await this.library.setUiLocale(locale);return this.list();
+  }
   async duplicate(cvId:string,revision:number,name:string):Promise<EditorDocumentView> {
     this.idle();const copy=await this.library.duplicateCv(cvId,name,revision);return this.open(copy.id);
   }
@@ -68,7 +70,7 @@ export class CoreEditorService {
     return {mediaType:asset.mediaType,bytes:new Uint8Array(bytes),dimensions:asset.dimensions!,crop:placement.crop};
   }
   private prepareTemplate(cv:CvDocument):Resources {
-    if(cv.presentation.templateRef.id==='cvforge-core'&&cv.presentation.templateRef.version===1){cv.presentation.templateRef={id:editorTemplate.id,version:editorTemplate.version};return {templates:[editorTemplate]};}
+    if(cv.presentation.templateRef.id==='cvforge-core'&&cv.presentation.templateRef.version===1&&Object.values(cv.sectionsById).some(s=>!['education','work'].includes(s.kind))){cv.presentation.templateRef={id:editorTemplate.id,version:editorTemplate.version};return {templates:[editorTemplate]};}
     return {};
   }
   async addSection(cvId:string,expectedRevision:number,kind:Exclude<SectionKind,'custom'>):Promise<EditorDocumentView> {

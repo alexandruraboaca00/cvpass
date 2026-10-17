@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { A, B, addSkill, applyLanguagePlan, buildLanguagePlan, classifyText, createCvFromProfile, createSection,
   editSensitiveSource, moveSkill, plainText, removeSkillGroup, reorderSkillGroups, reorderSkills, resolveSensitive,
   richText, sensitiveReviewState, validateCv, validateLanguagePlan } from '../src/domain/index.js';
+import { protectNarrativeTerms, sensitiveFromVisible } from '../src/domain/index.js';
 import type { CvDocument, CvEntry, DomainContext, LanguagePlan, SensitivePlanItem } from '../src/domain/index.js';
 import { proposeLanguagePlan } from '../src/application/translation-provider.js';
 import { completeProjectFixture, profileFixture, template } from './fixtures.js';
@@ -70,6 +71,12 @@ test('F5 changing an original flags its retained approval stale; new review appr
   const next=applyLanguagePlan(cv,plan,ctx);assert.deepEqual(next.sensitiveTranslationMemory[oldApproval],cv.sensitiveTranslationMemory[oldApproval]);
   assert.equal(Object.keys(next.sensitiveTranslationMemory).length,Object.keys(cv.sensitiveTranslationMemory).length+1);
 });
+test('F5 displaying only the original retains a valid approval association and detects a later source edit',()=>{
+  const {cv,ctx}=full(),plan=manualPlan(buildLanguagePlan(cv,'en')),item=sensitive(plan);item.decision='keepOriginal';item.mode='original';
+  const next=applyLanguagePlan(cv,plan,ctx),entry=next.sectionsById[item.path[1]!]!.entriesById[item.path[3]!]!;if(entry.kind!=='education')throw new Error('kind');
+  const field=entry.fields.title;assert.equal(field.displayMode,'original');assert.equal(sensitiveReviewState(field,next.sensitiveTranslationMemory),'approved');assert.equal(resolveSensitive(field,next.sensitiveTranslationMemory).length,1);
+  const changed=editSensitiveSource(field,'Nuevo título sintético','es');assert.equal(sensitiveReviewState(changed,next.sensitiveTranslationMemory),'stale');assert.deepEqual(next.sensitiveTranslationMemory,cv.sensitiveTranslationMemory);
+});
 test('F5 unreviewed/missing translations block apply; plan tampering and protected edits fail explicitly',()=>{
   const {cv,ctx}=full(),plan=buildLanguagePlan(cv,'en');assert.throws(()=>applyLanguagePlan(cv,plan,ctx));
   const reviewed=manualPlan(plan),c=sensitive(reviewed);c.source.original!.value='Tampered original';assert.throws(()=>applyLanguagePlan(cv,reviewed,ctx));
@@ -89,6 +96,7 @@ test('F5 provider receives only permitted fragments; proposals require review an
   const proposed=await proposeLanguagePlan(cv,plan,{id:'synthetic-only',offline:true,async propose(requests){calls++;const json=JSON.stringify(requests);assert(!json.includes('Instituto Sintético'));assert(!json.includes('Compañía Sintética'));assert(!json.includes('TypeScript'));assert(!json.includes(cv.id));return requests.map(r=>({id:r.id,text:'Synthetic proposal'}));}});
   assert.equal(calls,1);assert(proposed.fields.some(f=>f.class==='A'&&!f.reviewed));assert.deepEqual(cv,before);
   await assert.rejects(proposeLanguagePlan(cv,plan,{id:'bad',offline:true,async propose(){return [];}}),/TRANSLATION_RESPONSE_INVALID/);
+  await assert.rejects(proposeLanguagePlan(cv,plan,{id:'failed',offline:true,async propose(){throw new Error('SYNTHETIC_PRIVATE_PROVIDER_CONTENT');}}),error=>error instanceof Error&&error.message==='TRANSLATION_FAILED');
   const controller=new AbortController();controller.abort();await assert.rejects(proposeLanguagePlan(cv,plan,{id:'never',offline:true,async propose(){throw new Error('must not call');}},controller.signal),/TRANSLATION_CANCELLED/);
 });
 test('F5 narrative holds only active text and locale; manual translation needs no provider',()=>{
@@ -97,8 +105,29 @@ test('F5 narrative holds only active text and locale; manual translation needs n
   if(project.kind!=='project')throw new Error('fixture');assert.equal(project.fields.title.class,'A');assert.equal(plainText(project.fields.title),'Reviewed English text');
   assert(!JSON.stringify(next).includes('translationsByLocale'));assert.equal(project.fields.title.class==='A'&&project.fields.title.current.locale,'en');
 });
+test('F5 language codes and substrings of a name do not protect unrelated narrative words',()=>{
+  const {cv}=full();cv.personalInformation.givenName='Ana';cv.personalInformation.about={class:'A',current:{value:{kind:'doc',content:[{kind:'paragraph',content:[{kind:'text',text:'Este documento es para analizar con Ana.',marks:[]}]}]},locale:'es'},revision:1,protectedSpans:[]};
+  const item=buildLanguagePlan(cv,'en').fields.find(f=>f.path.join('.')==='personalInformation.about')!;if(item.class!=='A')throw new Error('kind');
+  assert.deepEqual(item.segments.filter(s=>s.protected).map(s=>s.source),['Ana']);assert(item.segments.some(s=>!s.protected&&s.source.includes('es para analizar')));
+});
+test('F5 review plan follows manual entry order rather than map insertion or ID order',()=>{
+  const {cv,ctx}=fixture(),section=Object.values(cv.sectionsById).find(s=>s.kind==='projects')!,first=section.entryOrder![0]!,copy=structuredClone(section.entriesById[first]!);copy.id=ctx.newId();if(copy.kind!=='project')throw new Error('kind');copy.fields.title=A('Segundo proyecto');section.entriesById[copy.id]=copy;section.entryOrder=[copy.id,first];
+  const titles=buildLanguagePlan(cv,'en').fields.filter(f=>f.path[1]===section.id&&f.path.at(-1)==='title');assert.deepEqual(titles.map(f=>f.path[3]),[copy.id,first]);
+});
+test('F5 explicit protected terms survive translation and reject overlaps/missing terms; reviewing positions is explicit',()=>{
+  const {cv,ctx}=fixture();cv.personalInformation.headline=protectNarrativeTerms(A('Trabajo con OpenSynth'),['OpenSynth'],ctx);
+  const previous=structuredClone(cv.personalInformation.headline);assert.throws(()=>protectNarrativeTerms(previous,['Missing'],ctx));assert.throws(()=>protectNarrativeTerms(previous,['OpenSynth','Synth'],ctx));
+  cv.personalInformation.headline={...previous,current:{value:'Ahora trabajo con OpenSynth',locale:'es'}};assert.throws(()=>validateCv(cv));
+  cv.personalInformation.headline=protectNarrativeTerms(cv.personalInformation.headline,['OpenSynth'],ctx);validateCv(cv);
+  const plan=manualPlan(buildLanguagePlan(cv,'en')),next=applyLanguagePlan(cv,plan,ctx);assert(plainText(next.personalInformation.headline!).includes('OpenSynth'));assert.equal(next.personalInformation.headline!.class,'A');
+});
+test('F5 deliberately kept narrative retains its real source language rather than claiming it was translated',()=>{
+  const {cv,ctx}=fixture(),plan=manualPlan(buildLanguagePlan(cv,'en'));const item=plan.fields.find(f=>f.class==='A'&&f.path.at(-1)==='title')!;if(item.class!=='A')throw new Error('kind');item.decision='keepOriginal';
+  const next=applyLanguagePlan(cv,plan,ctx);const section=next.sectionsById[item.path[1]!]!,e=section.entriesById[item.path[3]!]!;if(e.kind!=='project'||e.fields.title.class!=='A')throw new Error('kind');assert.deepEqual(e.fields.title,item.source);assert.equal(e.fields.title.current.locale,'es');assert.equal(next.documentLocale,'en');
+});
 test('F5 user controls A/B/C classification without changing the literal and unknown original is never invented',()=>{
   const {ctx}=fixture(),c=classifyText(A('Curso Superior Sintético'),'C','es',ctx,'certification');assert.equal(c.class,'C');assert.equal(plainText(c),'Curso Superior Sintético');
   const b=classifyText(A('AWS Certified Synthetic'),'B','es',ctx,'certification');assert.equal(b.class,'B');
   assert.equal(classifyText(b,'A','es',ctx,'certification').class,'A');
+  const unknown=sensitiveFromVisible([{role:'translation',value:'Synthetic visible translation','locale':'en'}],{fieldKind:'certification'},ctx);assert.throws(()=>classifyText(unknown,'A','en',ctx,'certification'));assert.equal(unknown.original,null);
 });
