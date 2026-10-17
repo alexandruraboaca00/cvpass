@@ -19,7 +19,10 @@
     "validate:f3:electron": "npm run build && node scripts/f3-electron-check.mjs",
     "test:f5": "npm run build && node --test dist/tests/f5-*.test.js",
     "test:f5:ui": "playwright test --config playwright.config.ts f5.spec.ts",
-    "validate:f5:offline": "node scripts/f5-offline-check.mjs"
+    "validate:f5:offline": "node scripts/f5-offline-check.mjs",
+    "test:f6": "npm run build && node --test dist/tests/f6-*.test.js",
+    "test:f6:ui": "playwright test --config playwright.config.ts f6.spec.ts",
+    "validate:f6:offline": "node scripts/f6-offline-check.mjs"
   },
   "dependencies": {
     "@tiptap/core": "3.32.0",
