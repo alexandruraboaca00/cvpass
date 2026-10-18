@@ -2,6 +2,9 @@ import { renderFail } from './render-contract.js';
 import type { Digest, DomainContext, PdfDestination, PdfGeneration, PdfRenderPort, RenderSource } from './render-contract.js';
 import type { RenderSnapshotFactory } from './render-snapshot.js';
 import { visiblePdfName } from './pdf-title.js';
+function linkKey(value:string):string|null {
+  try{const url=new URL(value);return ['http:','https:','mailto:','tel:'].includes(url.protocol)?url.href:null;}catch{return null;}
+}
 
 // Generation tokens are assigned before any await. Aborted or stale completions never publish.
 export class PdfPreviewService {
@@ -12,7 +15,7 @@ export class PdfPreviewService {
   private links=new Set<string>();
   constructor(private readonly snapshots:Pick<RenderSnapshotFactory,'capture'>,private readonly source:RenderSource,private readonly renderer:PdfRenderPort,private readonly destination:PdfDestination,private readonly digest:Digest,private readonly ctx:DomainContext){}
   invalidate():void {this.token++;this.controller?.abort();this.ready=undefined;this.links.clear();}
-  canOpenLink(url:string):boolean{return this.links.has(url)&&/^(https?:|mailto:|tel:)/i.test(url);}
+  canOpenLink(url:string):boolean{const key=linkKey(url);return key!==null&&this.links.has(key);}
   async generate(cvId:string,revision:number):Promise<PdfGeneration>{
     this.invalidate();const token=this.token,controller=new AbortController();this.controller=controller;
     const started=performance.now(),snapshot=await this.snapshots.capture(cvId,revision,controller.signal);
@@ -23,7 +26,7 @@ export class PdfPreviewService {
     const bytes=new Uint8Array(artifact.bytes);
     this.ready={id:this.ctx.newId(),cvId,revision,fingerprint:snapshot.fingerprint,sha256:this.digest(bytes),bytes,metrics:{snapshotToPdfMs:performance.now()-started,pdfBytes:bytes.length,pageCount:artifact.pageCount}};
     this.links.clear();
-    const visit=(value:unknown):void=>{if(typeof value==='string'){if(/^(https?:|mailto:|tel:)/i.test(value))this.links.add(value);else if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))this.links.add('mailto:'+value);}else if(value&&typeof value==='object')Object.values(value).forEach(visit);};visit(snapshot.projection);
+    const visit=(value:unknown):void=>{if(typeof value==='string'){const key=linkKey(value)??(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)?linkKey('mailto:'+value):null);if(key)this.links.add(key);}else if(value&&typeof value==='object')Object.values(value).forEach(visit);};visit(snapshot.projection);
     this.fileName=visiblePdfName(snapshot.projection);return structuredClone(this.ready);
   }
   async export(id:string,digest:string):Promise<{cancelled:boolean;sha256?:string;byteLength?:number;revision?:number}>{

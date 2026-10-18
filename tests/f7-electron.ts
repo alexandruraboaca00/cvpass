@@ -44,7 +44,7 @@ async function main(){try {
  for(const {name,cv:input} of cases){
    const before=canonical(input),projection=createExportProjection(input,()=>image),start=performance.now();
    const snapshot:RenderSnapshot={id:randomUUID(),cvId:input.id,revision:input.revision,capturedAt:fixture.ctx.now(),fingerprint:'synthetic',projectionDigest:sha256(new TextEncoder().encode(canonical(projection))),rendererVersion:'simple-1',engineVersion:process.versions.chrome!,resourceVersion:catalog.resourceVersion,projection,fonts:catalog.fonts};
-   const artifact=await renderer.render(snapshot,new AbortController().signal);assert.equal(canonical(input),before);if(name==='small')assert.equal(artifact.pageCount,1);
+   const artifact=await renderer.render(snapshot,new AbortController().signal);assert.equal(canonical(input),before);if(name==='small')assert.equal(artifact.pageCount,1);if(name==='large')assert.equal(artifact.pageCount,5,'Trailing dates must not chain independent sections onto an unnecessary sixth page');
    await writeFile(join(output,name+'.pdf'),artifact.bytes);await writeFile(join(output,name+'-projection.json'),JSON.stringify(projection));
    results.push({name,snapshotToPdfMs:performance.now()-start,pdfBytes:artifact.bytes.length,pageCount:artifact.pageCount,sha256:sha256(artifact.bytes)});
  }

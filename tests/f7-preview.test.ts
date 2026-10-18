@@ -38,8 +38,10 @@ test('F7 export captures exact preview bytes before destination dialog, even if 
  const first=await f.preview.generate(f.cvId,f.cv.revision),saved=structuredClone(first.bytes),exported=f.preview.export(first.id,first.sha256);while(!choose)await new Promise(r=>setTimeout(r,1));first.bytes.fill(0);
  const second=await f.preview.generate(f.cvId,f.cv.revision);assert.notEqual(second.sha256,sha256(saved));choose('/synthetic/dialog-destination.pdf');const receipt=await exported;assert.deepEqual(written,saved);assert.equal(receipt.sha256,sha256(saved));
 });
-test('F7 export rejects stale/tampered generation and checks destination digest',async t=>{
- const f=await setup(t,{render:async()=>artifact(1)},{choose:async()=>'/synthetic/path.pdf',write:async()=>({sha256:'0'.repeat(64),byteLength:5})});const ready=await f.preview.generate(f.cvId,f.cv.revision);
+test('F7 export rejects stale/tampered generation, checks destination digest and permits only equivalent visible hyperlink destinations',async t=>{
+ const f=await setup(t,{render:async()=>artifact(1)},{choose:async()=>'/synthetic/path.pdf',write:async()=>({sha256:'0'.repeat(64),byteLength:5})}),cv=structuredClone(f.cv),work=Object.values(cv.sectionsById).flatMap(s=>Object.values(s.entriesById)).find(e=>e.kind==='work')!;
+ if(work.kind!=='work')throw Error();work.fields.web='https://EXAMPLE.test:443';const next=await f.library.confirmEntity(cv,cv.revision),ready=await f.preview.generate(f.cvId,next.revision);
+ assert(f.preview.canOpenLink('https://example.test/'));assert(f.preview.canOpenLink('mailto:synthetic@example.org'));assert(!f.preview.canOpenLink('https://example.test/unseen'));assert(!f.preview.canOpenLink('file:///tmp'));assert(!f.preview.canOpenLink('javascript:alert(1)'));assert(!f.preview.canOpenLink('example.test'));
  await assert.rejects(f.preview.export(ready.id,'f'.repeat(64)),/RENDER_OBSOLETE/);await assert.rejects(f.preview.export(ready.id,ready.sha256),/RENDER_EXPORT_INTEGRITY/);f.preview.invalidate();await assert.rejects(f.preview.export(ready.id,ready.sha256),/RENDER_OBSOLETE/);
 });
 test('F7 Simple renders semantic rich text, escaped content, partial dates and only approved visible variants',async t=>{
