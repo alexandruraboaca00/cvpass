@@ -22,7 +22,15 @@
     "validate:f5:offline": "node scripts/f5-offline-check.mjs",
     "test:f6": "npm run build && node --test dist/tests/f6-*.test.js",
     "test:f6:ui": "playwright test --config playwright.config.ts f6.spec.ts",
-    "validate:f6:offline": "node scripts/f6-offline-check.mjs"
+    "validate:f6:offline": "node scripts/f6-offline-check.mjs",
+    "test:f7": "npm run build && node --test dist/tests/f7-*.test.js",
+    "test:f7:ui": "playwright test --config playwright.config.ts f7.spec.ts",
+    "validate:f7:render": "node scripts/f7-render-check.mjs",
+    "package:linux": "npm run build && electron-builder --linux --dir --config electron-builder.yml",
+    "validate:f7:offline": "node scripts/f7-offline-check.mjs",
+    "validate:f7:pdf": "node scripts/f7-render-check.mjs && node scripts/f7-inspect-pdfs.mjs",
+    "validate:f7:package": "node scripts/f7-package-check.mjs",
+    "validate:f7:reader": "node scripts/f7-external-reader.mjs"
   },
   "dependencies": {
     "@tiptap/core": "3.32.0",
@@ -47,11 +55,14 @@
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "electron": "44.7.2",
+    "electron-builder": "26.15.3",
     "typescript": "7.0.2",
     "vite": "8.3.4"
   },
   "allowScripts": {
     "electron@44.7.2": true,
     "better-sqlite3@13.0.3": true
-  }
+  },
+  "description": "CVForge — local CV editor",
+  "author": "CVForge contributors"
 }
