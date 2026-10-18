@@ -2,10 +2,16 @@ import type { EditorLibraryView, EditorDocumentView, PhotoView } from './editor.
 import type { EditorForm, EditorIssue, EditorTarget } from './editor-model.js';
 import type { SectionKind } from '../domain/index.js';
 import type { ImportView, ImportReviewInput } from './structured-import.js';
+import type { PdfGeneration, PresentationInput } from './render-contract.js';
 export type BeginEditorTarget=EditorTarget|{kind:'newEntry';sectionId:string;entryKind?:'nativeLanguage'|'foreignLanguage'}|{kind:'newCustomSection'};
 export interface EditorFailure {code:string;issues:EditorIssue[]}
 export type EditorResult<T> = {ok:true;value:T}|{ok:false;error:EditorFailure};
 export interface EditorApi {
+  pdfGenerate(cvId:string,revision:number):Promise<EditorResult<PdfGeneration>>;
+  pdfCancel():Promise<EditorResult<void>>;
+  pdfOpenLink(url:string):Promise<EditorResult<void>>;
+  pdfExport(id:string,digest:string):Promise<EditorResult<{cancelled:boolean;sha256?:string;byteLength?:number;revision?:number}>>;
+  presentation(cvId:string,revision:number,input:PresentationInput):Promise<EditorResult<EditorDocumentView>>;
   importFile(id:string,bytes:Uint8Array,fileName:string):Promise<EditorResult<ImportView>>;
   importChoose(id:string,key:string):Promise<EditorResult<ImportView>>;
   importCancel(id:string):Promise<EditorResult<void>>;

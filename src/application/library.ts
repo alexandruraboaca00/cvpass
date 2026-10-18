@@ -41,11 +41,11 @@ export class LibraryService {
     const profile = createProfile(personal,this.ctx); s.workspace.profile = profile; addResources(s,resources);
     await this.persist(r); return profile;
   }
-  async createCv(options: {name:string;documentLocale:'es'|'en';template:TemplateDefinition;sectionIds:string[]}, expectedProfileRevision: number): Promise<CvDocument> {
+  async createCv(options: {name:string;documentLocale:'es'|'en';template:TemplateDefinition;sectionIds:string[]}, expectedProfileRevision: number, resources:Resources = {}): Promise<CvDocument> {
     const r = await this.loaded(), s = r.content, profile = s.workspace.profile ?? reject('PROFILE_NOT_FOUND');
     if (profile.revision !== expectedProfileRevision) reject('REVISION_CONFLICT');
     const cv = createCvFromProfile(profile,options,this.ctx);
-    s.workspace.cvsById[cv.id] = cv; s.workspace.cvOrder.push(cv.id); addResources(s,{templates:[options.template]});
+    s.workspace.cvsById[cv.id] = cv; s.workspace.cvOrder.push(cv.id); addResources(s,resources);addResources(s,{templates:[options.template]});
     await this.persist(r); return cv;
   }
   private async persist(record: LibraryRecord): Promise<void> {

@@ -8,6 +8,7 @@ import { reject } from './contracts.js';
 import type { LibraryService, CvSummary } from './library.js';
 import { assertEditorScope, candidateFromForm, EditorTargetSchema, makeForm, newMvpEntry } from './editor-model.js';
 import type { EditorForm, EditorTarget } from './editor-model.js';
+import type { BuiltinResources } from './render-contract.js';
 
 // This is an editable document reference, not a final PDF template (F7).
 const editorTemplate:TemplateDefinition = {id:'cvforge-core',version:2,rendererContractVersion:1,layout:'singleColumn',capabilities:[...SectionKindSchema.options],resourceRefs:[]};
@@ -22,7 +23,7 @@ export interface PhotoView {mediaType:string;bytes:Uint8Array;dimensions:{width:
 interface ActiveForm { form:EditorForm; draft:FormDraft; autosaver:DraftAutosaver; resources:Resources }
 export class CoreEditorService {
   private active:ActiveForm|null = null;
-  constructor(private readonly library:LibraryService,private readonly ctx:DomainContext) {}
+  constructor(private readonly library:LibraryService,private readonly ctx:DomainContext,private readonly initialTemplate?:()=>Promise<BuiltinResources>) {}
   async start():Promise<EditorLibraryView> {
     try { await this.library.snapshot(); } catch (error) {
       if ((error as {code?:string}).code !== 'LIBRARY_NOT_INITIALIZED') throw error;
@@ -51,9 +52,10 @@ export class CoreEditorService {
   }
   async create(name:string,displayName:string):Promise<EditorDocumentView> {
     this.idle(); parse(NonBlank,name); const {content} = await this.library.snapshot();
+    const catalog=await this.initialTemplate?.();
     if (!content.workspace.profile) await this.library.createProfile(emptyPersonal(parse(NonBlank,displayName)));
     const profile = (await this.library.snapshot()).content.workspace.profile!;
-    const cv = await this.library.createCv({name,documentLocale:'es',template:editorTemplate,sectionIds:[]},profile.revision);
+    const cv = await this.library.createCv({name,documentLocale:'es',template:catalog?.template??editorTemplate,sectionIds:[]},profile.revision,catalog?.resources);
     return this.open(cv.id);
   }
   async open(id:string):Promise<EditorDocumentView> {
