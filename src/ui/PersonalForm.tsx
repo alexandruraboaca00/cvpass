@@ -34,7 +34,7 @@ export function PersonalForm({form,change,issues,photo,selectPhoto}:{form:Editor
         <button type="button" onClick={()=>change(f=>{f.cv.personalInformation.addresses.splice(index,1);f.cv.presentation.personalFieldVisibility.addresses=f.cv.presentation.personalFieldVisibility.addresses.filter(id=>id!==address.id);})}>{t("Retirar dirección {n}",{n:index+1})}</button></div>)}
       <button type="button" onClick={()=>change(f=>{const address=newAddress();f.cv.personalInformation.addresses.push(address);f.cv.presentation.personalFieldVisibility.addresses.push(address.id);})}>{t("Añadir dirección")}</button>
     </fieldset>
-    <fieldset><legend>{t("Foto")}</legend><Photo photo={photo}/>
+    <fieldset className="photo-fields"><legend>{t("Foto")}</legend><Photo photo={photo}/>
       <label className="field">{t("Seleccionar o sustituir imagen (PNG o JPEG, hasta 10 MiB)")}<input type="file" accept="image/png,image/jpeg" onChange={event=>{const file=event.target.files?.[0];if(file) selectPhoto(file);event.target.value='';}}/></label>
       {p.photo && <><Check label={t("Incluir foto en el CV")} checked={p.photo.visible} onChange={v=>change(f=>{f.cv.personalInformation.photo!.visible=v;})}/><button type="button" onClick={()=>change(f=>{f.cv.personalInformation.photo=null;})}>{t("Retirar foto del CV")}</button></>}
       <small>{t("La imagen se guarda con el proyecto. Cancelar conserva la foto anterior.")}</small>
