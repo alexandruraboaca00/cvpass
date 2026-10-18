@@ -135,6 +135,12 @@ Los scripts Electron/namespace requieren permisos de ejecución de escritorio y
 creación de namespaces del entorno. Los artefactos de referencia deben haberse
 generado previamente con `validate:f7:render`, en los directorios indicados.
 
+## Continuación de la revisión
+
+La revisión completa posterior de pantallas, controles y cuatro tamaños se documenta
+en [LAYOUT_REVIEW.md](LAYOUT_REVIEW.md). Incluye Presentación Simple, confirmaciones,
+estados de error/disabled y campos opcionales, sin iniciar F8.
+
 ## Límites
 
 No hay tema oscuro, auditoría completa de accesibilidad, aceptación en otras

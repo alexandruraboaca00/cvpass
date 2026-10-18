@@ -6,7 +6,7 @@ CVForge es una aplicación local para crear y gestionar CV, generar PDF profesio
 
 Fase actual: **F7 — plantilla Simple y preview PDF.js, aprobada por el usuario e integrada en `main` mediante merge commit desde `f7-simple-template-preview`**, con base `7230814`. F1–F7 permanecen aprobadas e integradas. F1 cerrada salvo regresión directa. La preview y la exportación usan los mismos bytes PDF finales desde RenderSnapshot congelado; una columna, recursos locales y contenido visible. No Lateral, dos columnas, OCR, PDF genérico, motor automático definitivo ni F8. Datos privados nunca en fixtures/Git. F8 no iniciada; no comenzarla sin nueva autorización del usuario.
 
-Trabajo actual: **pulido visual independiente `ui-visibility-polish`**, desde main `8ff5e69`, sin fusionar hasta aprobación. Solo UI/CSS y validación: tema claro, contraste, modales y visor. No modifica el PDF Simple ni los contratos de F1–F7. [Alcance y validación](docs/ui/VISIBILITY_POLISH.md). F8 no iniciada.
+Trabajo actual: **pulido visual independiente `ui-visibility-polish`**, desde main `8ff5e69`, sin fusionar hasta aprobación. Solo UI/CSS y validación: tema claro, contraste, modales y visor. No modifica el PDF Simple ni los contratos de F1–F7. [Alcance y validación](docs/ui/VISIBILITY_POLISH.md), [revisión completa de layout](docs/ui/LAYOUT_REVIEW.md). F8 no iniciada.
 
 ## Especificación vigente
 
