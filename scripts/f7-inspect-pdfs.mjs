@@ -38,6 +38,8 @@ for(const {name,pageCount} of metrics.results){
   const expected=JSON.parse(await readFile(join(output,name+'-projection.json'),'utf8'));assert.deepEqual(payload.projection,expected);assert(!JSON.stringify(payload).includes('PRIVATE_'));
   const lib=await PDFDocument.load(bytes);assert.equal(lib.getTitle(),'Persona sintética Ștefan');assert.equal(lib.getCreator(),'CVForge');
   const info=execFileSync('pdfinfo',[join(output,name+'.pdf')],{encoding:'utf8'});assert(/Tagged:\s+yes/.test(info));assert(/JavaScript:\s+no/.test(info));
+  const fonts=execFileSync('pdffonts',[join(output,name+'.pdf')],{encoding:'utf8'}).trim().split('\n').slice(2);assert(fonts.length>0);assert(fonts.every(line=>/^[A-Z]+\+LiberationSans(?:-Bold|-Italic|-BoldItalic)?\s/.test(line)),'Unpinned host font in PDF');
+  for(const link of links)assert(link.rect[0]>=50&&link.rect[2]<=546,'Link outside margins');
   // Independent Poppler extraction must also preserve the complete 48-paragraph content.
   const poppler=execFileSync('pdftotext',['-layout',join(output,name+'.pdf'),'-'],{encoding:'utf8'});if(name==='large')for(let i=1;i<=48;i++)assert(poppler.includes('END_'+String(i).padStart(2,'0')));
   await writeFile(join(output,name+'-text.txt'),all);results.push({name,pages:pdf.numPages,selectable:true,tagged:true,links:links.length,bounds,payloadMatches:true,photoOnlyCroppedPixels:true});

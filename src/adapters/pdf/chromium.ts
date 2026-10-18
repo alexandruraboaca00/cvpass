@@ -44,7 +44,7 @@ export class ChromiumPdfRenderer implements PdfRenderPort {
       if(layout.overflow)renderFail('RENDER_HORIZONTAL_OVERFLOW');if(layout.fonts!==4)renderFail('RENDER_FONTS_FAILED');
       throwIfAborted(signal);
       const raw=await win.webContents.printToPDF({pageSize:'A4',preferCSSPageSize:true,printBackground:true,generateTaggedPDF:true,generateDocumentOutline:true,
-        displayHeaderFooter:snapshot.projection.presentation.numbering,headerTemplate:'<span></span>',footerTemplate:'<div style="font-size:8px;width:100%;text-align:center;color:#495464"><span class="pageNumber"></span> / <span class="totalPages"></span></div>'});
+        displayHeaderFooter:false});
       throwIfAborted(signal);
       return await finalize(raw,snapshot,signal);
     }catch(error){throwIfAborted(signal);if(error instanceof Error&&'code'in error)throw error;return renderFail('RENDER_CHROMIUM_FAILED');}
