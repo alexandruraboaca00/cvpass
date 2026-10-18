@@ -7,8 +7,8 @@ import { createConnection } from 'node:net';
 import assert from 'node:assert/strict';
 
 if (!process.argv.includes('--isolated')) {
-  // Preserve the invoking UID for desktop D-Bus authentication; keep namespace
-  // capabilities only long enough for the local loopback setup across exec(ip).
+  // Preserve the invoking UID for desktop D-Bus authentication and retain
+  // capabilities across exec(ip), restricted to these disposable namespaces.
   const result=spawnSync('unshare',['--user','--map-current-user','--keep-caps','--net','sh','-c','ip link set lo up && exec "$@"','cvforge-f7-network',process.execPath,fileURLToPath(import.meta.url),'--isolated'],{stdio:'inherit'});
   if(result.error)throw result.error;process.exit(result.status ?? 1);
 }

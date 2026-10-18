@@ -1,6 +1,6 @@
 # Roadmap de implementación
 
-Versión 0.6 · 17 de octubre de 2026 · Decisiones de producto consolidadas e implementación autorizada por fases. **Fase actual: F7 en implementación autorizada en `f7-simple-template-preview`, desde main `7230814`.** F1–F6 permanecen aprobadas e integradas en main; la base previa a F6 es `238dee3`. F7 no iniciada. Véanse [importación F6](f6/IMPORT.md) y [validación F6](f6/VALIDATION.md).
+Versión 0.7 · 18 de octubre de 2026 · Decisiones de producto consolidadas e implementación autorizada por fases. **Fase actual: F7 implementada y validada técnicamente en `f7-simple-template-preview`, desde main `7230814`; pendiente de aprobación del usuario e integración.** F1–F6 permanecen aprobadas e integradas en main; la base previa a F6 es `238dee3`. Véanse [importación F6](f6/IMPORT.md) y [validación F6](f6/VALIDATION.md).
 
 ## Alcance y criterio de avance [D]
 
@@ -94,7 +94,7 @@ Por decisión final del usuario para este cierre, la traducción no forma parte 
 
 ## F6 — Importación estructurada y revisión
 
-**Estado: APROBADA por el usuario e integrada en main mediante merge commit desde `f6-structured-import`.** 25 tests F6 + 114 F2–F5, F1 offline 3/3, TypeScript/build y 13 flujos UI sin red pasan. Ambas muestras privadas recuperan valores del contenido MVP y sobreviven a reapertura, con cinco URLs revisadas expresamente por archivo; se informa recuperación parcial y origen privado para campos/diseño no mapeados. [Implementación](f6/IMPORT.md), [validación y límites](f6/VALIDATION.md). La integración parte de main `238dee3`. F7 no iniciada.
+**Estado: APROBADA por el usuario e integrada en main mediante merge commit desde `f6-structured-import`.** 25 tests F6 + 114 F2–F5, F1 offline 3/3, TypeScript/build y 13 flujos UI sin red pasan. Ambas muestras privadas recuperan valores del contenido MVP y sobreviven a reapertura, con cinco URLs revisadas expresamente por archivo; se informa recuperación parcial y origen privado para campos/diseño no mapeados. [Implementación](f6/IMPORT.md), [validación y límites](f6/VALIDATION.md). La integración parte de main `238dee3`. F7 no estaba iniciada al cerrar F6.
 
 **Depende de:** F5. **Salida:** importador de formatos propios y subconjunto Europass del MVP, con informes y conservación privada del origen.
 
@@ -106,7 +106,7 @@ Por decisión final del usuario para este cierre, la traducción no forma parte 
 
 ## F7 — Primera plantilla original y preview real
 
-**Estado: en implementación; no aprobada todavía.** [Diseño en curso](f7/SIMPLE_TEMPLATE.md). F8 no iniciada.
+**Estado: APROBADA técnicamente en su rama; aprobación del usuario e integración pendientes.** Simple original, snapshot congelado y preview/exportación de los mismos bytes validados. F1 3/3, F2–F7 151/151, 15 flujos UI sin red, 7 casos PDF, TypeScript/build y paquete Linux pasan. La aceptación GTK real pasó como comprobación adicional; su automatización depende del backend y no se presenta como estable. [Implementación](f7/SIMPLE_TEMPLATE.md), [validación y límites](f7/VALIDATION.md). F8 no iniciada.
 
 **Depende de:** F6 y contrato PDF de F1. **Salida:** plantilla Simple de una columna y visor del PDF generado.
 
@@ -229,4 +229,4 @@ Nuevos motores/memorias de traducción, diseños, ajuste de extensión, catálog
 
 ## Decisiones que siguen pendientes [P]
 
-F0 está cerrada por las decisiones finales del usuario. F1 está aprobada con versiones, mediciones y límites en [F1_VALIDATION.md](F1_VALIDATION.md). La traducción queda fuera de sus criterios de cierre por instrucción final del usuario; no se presenta como validada para el producto. F2 está aprobada e integrada en `main` con los límites del contrato inicial en [f2/VALIDATION.md](f2/VALIDATION.md). F3 está aprobada por el usuario e integrada en main [con evidencia propia](f3/VALIDATION.md). F4 está [aprobada por el usuario e integrada en main](f4/VALIDATION.md). F5 está aprobada por el usuario e integrada en main con el alcance manual/contrato autorizado; véase [validación F5](f5/VALIDATION.md). El motor automático definitivo permanece pendiente. F6 está aprobada por el usuario e integrada en main mediante merge commit; véase [validación F6](f6/VALIDATION.md). F7 está en implementación autorizada en su rama; F8 no se ha iniciado.
+F0 está cerrada por las decisiones finales del usuario. F1 está aprobada con versiones, mediciones y límites en [F1_VALIDATION.md](F1_VALIDATION.md). La traducción queda fuera de sus criterios de cierre por instrucción final del usuario; no se presenta como validada para el producto. F2 está aprobada e integrada en `main` con los límites del contrato inicial en [f2/VALIDATION.md](f2/VALIDATION.md). F3 está aprobada por el usuario e integrada en main [con evidencia propia](f3/VALIDATION.md). F4 está [aprobada por el usuario e integrada en main](f4/VALIDATION.md). F5 está aprobada por el usuario e integrada en main con el alcance manual/contrato autorizado; véase [validación F5](f5/VALIDATION.md). El motor automático definitivo permanece pendiente. F6 está aprobada por el usuario e integrada en main mediante merge commit; véase [validación F6](f6/VALIDATION.md). F7 está implementada y validada técnicamente en su rama; aprobación del usuario e integración pendientes. [Validación F7](f7/VALIDATION.md). F8 no se ha iniciado.
