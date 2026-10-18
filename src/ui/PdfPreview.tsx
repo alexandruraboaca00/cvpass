@@ -13,13 +13,13 @@ const api=window.cvforge;
 export function PresentationDialog({cv,onSaved,onCancel}:{cv:CvDocument;onSaved:(v:EditorDocumentView)=>void;onCancel:()=>void}){
   const {t}=useMessages(),[input,setInput]=useState<PresentationInput>(()=>{const {density,accentColor,numbering,datePrecision,showCefrGuide}=cv.presentation;return {density,accentColor,numbering,datePrecision,showCefrGuide,fontFamily:'Liberation Sans'};}),[busy,setBusy]=useState(false),[error,setError]=useState('');
   return <Modal title={t('Presentación Simple')} onCancel={()=>{if(!busy)onCancel();}}><form onSubmit={e=>{e.preventDefault();setBusy(true);setError('');void api.presentation(cv.id,cv.revision,input).then(result=>{if(result.ok)onSaved(result.value);else setError(result.error.code);}).finally(()=>setBusy(false));}}>
-    <p>{t('Simple v1 · Una columna · Liberation Sans local')}</p><fieldset disabled={busy}>
-      <label>{t('Densidad')}<select aria-label={t('Densidad')} value={input.density} onChange={e=>setInput({...input,density:e.target.value as PresentationInput['density']})}><option value="compact">{t('Compacta')}</option><option value="normal">{t('Normal')}</option><option value="spacious">{t('Espaciosa')}</option></select></label>
-      <label>{t('Color de acento')}<input type="color" value={input.accentColor} onChange={e=>setInput({...input,accentColor:e.target.value})}/></label>
-      <label>{t('Precisión máxima de fechas')}<select aria-label={t('Precisión máxima de fechas')} value={input.datePrecision} onChange={e=>setInput({...input,datePrecision:e.target.value as PresentationInput['datePrecision']})}><option value="year">{t('Solo año')}</option><option value="month">{t('Mes y año')}</option><option value="day">{t('Fecha completa si existe')}</option></select></label>
-      <label><input type="checkbox" checked={input.numbering} onChange={e=>setInput({...input,numbering:e.target.checked})}/>{t('Numerar páginas')}</label>
-      <label><input type="checkbox" checked={input.showCefrGuide} onChange={e=>setInput({...input,showCefrGuide:e.target.checked})}/>{t('Mostrar guía CEFR')}</label>
-    </fieldset>{error&&<p role="alert">{t('No se pudo generar o guardar ({code}). El CV confirmado se conserva.',{code:error})}</p>}
+    <p>{t('Simple v1 · Una columna · Liberation Sans local')}</p><fieldset className="presentation-fields" disabled={busy}><div className="grid">
+      <label className="field">{t('Densidad')}<select aria-label={t('Densidad')} value={input.density} onChange={e=>setInput({...input,density:e.target.value as PresentationInput['density']})}><option value="compact">{t('Compacta')}</option><option value="normal">{t('Normal')}</option><option value="spacious">{t('Espaciosa')}</option></select></label>
+      <label className="field color-field">{t('Color de acento')}<input type="color" value={input.accentColor} onChange={e=>setInput({...input,accentColor:e.target.value})}/></label>
+      <label className="field span-full">{t('Precisión máxima de fechas')}<select aria-label={t('Precisión máxima de fechas')} value={input.datePrecision} onChange={e=>setInput({...input,datePrecision:e.target.value as PresentationInput['datePrecision']})}><option value="year">{t('Solo año')}</option><option value="month">{t('Mes y año')}</option><option value="day">{t('Fecha completa si existe')}</option></select></label>
+      </div><div className="presentation-toggles"><label className="check"><input type="checkbox" checked={input.numbering} onChange={e=>setInput({...input,numbering:e.target.checked})}/>{t('Numerar páginas')}</label>
+      <label className="check"><input type="checkbox" checked={input.showCefrGuide} onChange={e=>setInput({...input,showCefrGuide:e.target.checked})}/>{t('Mostrar guía CEFR')}</label>
+    </div></fieldset>{error&&<p role="alert">{t('No se pudo generar o guardar ({code}). El CV confirmado se conserva.',{code:error})}</p>}
     <footer className="form-actions"><button type="button" disabled={busy} onClick={onCancel}>{t('Cancelar')}</button><button type="submit" disabled={busy}>{t('Confirmar')}</button></footer>
   </form></Modal>;
 }
@@ -39,7 +39,7 @@ export function PdfPreview({cv}:{cv:CvDocument}){
     <h2>{t('Vista previa PDF')}</h2><p role="status">{t(({empty:'Sin preview todavía',generating:'Generando PDF…',ready:'Preview lista',stale:'Preview desactualizada',error:'Error de preview'})[state])}</p>
     {error&&<p role="alert">{t('No se pudo generar o guardar ({code}). El CV confirmado se conserva.',{code:error})}</p>}
     {cv.presentation.templateRef.id!=='simple'&&<p>{t('Selecciona Simple en Presentación para generar este CV.')}</p>}
-    <div className="actions"><button onClick={()=>setRetry(v=>v+1)}>{t(state==='error'?'Reintentar preview':'Actualizar preview')}</button><button disabled={!ready||exporting} onClick={()=>{if(!current)return;setExporting(true);setReceipt('');void api.pdfExport(current.id,current.sha256).then(result=>{
+    <div className="actions"><button onClick={()=>setRetry(v=>v+1)}>{t(state==='error'?'Reintentar preview':'Actualizar preview')}</button><button className="primary" disabled={!ready||exporting} onClick={()=>{if(!current)return;setExporting(true);setReceipt('');void api.pdfExport(current.id,current.sha256).then(result=>{
       if(!result.ok){setError(result.error.code);return;}
       if(!result.value.cancelled)setReceipt(result.value.sha256!);
     }).finally(()=>setExporting(false));}}>{t('Exportar PDF')}</button></div>
@@ -48,8 +48,15 @@ export function PdfPreview({cv}:{cv:CvDocument}){
   </section>;
 }
 function PdfPages({generation,onReady,onError}:{generation:PdfGeneration;onReady:()=>void;onError:()=>void}){
-  const {t}=useMessages(),[pdf,setPdf]=useState<PDFDocumentProxy|null>(null),[number,setNumber]=useState(1),[zoom,setZoom]=useState(1),canvas=useRef<HTMLCanvasElement>(null),layer=useRef<HTMLDivElement>(null),annotations=useRef<HTMLDivElement>(null),pageBox=useRef<HTMLDivElement>(null);
+  const {t}=useMessages(),[pdf,setPdf]=useState<PDFDocumentProxy|null>(null),[number,setNumber]=useState(1),[zoom,setZoom]=useState<number|'fit'>('fit'),[availableWidth,setAvailableWidth]=useState(0),scroll=useRef<HTMLDivElement>(null),canvas=useRef<HTMLCanvasElement>(null),layer=useRef<HTMLDivElement>(null),annotations=useRef<HTMLDivElement>(null),pageBox=useRef<HTMLDivElement>(null);
   const callbacks=useRef({onReady,onError});callbacks.current={onReady,onError};
+  // View-only scale; neither the generation nor its immutable export bytes change.
+  useEffect(()=>{
+    const element=scroll.current!;
+    const measure=()=>{const style=getComputedStyle(element);setAvailableWidth(Math.max(0,element.clientWidth-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight)));};
+    const observer=new ResizeObserver(measure);observer.observe(element);measure();
+    return()=>observer.disconnect();
+  },[]);
   useEffect(()=>{
     let active=true;setPdf(null);setNumber(1);
     // PDF.js may transfer its buffer. Keep the generation's immutable export buffer intact.
@@ -62,11 +69,12 @@ function PdfPages({generation,onReady,onError}:{generation:PdfGeneration;onReady
     return()=>{active=false;void task.destroy();};
   },[generation.id]);
   useEffect(()=>{
-    if(!pdf)return;let active=true,render:RenderTask|undefined,text:TextLayer|undefined;
+    if(!pdf||(zoom==='fit'&&availableWidth<=0))return;let active=true,render:RenderTask|undefined,text:TextLayer|undefined;
     void (async()=>{
       const page=await pdf.getPage(number);if(!active)return;
-      const viewport=page.getViewport({scale:zoom}),element=canvas.current!,box=pageBox.current!,textElement=layer.current!,links=annotations.current!;
-      const ratio=window.devicePixelRatio||1;element.width=Math.ceil(viewport.width*ratio);element.height=Math.ceil(viewport.height*ratio);element.style.width=viewport.width+'px';element.style.height=viewport.height+'px';box.style.width=viewport.width+'px';box.style.height=viewport.height+'px';box.style.setProperty('--total-scale-factor',String(zoom));box.style.setProperty('--scale-factor',String(zoom));
+      const scale=zoom==='fit'?availableWidth/page.getViewport({scale:1}).width:zoom;
+      const viewport=page.getViewport({scale}),element=canvas.current!,box=pageBox.current!,textElement=layer.current!,links=annotations.current!;
+      const ratio=window.devicePixelRatio||1;element.width=Math.ceil(viewport.width*ratio);element.height=Math.ceil(viewport.height*ratio);element.style.width=viewport.width+'px';element.style.height=viewport.height+'px';box.style.width=viewport.width+'px';box.style.height=viewport.height+'px';box.style.setProperty('--total-scale-factor',String(scale));box.style.setProperty('--scale-factor',String(scale));
       textElement.replaceChildren();links.replaceChildren();
       render=page.render({canvas:element,viewport,transform:ratio===1?undefined:[ratio,0,0,ratio,0,0]});
       await render.promise;if(!active)return;
@@ -78,7 +86,7 @@ function PdfPages({generation,onReady,onError}:{generation:PdfGeneration;onReady
       callbacks.current.onReady();
     })().catch(error=>{if(active&&(error as Error).name.toLowerCase()!=='renderingcancelledexception')callbacks.current.onError();});
     return()=>{active=false;render?.cancel();text?.cancel();};
-  },[pdf,number,zoom]);
-  return <><div className="actions" aria-label={t('Navegación PDF')}><button disabled={!pdf||number<=1} onClick={()=>setNumber(n=>n-1)}>{t('Página anterior')}</button><span aria-live="polite">{t('Página {n} de {total}',{n:number,total:pdf?.numPages??generation.metrics.pageCount})}</span><button disabled={!pdf||number>=pdf.numPages} onClick={()=>setNumber(n=>n+1)}>{t('Página siguiente')}</button><label>{t('Zoom')}<select aria-label={t('Zoom')} value={zoom} onChange={e=>setZoom(Number(e.target.value))}>{[0.6,0.8,1,1.25,1.5].map(z=><option key={z} value={z}>{Math.round(z*100)}%</option>)}</select></label></div>
-    <div className="pdf-scroll"><div className="pdf-page" ref={pageBox}><canvas ref={canvas} aria-label={t('Página PDF {n}',{n:number})}/><div ref={layer} className="textLayer"/><div ref={annotations} className="pdf-links"/></div></div></>;
+  },[pdf,number,zoom,availableWidth]);
+  return <><div className="pdf-toolbar" aria-label={t('Navegación PDF')}><button disabled={!pdf||number<=1} onClick={()=>setNumber(n=>n-1)}>{t('Página anterior')}</button><span aria-live="polite">{t('Página {n} de {total}',{n:number,total:pdf?.numPages??generation.metrics.pageCount})}</span><button disabled={!pdf||number>=pdf.numPages} onClick={()=>setNumber(n=>n+1)}>{t('Página siguiente')}</button><label>{t('Zoom')}<select aria-label={t('Zoom')} value={zoom} onChange={e=>setZoom(e.target.value==='fit'?'fit':Number(e.target.value))}><option value="fit">{t('Ajustar al ancho')}</option>{[0.6,0.8,1,1.25,1.5].map(z=><option key={z} value={z}>{Math.round(z*100)}%</option>)}</select></label></div>
+    <div className="pdf-scroll" ref={scroll}><div className="pdf-page" ref={pageBox}><canvas ref={canvas} aria-label={t('Página PDF {n}',{n:number})}/><div ref={layer} className="textLayer"/><div ref={annotations} className="pdf-links"/></div></div></>;
 }

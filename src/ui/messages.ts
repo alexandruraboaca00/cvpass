@@ -1,6 +1,7 @@
 // Message IDs are Spanish source strings with named placeholders.
 // Only application messages use this catalog; CV content never passes through it.
 export const english:Record<string,string>={
+  "Ajustar al ancho": "Fit to width",
   "Español": "Español",
   "English": "English",
   "(opcional)": "(optional)",
