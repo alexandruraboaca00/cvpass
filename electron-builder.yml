@@ -1,0 +1,19 @@
+appId: org.cvforge.desktop
+productName: CVForge
+electronVersion: 44.7.2
+electronDist: node_modules/electron/dist
+directories:
+  output: out/f7
+files:
+  - dist/src/**/*
+  - dist/renderer/**/*
+  - resources/fonts/**/*
+  - package.json
+asar: true
+asarUnpack:
+  - '**/*.node'
+npmRebuild: false
+linux:
+  executableName: cvforge
+  category: Office
+  target: dir

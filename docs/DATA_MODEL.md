@@ -1,6 +1,6 @@
 # Modelo de datos de CVForge
 
-Versión 0.6 · 17 de octubre de 2026 · Especificación conceptual y concreciones F2/F3/F5/F6. El dominio MVP y el contrato portable inicial están implementados; correspondencias y límites en [f2/IMPLEMENTATION.md](f2/IMPLEMENTATION.md). La biblioteca, revisiones, activos y borradores son durables en F3; [esquema y límites](f3/PERSISTENCE.md). La importación estructurada F6 se concreta en [f6/IMPORT.md](f6/IMPORT.md); inventario V1 e importadores genéricos siguen siendo especificación.
+Versión 0.7 · 18 de octubre de 2026 · Especificación conceptual y concreciones F2/F3/F5/F6/F7. El dominio MVP y el contrato portable inicial están implementados; correspondencias y límites en [f2/IMPLEMENTATION.md](f2/IMPLEMENTATION.md). La biblioteca, revisiones, activos y borradores son durables en F3; [esquema y límites](f3/PERSISTENCE.md). La importación estructurada F6 se concreta en [f6/IMPORT.md](f6/IMPORT.md); inventario V1 e importadores genéricos siguen siendo especificación.
 
 ## Convenciones y principios [D]
 
@@ -404,3 +404,19 @@ PDF propio recupera solo proyección visible; `importedVisible` permite corregir
 sus variantes sin inventar original o memoria sensible. Europass usa la evidencia
 lingüística recibida, instituciones literales, fechas parciales y CEFR nullable;
 ninguna adaptación realiza traducción automática. [Alcance y validación](f6/IMPORT.md).
+
+
+## Concreción F7 — Composición sin cambiar el modelo portable
+
+RenderSnapshot se implementa como contrato privado de aplicación: CV/revisión,
+fecha, hashes de proyección/composición, versiones de renderer/motor/recursos,
+fuentes y ExportProjection congelada. El payload solo recibe esta última.
+PdfGeneration contiene el artefacto final, hash y métricas de la sesión; el
+registro durable ExportRecord sigue pendiente de la fase del ciclo portable.
+
+Simple v1 declara capacidades para las siete clases de sección y utiliza recursos
+con identidad/hash inmutables (cuatro fuentes y licencia). Se conservan mediante
+los assets/templates existentes de SQLite/cvproj, sin migración nueva. Presentation
+se confirma como revisión normal, sin cambiar datos ni aumentar precisión de fechas.
+Zoom, página actual y apertura del visor no se añaden al contenido exportable.
+[Implementación y validación](f7/SIMPLE_TEMPLATE.md).

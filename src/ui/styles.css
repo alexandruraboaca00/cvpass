@@ -7,3 +7,5 @@ select{font:inherit;width:100%;border:1px solid #99a9ba;border-radius:5px;paddin
 .import-fields{min-width:0}.import-value{white-space:pre-wrap;overflow-wrap:anywhere;max-height:8rem;overflow:auto}
 dialog:has(.import-layout){width:min(78rem,94vw)}
 @media(max-width:760px){.import-layout{grid-template-columns:1fr}.import-layout nav{max-height:16rem}}
+
+.pdf-preview{margin:1rem 0}.pdf-preview .hint{overflow-wrap:anywhere}.pdf-scroll{overflow:auto;max-height:78vh;background:#dfe3e8;padding:14px}.pdf-page{position:relative;margin:auto;background:white;box-shadow:0 2px 9px #0003;--scale-round-x:1px;--scale-round-y:1px}.pdf-page canvas{display:block}.pdf-links{position:absolute;inset:0;pointer-events:none}.pdf-links a{position:absolute;pointer-events:auto;color:transparent;overflow:hidden}.pdf-links a:focus-visible{outline:2px solid #006ba6;background:#0074a622}.pdf-preview select{width:auto}.pdf-preview canvas{max-width:none}

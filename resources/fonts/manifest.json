@@ -1,0 +1,42 @@
+{
+  "family": "Liberation Sans",
+  "version": "2.1.5",
+  "license": "OFL-1.1",
+  "files": [
+    {
+      "file": "LiberationSans-Regular.ttf",
+      "id": "f7000000-0000-4000-8000-000000000001",
+      "sha256": "baccc64becc3eb7d104b7c84d99f5314a0a1f896e2b3ea6c2f22fc08d2003bee",
+      "byteLength": 410820,
+      "style": "Regular"
+    },
+    {
+      "file": "LiberationSans-Bold.ttf",
+      "id": "f7000000-0000-4000-8000-000000000002",
+      "sha256": "769673c4355020b1e28a14c366a152da410ab6b16239fe883ebc35b73624835b",
+      "byteLength": 414568,
+      "style": "Bold"
+    },
+    {
+      "file": "LiberationSans-Italic.ttf",
+      "id": "f7000000-0000-4000-8000-000000000003",
+      "sha256": "8649cf5f2cbe4727549d78b714a3a7ee540718a13557769c4612fea105294c7e",
+      "byteLength": 415920,
+      "style": "Italic"
+    },
+    {
+      "file": "LiberationSans-BoldItalic.ttf",
+      "id": "f7000000-0000-4000-8000-000000000004",
+      "sha256": "4b3d18cbd1b8c068115be4072f43418b194994313f47dbfd3588808903a55d34",
+      "byteLength": 409108,
+      "style": "BoldItalic"
+    },
+    {
+      "file": "OFL.txt",
+      "id": "f7000000-0000-4000-8000-000000000005",
+      "sha256": "93fed46019c38bbe566b479d22148e2e8a1e85ada614accb0211c37b2c61c19b",
+      "byteLength": 4414,
+      "style": "License"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # Arquitectura propuesta
 
-Versión 0.8 · 17 de octubre de 2026 · F1/F2/F3 aprobadas e integradas en main. Editor principal F4 aprobado por el usuario e integrado en main mediante merge commit desde `f4-core-editor`. Véanse [aceptación F2](f2/VALIDATION.md), [validación F3](f3/VALIDATION.md) y [arquitectura/validación F4](f4/EDITOR.md). F5 tiene áreas e idiomas aprobados por el usuario e integrados en main mediante merge commit desde `f5-mvp-sections-languages`; [detalle](f5/IMPLEMENTATION.md). F6 aprobada por el usuario e integrada en main mediante merge commit desde `f6-structured-import`; [pipeline y límites](f6/IMPORT.md).
+Versión 0.9 · 18 de octubre de 2026 · F1/F2/F3 aprobadas e integradas en main. Editor principal F4 aprobado por el usuario e integrado en main mediante merge commit desde `f4-core-editor`. Véanse [aceptación F2](f2/VALIDATION.md), [validación F3](f3/VALIDATION.md) y [arquitectura/validación F4](f4/EDITOR.md). F5 tiene áreas e idiomas aprobados por el usuario e integrados en main mediante merge commit desde `f5-mvp-sections-languages`; [detalle](f5/IMPLEMENTATION.md). F6 aprobada por el usuario e integrada en main mediante merge commit desde `f6-structured-import`; [pipeline y límites](f6/IMPORT.md).
 
 ## Decisión principal [D]
 
@@ -140,7 +140,7 @@ La interfaz ofrece **Exportar → PDF**, sin familias «completo»/«para compar
 
 ### Datos de esa exportación
 
-Se propone **pdf-lib** para adjuntar el `ExportPayload` al PDF ya generado. Su API permite adjuntar archivos; esto no demuestra que conserve todos los elementos producidos por Chromium. F1 comprobará fuentes, enlaces, páginas, etiquetas y lectura antes/después, además de ausencia de datos privados no representados. [API de adjuntos de pdf-lib](https://pdf-lib.js.org/docs/api/classes/pdfdocument#attach).
+Se utiliza **pdf-lib 1.17.1** para adjuntar el `ExportPayload` al PDF ya generado, en un worker F7. F1 validó conservación de páginas/fuentes/enlaces/etiquetas y minimización sobre su corpus. F7 comprueba de nuevo lectura, estructura, imágenes y proyección visible sobre Simple; no se infiere cumplimiento PDF/UA. [API de adjuntos de pdf-lib](https://pdf-lib.js.org/docs/api/classes/pdfdocument#attach).
 
 Si el posprocesado no conserva los requisitos, se evaluará **qpdf** como adaptador alternativo para adjuntos, con el mismo control de resultados y el coste de un binario adicional. [Documentación de adjuntos de qpdf](https://qpdf.readthedocs.io/en/stable/cli.html#embedded-files-attachments). No se cierra esta alternativa sin una prueba propia.
 
@@ -226,7 +226,7 @@ Una memoria sensible no empareja automáticamente títulos ambiguos por texto: i
 | Versionar una plantilla cambia su aspecto histórico. | Mantener versiones disponibles; si falta una, proponer sustitución y comunicar que el PDF original sigue siendo la referencia visual. No prometer bytes idénticos entre motores/versiones. |
 | Los objetivos de rapidez no se cumplen. | Medición sobre equipo/corpus fijados; perfilar y ajustar antes de declarar el MVP, sin recortar contenido silenciosamente. |
 
-La autorización general para implementar está concedida y las decisiones de producto están cerradas. La fase actual es **F6, importación estructurada aprobada por el usuario e integrada en main mediante merge commit desde `f6-structured-import`**. F1/F2/F3/F4/F5/F6 permanecen aprobadas e integradas en main, con sus límites. El motor automático definitivo sigue pendiente y no cambia el alcance manual/offline autorizado de F5. F7 no se ha iniciado ni se autoriza su comienzo mediante este cierre.
+La autorización general para implementar está concedida y las decisiones de producto están cerradas. La fase actual es **F7, Simple y preview PDF.js implementadas y validadas técnicamente en `f7-simple-template-preview`, pendientes de aprobación del usuario e integración**. F1/F2/F3/F4/F5/F6 permanecen aprobadas e integradas en main, con sus límites. El motor automático definitivo sigue pendiente y no cambia el alcance manual/offline autorizado de F5. F8 no se ha iniciado. La validación real de F7 se registra en [f7/VALIDATION.md](f7/VALIDATION.md).
 
 ## Resultado de la puerta F1 — 16 de octubre de 2026
 
@@ -317,3 +317,30 @@ lingüística excluyen los registros privados. [IMPORT.md](f6/IMPORT.md) documen
 seguridad, compatibilidad de lectores, alcance Europass e integridad no autenticada;
 [VALIDATION.md](f6/VALIDATION.md) distingue automatización sintética y aceptación
 local privada. No se implementan plantilla ni preview final F7.
+
+
+## Concreción F7 — Simple y bytes de preview/exportación
+
+RenderSnapshotFactory y PdfPreviewService pertenecen a aplicación y consumen
+puertos; no importan Electron/SQLite. Resuelven la proyección ya confirmada y
+congelan revisión, recursos y configuración. Simple/normalización de imagen/
+Chromium son adaptadores. La UI recibe únicamente generación PDF, bytes/hash y
+métricas; PDF.js verifica el digest de sus datos antes de mostrar la página.
+
+La impresión usa una sesión en memoria con protocolo propio, HTML/CSS escapado,
+fuentes data verificadas y red/scripts denegados. El adjunto visible se añade en
+worker con el codec F6 existente. El diálogo de destino y escritura atómica viven
+en main. Exportar captura los bytes de esa generación antes del diálogo; un render
+posterior no los sustituye. Solo hay una acción PDF normal.
+
+La cola de PDF está separada de escrituras. Tokens/AbortSignal y comprobación de
+revisión impiden publicar resultados obsoletos; fallar no modifica biblioteca ni
+CV. Se conserva un único artefacto vigente en memoria, sin caché durable de PDF.
+Los registros durables de exportación/ciclo completo se reservan a F8; F7 mantiene
+PdfGeneration y recibo de escritura privados en memoria. La configuración de
+presentación sí persiste como revisión F3; zoom/página/panel son estado visual.
+
+La plantilla/renderer Simple v1 fija recursos Liberation Sans 2.1.5/OFL-1.1,
+incluido el pie con contadores CSS. Se rechazan fuentes alteradas y caracteres
+fuera de su cobertura, sin fallback del equipo. No cambia SQLite v2, el modelo
+portable v1 ni los contratos cvproj/payload v1. [Detalles y límites](f7/SIMPLE_TEMPLATE.md).

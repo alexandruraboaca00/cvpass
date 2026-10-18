@@ -16,8 +16,9 @@ export async function desktopHarness() {
   process.once('exit',cleanup);
   const logs:string[]=[],errors:string[]=[],remoteRequests:string[]=[];
   const launch=async()=>{
+    const platform=process.env.CVFORGE_UI_PLATFORM;if(platform&&!['x11','wayland'].includes(platform))throw Error('Unsupported test display platform');
     const executable=createRequire(import.meta.url)('electron') as string;
-    child=spawn(executable,[process.cwd(),'--user-data-dir='+directory,'--remote-debugging-port=0','--no-sandbox','--cvforge-diagnostics'],{detached:true,stdio:['ignore','pipe','pipe']});
+    child=spawn(executable,[process.cwd(),'--user-data-dir='+directory,'--remote-debugging-port=0','--no-sandbox','--cvforge-diagnostics',...platform?['--ozone-platform='+platform]:[]],{detached:true,stdio:['ignore','pipe','pipe']});
     const endpoint=await new Promise<string>((resolve,reject)=>{
       const timer=setTimeout(()=>reject(new Error('Electron CDP startup timed out: '+logs.join(''))),30000);
       child.once('error',reject);child.once('exit',code=>{clearTimeout(timer);reject(new Error('Electron exited before CDP: '+code+' '+logs.join('')));});

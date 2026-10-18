@@ -1,2 +1,3 @@
 # Preserve the upstream font license verbatim, including its whitespace.
 spikes/f1/assets/LIBERATION-LICENSE.txt -whitespace
+resources/fonts/OFL.txt -whitespace

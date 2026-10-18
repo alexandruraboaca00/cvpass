@@ -19,6 +19,7 @@ import { ImportDialog } from './ImportDialog.js';
 import { LanguagePlanForm } from './LanguagePlanForm.js';
 import { useMessages } from './i18n.js';
 import type { Translate } from './i18n.js';
+import { PdfPreview, PresentationDialog } from './PdfPreview.js';
 
 const api=window.cvforge;
 function unwrap<T>(result:EditorResult<T>):T {if(!result.ok)throw result.error;return result.value;}
@@ -43,6 +44,7 @@ export function App(){
   const [library,setLibrary]=useState<EditorLibraryView|null>(null),[document,setDocument]=useState<EditorDocumentView|null>(null),[form,setForm]=useState<EditorForm|null>(null);
   const [photo,setPhoto]=useState<PhotoView|null>(null),[issues,setIssues]=useState<EditorIssue[]>([]),[error,setError]=useState<EditorFailure|null>(null),[notice,setNotice]=useState('');
   const [importing,setImporting]=useState(false);
+  const [previewOpen,setPreviewOpen]=useState(false),[presentationOpen,setPresentationOpen]=useState(false);
   const [busy,setBusy]=useState(false),[collapsed,setCollapsed]=useState<Set<string>>(new Set()),[creating,setCreating]=useState(false),[cvName,setCvName]=useState(''),[personName,setPersonName]=useState('');
   const [duplicating,setDuplicating]=useState(false),[duplicateName,setDuplicateName]=useState(''),[history,setHistory]=useState<{id:string;number:number;cause:string;pinned:boolean}[]|null>(null),[restoring,setRestoring]=useState<{id:string;number:number}|null>(null);
   const [deleting,setDeleting]=useState<{sectionId:string;entryId:string|null;label:string}|null>(null),[saveStatus,setSaveStatus]=useState('');
@@ -87,6 +89,8 @@ export function App(){
         <div className="document-header"><div><span className="eyebrow">CV · {cv.documentLocale.toUpperCase()}</span><h1 ref={titleRef} tabIndex={-1}>{cv.name}</h1><p className="hint">{t('Revisión {n} · Los formularios se confirman por separado.',{n:cv.revision})}</p><p>{t('Idioma del CV')}: {cv.documentLocale==='es'?'Español':'English'}</p></div>
           <div className="actions"><button disabled={busy||blocked} onClick={()=>begin({kind:'order',sectionId:null})}>{t('Reordenar secciones')}</button><button disabled={busy||blocked} onClick={()=>begin({kind:'language',targetLocale:cv.documentLocale==='es'?'en':'es'})}>{t('Preparar cambio de idioma')}</button><button disabled={busy||blocked} onClick={()=>{setDuplicateName(t('Copia de {name}',{name:cv.name}));setDuplicating(true);}}>{t('Duplicar CV')}</button><button disabled={busy||blocked} onClick={()=>{void perform(async()=>setHistory(unwrap(await api.revisions(cv.id))));}}>{t('Revisiones lingüísticas')}</button></div>
         </div>
+        <div className="actions"><button disabled={busy||!!form||blocked} onClick={()=>setPresentationOpen(true)}>{t('Presentación')}</button><button aria-expanded={previewOpen} onClick={()=>setPreviewOpen(v=>!v)}>{t(previewOpen?'Cerrar preview':'Vista previa PDF')}</button></div>
+        {previewOpen&&<PdfPreview key={cv.id} cv={cv}/>}
         <section className="section-card" aria-labelledby="personal-heading"><header><h2 id="personal-heading">{t('Datos personales')}</h2><div className="actions"><button aria-expanded={!collapsed.has('personal')} aria-controls="personal-content" onClick={()=>toggleCollapse('personal')}>{t(collapsed.has('personal')?'Expandir datos personales':'Contraer datos personales')}</button><button disabled={busy||blocked} onClick={()=>begin({kind:'personal'})}>{t('Editar datos personales')}</button></div></header>
           {!collapsed.has('personal')&&<div id="personal-content" className="personal-summary"><Photo photo={document.photo}/><div><h3>{cv.personalInformation.displayName}</h3>{cv.personalInformation.headline&&<p>{visibleText(cv.personalInformation.headline,cv.sensitiveTranslationMemory)}</p>}{cv.personalInformation.contacts.map(contact=><p key={contact.id}>{contact.kind==='phone'?`${contact.prefix} ${contact.number}`:contact.value}{!cv.presentation.personalFieldVisibility.contacts.includes(contact.id)&&<span className="badge">{t('Excluido del CV')}</span>}</p>)}<small>{t('El resumen del editor también permite reconocer los datos excluidos. Su inclusión se controla en el formulario.')}</small></div></div>}
         </section>
@@ -110,6 +114,7 @@ export function App(){
         <section className="add-section" aria-label={t('Añadir secciones')}><h2>{t('Añadir sección')}</h2><div className="actions">{(['education','work','skills','languages','certifications','projects'] as const).map(kind=><button key={kind} disabled={busy||blocked} onClick={()=>{void perform(async()=>opened(unwrap(await api.addSection(cv.id,cv.revision,kind))));}}>{t('Añadir sección de {name}',{name:t(sectionLabel(kind)).toLocaleLowerCase(locale)})}</button>)}<button disabled={busy||blocked} onClick={()=>begin({kind:'newCustomSection'})}>{t('Añadir sección personalizada')}</button></div></section>
       </>}
     </main></div>
+    {presentationOpen&&cv&&<PresentationDialog cv={cv} onCancel={()=>setPresentationOpen(false)} onSaved={value=>{opened(value);setPresentationOpen(false);void refresh();}}/>}
     {importing&&<ImportDialog onClose={()=>{setImporting(false);requestAnimationFrame(()=>returnFocus.current?.focus());}} onImported={(cvId,backupName)=>{setImporting(false);void perform(async()=>{await refresh();if(cvId)opened(unwrap(await api.open(cvId)));else{setDocument(null);setPhoto(null);}setNotice(backupName?t('Biblioteca restaurada. Copia de seguridad: {name}',{name:backupName}):'Importación confirmada.');requestAnimationFrame(()=>titleRef.current?.focus());});}}/>}
     {creating&&<Modal title={t('Crear CV')} onCancel={()=>{if(!busy)setCreating(false);}}><form noValidate onSubmit={event=>{event.preventDefault();void perform(async()=>{opened(unwrap(await api.create(cvName,personName)));await refresh();setCreating(false);requestAnimationFrame(()=>titleRef.current?.focus());});}}>
       {showError()}<Field label={t('Nombre del CV en la biblioteca')} required path="name" value={cvName} onChange={setCvName}/>{library?.profileName?<p>{t('Se materializarán los datos personales de tu perfil «{name}». Podrás editarlos en este CV de forma independiente. No se copian secciones.',{name:library.profileName})}</p>:<Field label={t('Nombre para mostrar')} required path="displayName" value={personName} onChange={setPersonName}/>}
