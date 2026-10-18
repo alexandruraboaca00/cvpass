@@ -14,7 +14,7 @@ for(const {name,pageCount} of metrics.results){
    const page=await pdf.getPage(n),text=await page.getTextContent(),items=text.items.filter(i=>'str'in i&&i.str.trim()),body=items.filter(i=>i.transform[5]>30);
    assert(body.length,'Accidental blank page');
    for(const item of body){const x=item.transform[4],y=item.transform[5];assert(x>=50&&x+item.width<=546,`Horizontal overflow ${name} p${n}: ${x}, ${item.width}`);assert(y>=50&&y+item.height<=797,`Vertical overflow ${name} p${n}: ${y}`);}
-   for(const heading of ['Educación','Experiencia laboral','Habilidades','Idiomas','Certificaciones','Proyectos','Información adicional']){
+   for(const heading of ['Sobre mí','Educación','Experiencia laboral','Habilidades','Idiomas','Certificaciones','Proyectos','Información adicional','About me','Education','Work experience']){
     const index=body.findIndex(i=>i.str===heading);if(index>=0){assert(index<body.length-1,`Orphan heading ${heading}`);assert(body[index].transform[5]-body[index+1].transform[5]<70,`Separated heading ${heading}`);}
    }
    all+=items.map(i=>i.str).join(' ')+'\n';links.push(...(await page.getAnnotations()).filter(a=>a.subtype==='Link').map(a=>({url:a.url,rect:a.rect,page:n})));
@@ -25,7 +25,7 @@ for(const {name,pageCount} of metrics.results){
   assert(!all.includes('EMPTY_SECTION_SENTINEL'));
   if(name==='english-no-photo'){assert(all.includes('Work experience'));assert(all.includes('Ongoing'));}
   if(name==='hidden'){assert(!all.includes('Proyecto sintético'));assert(!all.includes('Analista sintético'));}
-  else {assert(all.includes('ORDERED_FIRST')&&all.includes('ORDERED_SECOND'));assert(links.some(l=>l.url==='https://example.test/rich'));assert(all.includes('After explicit break'));}
+  else {assert(/1\.\s+ORDERED_FIRST/.test(all)&&/2\.\s+ORDERED_SECOND/.test(all));assert(links.some(l=>l.url==='https://example.test/rich'));assert(all.includes('After explicit break'));}
   if(name==='year-only'){assert(all.includes('1990'));assert(!all.includes('19/07/1990'));assert(!all.includes('02/2020'));}
   assert(!all.includes('PRIVATE_'));assert(!all.includes('Primer CV privado'));assert(structures.every(Boolean));
   if(name==='large'){
@@ -33,6 +33,7 @@ for(const {name,pageCount} of metrics.results){
    for(const glyph of ['á','é','í','ó','ú','ñ','¿','¡','ă','â','î','ș','ț'])assert(all.includes(glyph),'Missing glyph '+glyph);
    assert(links.some(l=>l.url.startsWith('https://example.test/long-segment-')));
    for(const label of ['Habilidades','Idiomas','Certificaciones','Proyectos','Información adicional'])assert(all.includes(label),label);
+   let index=-1;for(const label of ['Proyectos','Información adicional','Educación','Experiencia laboral','Habilidades','Idiomas','Certificaciones']){assert(all.indexOf(label)>index,'Manual order '+label);index=all.indexOf(label);}
   }
   const attachments=await pdf.getAttachments();assert.equal(attachments.size,1);const key=[...attachments.keys()][0],attachment=await pdf.getAttachmentContent(key),payload=readPdfPayload(attachment);assert(payload&&payload.integrity==='sha256');
   const expected=JSON.parse(await readFile(join(output,name+'-projection.json'),'utf8'));assert.deepEqual(payload.projection,expected);assert(!JSON.stringify(payload).includes('PRIVATE_'));

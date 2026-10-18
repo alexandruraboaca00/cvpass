@@ -1,6 +1,6 @@
 """Synthetic Linux acceptance only: confirm a destination in CVForge's own native dialog.
 
-Uses XTest, scoped to a dialog transient for the exact Electron window supplied
+Uses XTest only on the dialog transient for the exact Electron window supplied
 by the harness. No clipboard, arbitrary foreground window or personal files.
 """
 import ctypes as c
