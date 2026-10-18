@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { entryIds } from '../domain/index.js';
 import type { ImportIssue, SensitiveField } from '../domain/index.js';
@@ -32,7 +32,7 @@ const codeMessages:Record<string,string>={
   PAYLOAD_WITHOUT_TRANSPORT_DIGEST:'Este payload permite comprobar estructura e imágenes, pero no incluye un digest del transporte completo.',PDF_TEMPLATE_NOT_AVAILABLE:'La plantilla del PDF no está disponible. Se usará la referencia de editor propia.',CONTACT_KIND_REQUIRES_REVIEW:'El tipo de contacto no se pudo recuperar con certeza.',IDENTIFIER_PARTS_REQUIRE_REVIEW:'Se recuperó el identificador visible: revisa su etiqueta y valor.',CEFR_VALUE_INVALID:'El nivel CEFR no es válido. Corrígelo o acepta su exclusión.',CEFR_DIMENSION_DUPLICATE:'Hay una dimensión CEFR duplicada que requiere revisión.',HTML_FORMAT_REDUCED:'Parte del formato no está admitida; se conserva el origen y el contenido soportado.',
 };
 export function ImportDialog({onClose,onImported}:{onClose:()=>void;onImported:(cvId?:string,backupName?:string)=>void}){
-  const {t}=useMessages(),request=useRef<string|null>(null),formRef=useRef<EditorForm|null>(null),heading=useRef<HTMLHeadingElement>(null);
+  const {t}=useMessages(),formId=useId(),request=useRef<string|null>(null),formRef=useRef<EditorForm|null>(null),heading=useRef<HTMLHeadingElement>(null);
   const [view,setView]=useState<ImportView|null>(null),[form,setForm]=useState<EditorForm|null>(null),[photo,setPhoto]=useState<PhotoView|null>(null),[phase,setPhase]=useState<'pick'|'analyzing'|'review'|'confirming'>('pick');
   const [error,setError]=useState<EditorFailure|null>(null),[issues,setIssues]=useState<EditorIssue[]>([]),[ack,setAck]=useState(false),[documentLocale,setDocumentLocale]=useState<'es'|'en'|null>(null),[photoBusy,setPhotoBusy]=useState(false);
   const [restoreMode,setRestoreMode]=useState<'emptyWorkspace'|'replaceWorkspace'>('emptyWorkspace'),[restoreConfirm,setRestoreConfirm]=useState(false),[deleting,setDeleting]=useState(false),[candidateChange,setCandidateChange]=useState<string|null>(null);
@@ -85,7 +85,7 @@ export function ImportDialog({onClose,onImported}:{onClose:()=>void;onImported:(
       <SelectField label={t('Modo de restauración')} value={restoreMode} onChange={value=>setRestoreMode(value as typeof restoreMode)}><option value="emptyWorkspace">{t('Restaurar solo si la biblioteca está vacía')}</option><option value="replaceWorkspace">{t('Sustituir biblioteca con copia de seguridad')}</option></SelectField>
       <p>{t('La sustitución afecta al perfil y a todos los CV actuales. Se crea antes una copia recuperable.')}</p><button type="button" disabled={phase==='confirming'} onClick={()=>restoreMode==='replaceWorkspace'?setRestoreConfirm(true):void restore()}>{t('Confirmar restauración')}</button>
     </section>}
-    {form&&view?.draft&&<form noValidate onSubmit={event=>void confirm(event)}><fieldset disabled={phase==='confirming'||photoBusy}>
+    {form&&view?.draft&&<form id={formId} noValidate onSubmit={event=>void confirm(event)}><fieldset disabled={phase==='confirming'||photoBusy}>
       <Field label={t('Nombre del nuevo CV')} path="name" required value={form.cv.name} issues={issues} onChange={value=>change(f=>{f.cv.name=value;})}/>
       <SelectField label={t('Idioma del documento importado')} value={documentLocale??''} onChange={value=>setDocumentLocale(value as 'es'|'en')}><option value="">{t('Selecciona un idioma')}</option><option value="es">Español</option><option value="en">English</option></SelectField>
       <p>{t('Elegir el idioma no traduce ni modifica el texto importado.')}</p>
@@ -97,14 +97,13 @@ export function ImportDialog({onClose,onImported}:{onClose:()=>void;onImported:(
           {target?.kind==='skills'&&<SkillsForm form={form} change={change}/>}
           {target?.kind==='section'&&<ClassifiedField label={t('Nombre de sección')} path={`sectionsById.${target.sectionId}.title`} value={cv!.sectionsById[target.sectionId]!.title!} locale={cv!.documentLocale} memory={cv!.sensitiveTranslationMemory} fieldKind="sectionTitle" issues={issues} onChange={value=>change(f=>{if(f.target.kind==='section')f.cv.sectionsById[f.target.sectionId]!.title=value;})} onMemory={(value,memory)=>change(f=>{if(f.target.kind==='section')f.cv.sectionsById[f.target.sectionId]!.title=value;f.cv.sensitiveTranslationMemory=memory;})}/>}
           <VisibleImportedFields form={form} change={change}/>
-          {target?.kind==='entry'&&<><Check label={t('Incluir entrada importada en el CV')} checked={cv!.sectionsById[target.sectionId]!.entriesById[target.entryId]!.included} onChange={value=>change(f=>{if(f.target.kind==='entry')f.cv.sectionsById[f.target.sectionId]!.entriesById[f.target.entryId]!.included=value;})}/><button type="button" onClick={()=>setDeleting(true)}>{t('Eliminar entrada de esta propuesta')}</button></>}
+          {target?.kind==='entry'&&<><Check label={t('Incluir entrada importada en el CV')} checked={cv!.sectionsById[target.sectionId]!.entriesById[target.entryId]!.included} onChange={value=>change(f=>{if(f.target.kind==='entry')f.cv.sectionsById[f.target.sectionId]!.entriesById[f.target.entryId]!.included=value;})}/><button className="danger-outline" type="button" onClick={()=>setDeleting(true)}>{t('Eliminar entrada de esta propuesta')}</button></>}
         </div>
       </div>
       <Check label={t('He revisado la propuesta y acepto conservar los datos no mapeados solo en el proyecto privado, excluidos del CV visible.')} checked={ack} onChange={setAck}/>
       <p className="hint">{t('Confirmar crea un CV nuevo. El perfil, otros CV y el archivo original permanecen independientes.')}</p>
-      <button type="submit" className="primary" disabled={phase==='confirming'||photoBusy}>{t('Confirmar importación')}</button>
     </fieldset></form>}
-    <div className="actions">{phase==='review'&&<button type="button" onClick={()=>void reset()}>{t('Elegir otro archivo y descartar la propuesta')}</button>}<button type="button" disabled={phase==='confirming'} onClick={cancel}>{t('Cancelar importación')}</button></div>
+    <footer className="form-actions">{phase==='review'&&<button type="button" onClick={()=>void reset()}>{t('Elegir otro archivo y descartar la propuesta')}</button>}<button type="button" disabled={phase==='confirming'} onClick={cancel}>{t('Cancelar importación')}</button>{form&&view?.draft&&<button form={formId} type="submit" className="primary" disabled={phase==='confirming'||photoBusy}>{t('Confirmar importación')}</button>}</footer>
     {restoreConfirm&&<Modal title={t('Reemplazar biblioteca local')} destructive onCancel={()=>{if(phase!=='confirming')setRestoreConfirm(false);}}><p>{t('Se sustituirán el perfil y todos los CV actuales. La copia de seguridad debe completarse antes de escribir.')}</p><button type="button" disabled={phase==='confirming'} onClick={()=>void restore()}>{t('Reemplazar con copia de seguridad')}</button><button type="button" disabled={phase==='confirming'} onClick={()=>setRestoreConfirm(false)}>{t('Cancelar')}</button></Modal>}
     {candidateChange&&<Modal title={t('Cambiar candidato')} destructive onCancel={()=>setCandidateChange(null)}><p>{t('Se descartarán las correcciones de esta propuesta. La biblioteca no cambia.')}</p><button type="button" onClick={()=>void select(candidateChange)}>{t('Descartar correcciones y cambiar')}</button><button type="button" onClick={()=>setCandidateChange(null)}>{t('Cancelar')}</button></Modal>}
     {deleting&&<Modal title={t('Eliminar entrada de la propuesta')} destructive onCancel={()=>setDeleting(false)}><p>{t('Solo se retira de esta propuesta; el archivo original se conserva.')}</p><button type="button" onClick={removeEntry}>{t('Eliminar entrada de la propuesta')}</button><button type="button" onClick={()=>setDeleting(false)}>{t('Cancelar')}</button></Modal>}
