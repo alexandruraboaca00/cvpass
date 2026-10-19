@@ -18,6 +18,8 @@ try {
           case 'commit': value = engine.commit(request.expectedGeneration, request.content); break;
           case 'health': value = engine.health(); break;
           case 'backup': value = await engine.backup(); break;
+          case 'appendExport': engine.appendExport(request.record); break;
+          case 'listExports': value=engine.listExports(request.cvId); break;
           case 'close': engine.close(); break;
           default: throw new Error('STORAGE_UNKNOWN_OPERATION');
         }

@@ -5,7 +5,7 @@ import { mkdtemp, readdir, readFile, rm, writeFile, stat } from 'node:fs/promise
 import { join } from 'node:path';
 import { SqliteEngine, DATABASE_NAME } from '../src/adapters/sqlite/engine.js';
 import { SqliteLibraryRepository } from '../src/adapters/sqlite/repository.js';
-import { migrations } from '../src/adapters/sqlite/migrations.js';
+import { migrations, STORAGE_SCHEMA_VERSION } from '../src/adapters/sqlite/migrations.js';
 import { stateFromProject } from '../src/application/library-state.js';
 import { completeProjectFixture } from './fixtures.js';
 
@@ -16,10 +16,10 @@ async function seedV1(dir: string): Promise<ReturnType<typeof stateFromProject>>
   const state = stateFromProject(completeProjectFixture());
   const engine = await SqliteEngine.open(dir); engine.commit(null,state); engine.close();
   const db = new Database(join(dir,DATABASE_NAME));
-  db.exec('DROP TABLE draft_assets; DROP TABLE draft_templates; DROP TABLE drafts; DELETE FROM schema_migrations WHERE version=2; PRAGMA user_version=1;'); db.close();
+  db.exec('DROP TABLE exports; DROP TABLE draft_assets; DROP TABLE draft_templates; DROP TABLE drafts; DELETE FROM schema_migrations WHERE version>1; PRAGMA user_version=1;'); db.close();
   return state;
 }
-test('explicit v1 to v2 migration preserves real content and creates a consistent pre-migration WAL backup', async t => {
+test('explicit v1 to current migration preserves real content and creates a consistent pre-migration WAL backup', async t => {
   const dir = await directory(t), expected = await seedV1(dir);
   const writer = new Database(join(dir,DATABASE_NAME));
   writer.pragma('journal_mode=WAL'); writer.prepare('UPDATE workspace SET generation=7').run();
@@ -34,7 +34,7 @@ test('explicit v1 to v2 migration preserves real content and creates a consisten
 });
 test('failed migration rolls back schema, data and ledger, retains backup and can retry safely', async t => {
   const dir = await directory(t), expected = await seedV1(dir);
-  const broken = [migrations[0]!,{...migrations[1]!,sql:'CREATE TABLE partial_upgrade(id INTEGER); INSERT INTO missing_table VALUES (1);'}];
+  const broken = [migrations[0]!,{...migrations[1]!,sql:'CREATE TABLE partial_upgrade(id INTEGER); INSERT INTO missing_table VALUES (1);'},migrations[2]!];
   await assert.rejects(SqliteEngine.open(dir,{migrations:broken}),/no such table/);
   const db = new Database(join(dir,DATABASE_NAME));
   assert.equal(db.pragma('user_version',{simple:true}),1);
@@ -49,7 +49,7 @@ test('future versions and migration checksum tampering are rejected without rewr
   const before = await readFile(path);
   await assert.rejects(SqliteLibraryRepository.open(dir),/STORAGE_UNSUPPORTED_VERSION/);
   assert.deepEqual(await readFile(path),before);
-  const edit = new Database(path); edit.pragma('user_version=2'); edit.exec("UPDATE schema_migrations SET checksum='invalid' WHERE version=1"); edit.close();
+  const edit = new Database(path); edit.pragma('user_version='+STORAGE_SCHEMA_VERSION); edit.exec("UPDATE schema_migrations SET checksum='invalid' WHERE version=1"); edit.close();
   await assert.rejects(SqliteLibraryRepository.open(dir),/MIGRATION_CHECKSUM_MISMATCH/);
 });
 test('corrupt database, inconsistent snapshots and missing reference indexes are explicit errors', async t => {

@@ -8,12 +8,15 @@ import type { PdfGeneration, PresentationInput } from '../application/render-con
 import type { EditorDocumentView } from '../application/editor.js';
 import { useMessages } from './i18n.js';
 import { Modal } from './Modal.js';
+import type { ExportRecord } from '../application/export-record.js';
 GlobalWorkerOptions.workerSrc=workerUrl;
 const api=window.cvforge;
 export function PresentationDialog({cv,onSaved,onCancel}:{cv:CvDocument;onSaved:(v:EditorDocumentView)=>void;onCancel:()=>void}){
-  const {t}=useMessages(),[input,setInput]=useState<PresentationInput>(()=>{const {density,accentColor,numbering,datePrecision,showCefrGuide}=cv.presentation;return {density,accentColor,numbering,datePrecision,showCefrGuide,fontFamily:'Liberation Sans'};}),[busy,setBusy]=useState(false),[error,setError]=useState('');
-  return <Modal title={t('Presentación Simple')} onCancel={()=>{if(!busy)onCancel();}}><form onSubmit={e=>{e.preventDefault();setBusy(true);setError('');void api.presentation(cv.id,cv.revision,input).then(result=>{if(result.ok)onSaved(result.value);else setError(result.error.code);}).finally(()=>setBusy(false));}}>
-    <p>{t('Simple v1 · Una columna · Liberation Sans local')}</p><fieldset className="presentation-fields" disabled={busy}><div className="grid">
+  const {t}=useMessages(),[input,setInput]=useState<PresentationInput>(()=>{const {density,accentColor,numbering,datePrecision,showCefrGuide,templateRef}=cv.presentation;return {density,accentColor,numbering,datePrecision,showCefrGuide,fontFamily:'Liberation Sans',templateRef:['simple','lateral'].includes(templateRef.id)&&templateRef.version===1?templateRef:{id:'simple',version:1}};}),[busy,setBusy]=useState(false),[error,setError]=useState('');
+  const lateral=input.templateRef?.id==='lateral';
+  return <Modal title={t(lateral?'Presentación Lateral':'Presentación Simple')} onCancel={()=>{if(!busy)onCancel();}}><form onSubmit={e=>{e.preventDefault();setBusy(true);setError('');void api.presentation(cv.id,cv.revision,input).then(result=>{if(result.ok)onSaved(result.value);else setError(result.error.code);}).finally(()=>setBusy(false));}}>
+    <p>{t(lateral?'Lateral v1 · Dos columnas · Liberation Sans local':'Simple v1 · Una columna · Liberation Sans local')}</p><fieldset className="presentation-fields" disabled={busy}><div className="grid">
+      <label className="field span-full">{t('Plantilla')}<select aria-label={t('Plantilla')} value={input.templateRef?.id??'simple'} onChange={e=>setInput({...input,templateRef:{id:e.target.value,version:1}})}><option value="simple">Simple</option><option value="lateral">Lateral</option></select></label>
       <label className="field">{t('Densidad')}<select aria-label={t('Densidad')} value={input.density} onChange={e=>setInput({...input,density:e.target.value as PresentationInput['density']})}><option value="compact">{t('Compacta')}</option><option value="normal">{t('Normal')}</option><option value="spacious">{t('Espaciosa')}</option></select></label>
       <label className="field color-field">{t('Color de acento')}<input type="color" value={input.accentColor} onChange={e=>setInput({...input,accentColor:e.target.value})}/></label>
       <label className="field span-full">{t('Precisión máxima de fechas')}<select aria-label={t('Precisión máxima de fechas')} value={input.datePrecision} onChange={e=>setInput({...input,datePrecision:e.target.value as PresentationInput['datePrecision']})}><option value="year">{t('Solo año')}</option><option value="month">{t('Mes y año')}</option><option value="day">{t('Fecha completa si existe')}</option></select></label>
@@ -24,8 +27,10 @@ export function PresentationDialog({cv,onSaved,onCancel}:{cv:CvDocument;onSaved:
   </form></Modal>;
 }
 export function PdfPreview({cv}:{cv:CvDocument}){
+  const [records,setRecords]=useState<ExportRecord[]>([]);
   const {t}=useMessages(),[generation,setGeneration]=useState<PdfGeneration|null>(null),[state,setState]=useState<'empty'|'generating'|'ready'|'stale'|'error'>('empty'),[error,setError]=useState(''),[retry,setRetry]=useState(0),[receipt,setReceipt]=useState(''),[exporting,setExporting]=useState(false),[viewMs,setViewMs]=useState<number|null>(null);
   const token=useRef(0),started=useRef(0);
+  useEffect(()=>{let active=true;void api.pdfRecords(cv.id).then(r=>{if(active&&r.ok)setRecords(r.value);});return()=>{active=false;};},[cv.id,receipt]);
   useEffect(()=>{
     const request=++token.current;started.current=performance.now();setState(previous=>previous==='empty'?'empty':'stale');setError('');setReceipt('');setViewMs(null);
     const timer=setTimeout(()=>{setState('generating');void api.pdfGenerate(cv.id,cv.revision).then(result=>{
@@ -38,12 +43,14 @@ export function PdfPreview({cv}:{cv:CvDocument}){
   return <section className="pdf-preview section-card" aria-label={t('Vista previa PDF')} data-state={state} data-sha256={current?.sha256} data-generation-id={current?.id} data-revision={current?.revision} data-preview-ms={viewMs===null?undefined:Math.round(viewMs)} data-pdf-bytes={current?.metrics.pdfBytes} data-pdf-ms={current?.metrics.snapshotToPdfMs} data-page-count={current?.metrics.pageCount}>
     <h2>{t('Vista previa PDF')}</h2><p role="status">{t(({empty:'Sin preview todavía',generating:'Generando PDF…',ready:'Preview lista',stale:'Preview desactualizada',error:'Error de preview'})[state])}</p>
     {error&&<p role="alert">{t('No se pudo generar o guardar ({code}). El CV confirmado se conserva.',{code:error})}</p>}
-    {cv.presentation.templateRef.id!=='simple'&&<p>{t('Selecciona Simple en Presentación para generar este CV.')}</p>}
+    {!['simple','lateral'].includes(cv.presentation.templateRef.id)&&<p>{t('Selecciona Simple o Lateral en Presentación para generar este CV.')}</p>}
     <div className="actions"><button onClick={()=>setRetry(v=>v+1)}>{t(state==='error'?'Reintentar preview':'Actualizar preview')}</button><button className="primary" disabled={!ready||exporting} onClick={()=>{if(!current)return;setExporting(true);setReceipt('');void api.pdfExport(current.id,current.sha256).then(result=>{
       if(!result.ok){setError(result.error.code);return;}
       if(!result.value.cancelled)setReceipt(result.value.sha256!);
     }).finally(()=>setExporting(false));}}>{t('Exportar PDF')}</button></div>
     {receipt&&<p role="status" data-export-sha256={receipt}>{t('PDF exportado. SHA-256: {hash}',{hash:receipt})}</p>}
+    {error==='EXPORT_FILE_WRITTEN_RECORD_FAILED'&&<p role="alert">{t('El archivo PDF se escribió, pero no se pudo registrar la exportación. Comprueba el destino antes de reintentar.')}</p>}
+    <details><summary>{t('Registro de exportaciones')} ({records.length})</summary>{records.length===0?<p>{t('Todavía no hay exportaciones registradas.')}</p>:<ul>{records.map(r=><li key={r.id}>{r.exportedAt} · {r.templateRef.id} v{r.templateRef.version} · {t('Revisión {n}',{n:r.revision})}<br/><code>{r.sha256}</code></li>)}</ul>}</details>
     {current&&<><p className="hint">{t('Revisión {n}',{n:current.revision})} · {current.metrics.pdfBytes} bytes · {Math.round(current.metrics.snapshotToPdfMs)} ms{viewMs!==null?` · ${Math.round(viewMs)} ms PDF.js`:''}</p><PdfPages generation={current} onReady={()=>{if(current.revision===cv.revision){setViewMs(previous=>previous??performance.now()-started.current);setState('ready');}}} onError={()=>{setError('PREVIEW_PDFJS_FAILED');setState('error');}}/></>}
   </section>;
 }

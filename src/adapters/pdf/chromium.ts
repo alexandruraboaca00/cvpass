@@ -1,8 +1,9 @@
 import { BrowserWindow, protocol, session } from 'electron';
 import { Worker } from 'node:worker_threads';
 import { simpleHtml } from './simple.js';
+import { lateralHtml, paginateLateral } from './lateral.js';
 import { assertFontCoverage } from './font-coverage.js';
-import { renderFail, throwIfAborted } from '../../application/render-contract.js';
+import { builtinTemplate, renderFail, throwIfAborted } from '../../application/render-contract.js';
 import type { PdfArtifact, PdfRenderPort, RenderSnapshot } from '../../application/render-contract.js';
 
 // Register once, before app.whenReady(). Content is held in memory, never a user-supplied URL.
@@ -23,7 +24,11 @@ export class ChromiumPdfRenderer implements PdfRenderPort {
   }
   private async perform(snapshot:RenderSnapshot,signal:AbortSignal):Promise<PdfArtifact>{
     throwIfAborted(signal);assertFontCoverage(snapshot);
-    const url=`cvforge-render://snapshot/${snapshot.id}`,html=simpleHtml(snapshot);this.jobs.set(url,html);
+    builtinTemplate(snapshot.projection.presentation.templateRef.id,snapshot.projection.presentation.templateRef.version);
+    if(snapshot.engineVersion!==process.versions.chrome)renderFail('RENDER_ENGINE_MISMATCH');
+    const lateral=snapshot.projection.presentation.templateRef.id==='lateral';
+    if(snapshot.rendererVersion!==(lateral?'lateral-1':'simple-1'))renderFail('RENDER_TEMPLATE_UNSUPPORTED');
+    const url=`cvforge-render://snapshot/${snapshot.id}`,html=lateral?lateralHtml(snapshot):simpleHtml(snapshot);this.jobs.set(url,html);
     const win=new BrowserWindow({show:false,width:900,height:1000,webPreferences:{session:this.isolated,sandbox:true,contextIsolation:true,nodeIntegration:false,webSecurity:true,backgroundThrottling:false}});
     win.webContents.setWindowOpenHandler(()=>({action:'deny'}));win.webContents.on('will-navigate',e=>e.preventDefault());
     const stop=()=>{if(!win.isDestroyed())win.destroy();};signal.addEventListener('abort',stop,{once:true});
@@ -42,6 +47,7 @@ export class ChromiumPdfRenderer implements PdfRenderPort {
         return {overflow,fonts:document.fonts.size};
       })()` ) as {overflow:boolean;fonts:number};
       if(layout.overflow)renderFail('RENDER_HORIZONTAL_OVERFLOW');if(layout.fonts!==4)renderFail('RENDER_FONTS_FAILED');
+      if(lateral){const result=await win.webContents.executeJavaScript(`(${paginateLateral.toString()})()`);if(result.overflow)renderFail('RENDER_LAYOUT_OVERFLOW');}
       throwIfAborted(signal);
       const raw=await win.webContents.printToPDF({pageSize:'A4',preferCSSPageSize:true,printBackground:true,generateTaggedPDF:true,generateDocumentOutline:true,
         displayHeaderFooter:false});

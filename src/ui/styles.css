@@ -278,3 +278,6 @@ dialog:has(.import-layout) { width: min(1280px, calc(100vw - 40px)); }
   .pdf-scroll { padding: var(--space-3); }
 }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
+
+/* Private export receipts remain readable in the narrow editor column. */
+.pdf-preview details code { overflow-wrap:anywhere; white-space:normal; }

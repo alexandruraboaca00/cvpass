@@ -3,10 +3,13 @@ import type { EditorForm, EditorIssue, EditorTarget } from './editor-model.js';
 import type { SectionKind } from '../domain/index.js';
 import type { ImportView, ImportReviewInput } from './structured-import.js';
 import type { PdfGeneration, PresentationInput } from './render-contract.js';
+import type { ExportRecord } from './export-record.js';
 export type BeginEditorTarget=EditorTarget|{kind:'newEntry';sectionId:string;entryKind?:'nativeLanguage'|'foreignLanguage'}|{kind:'newCustomSection'};
 export interface EditorFailure {code:string;issues:EditorIssue[]}
 export type EditorResult<T> = {ok:true;value:T}|{ok:false;error:EditorFailure};
 export interface EditorApi {
+  projectExport(cvId:string,revision:number):Promise<EditorResult<{cancelled:boolean;sha256?:string;byteLength?:number}>>;
+  pdfRecords(cvId:string):Promise<EditorResult<ExportRecord[]>>;
   pdfGenerate(cvId:string,revision:number):Promise<EditorResult<PdfGeneration>>;
   pdfCancel():Promise<EditorResult<void>>;
   pdfOpenLink(url:string):Promise<EditorResult<void>>;

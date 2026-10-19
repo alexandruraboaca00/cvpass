@@ -12,6 +12,8 @@ import { verifyAssetBytes } from '../asset-bytes.js';
 import { decodeJson } from '../json.js';
 import { checkStorageVersion, migrateStorage, privateSubdirectory } from './migrations.js';
 import type { StorageMigration } from './migrations.js';
+import { ExportRecordSchema } from '../../application/export-record.js';
+import type { ExportRecord } from '../../application/export-record.js';
 
 export const DATABASE_NAME = 'library.sqlite3';
 function privateDirectory(input: string): string {
@@ -58,6 +60,7 @@ export class SqliteEngine {
       const health = engine.health();
       if (health.integrity.join(',') !== 'ok' || health.foreignKeyViolations) reject('STORAGE_INTEGRITY_FAILURE');
       engine.read(); // Revalidate domain, indexed metadata and byte integrity before exposing the library.
+      engine.listExports();
       return engine;
     } catch (e) { db.close(); throw e; }
   }
@@ -124,6 +127,8 @@ export class SqliteEngine {
       const generation = this.db.prepare<[], {generation:number}>('SELECT generation FROM workspace WHERE slot=1').get()?.generation ?? null;
       if (generation !== expectedGeneration) reject('LIBRARY_CONFLICT');
       const next = (generation ?? -1) + 1;
+      const oldWorkspace=this.db.prepare('SELECT id FROM workspace WHERE slot=1').pluck().get();
+      if(oldWorkspace&&oldWorkspace!==s.workspace.id)this.db.exec('DELETE FROM exports');
       this.options.transactionProbe?.('beforeWrite',this.db);
       // Remove dependency indexes first. They are rebuilt in the same transaction.
       for (const table of ['entity_assets','revision_assets','template_assets','draft_assets','draft_templates']) this.db.exec(`DELETE FROM ${table}`);
@@ -158,6 +163,7 @@ export class SqliteEngine {
         refs.forEach(t => linkDraftTemplate.run(d.id,t.id,t.version));
       });
       this.db.exec('DELETE FROM blobs WHERE sha256 NOT IN (SELECT sha256 FROM assets)');
+      this.db.exec("DELETE FROM exports WHERE cv_id NOT IN (SELECT id FROM entities WHERE kind='cv')");
       this.options.transactionProbe?.('beforeCommit',this.db);
       if ((this.db.pragma('foreign_key_check') as unknown[]).length) reject('STORAGE_FOREIGN_KEY_FAILURE');
       return next;
@@ -166,6 +172,21 @@ export class SqliteEngine {
   async backup(): Promise<BackupReceipt> {
     const name = `library-${randomUUID()}.sqlite3`, target = join(privateSubdirectory(this.directory, 'backups'), name);
     await this.db.backup(target); chmodSync(target, 0o600); return { name };
+  }
+  appendExport(input:ExportRecord):void {
+    const r=ExportRecordSchema.parse(input);
+    this.db.transaction(()=>{
+      const owner=this.db.prepare<[string],{revision:number}>("SELECT revision FROM entities WHERE id=? AND kind='cv'").get(r.cvId);
+      if(!owner||owner.revision<r.revision)reject('EXPORT_RECORD_OWNER_INVALID');
+      this.db.prepare('INSERT INTO exports VALUES (?,?,?,?,?,?)').run(r.id,r.cvId,r.revision,r.exportedAt,r.sha256,canonical(r));
+    }).immediate();
+  }
+  listExports(cvId?:string):ExportRecord[]{
+    const rows=this.db.prepare<[],{id:string;cv_id:string;revision:number;exported_at:string;sha256:string;record_json:string}>('SELECT * FROM exports ORDER BY exported_at DESC,rowid DESC').all();
+    return rows.map(row=>{
+      const r=ExportRecordSchema.parse(json(row.record_json));
+      if(r.id!==row.id||r.cvId!==row.cv_id||r.revision!==row.revision||r.exportedAt!==row.exported_at||r.sha256!==row.sha256)reject('STORAGE_EXPORT_INDEX_MISMATCH');return r;
+    }).filter(r=>!cvId||r.cvId===cvId);
   }
   health(): StorageHealth {
     return { schemaVersion:Number(this.db.pragma('user_version',{simple:true})), sqliteVersion:String(this.db.prepare('SELECT sqlite_version()').pluck().get()),

@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { reject } from '../../application/contracts.js';
 
 export const APPLICATION_ID = 0x43564647;
-export const STORAGE_SCHEMA_VERSION = 2;
+export const STORAGE_SCHEMA_VERSION = 3;
 export interface StorageMigration { version: number; name: string; sql: string }
 export const migrations: readonly StorageMigration[] = [
   { version: 1, name: 'confirmed-library', sql: `
@@ -83,6 +83,15 @@ export const migrations: readonly StorageMigration[] = [
       FOREIGN KEY(template_id,template_version) REFERENCES templates(id,version) ON DELETE RESTRICT
     ) STRICT;
   ` },
+  {version:3,name:'private-export-receipts',sql:`
+    CREATE TABLE exports(
+      id TEXT PRIMARY KEY CHECK(length(id)=36),
+      cv_id TEXT NOT NULL REFERENCES entities(id) DEFERRABLE INITIALLY DEFERRED,
+      revision INTEGER NOT NULL CHECK(revision>=0), exported_at TEXT NOT NULL,
+      sha256 TEXT NOT NULL CHECK(length(sha256)=64), record_json TEXT NOT NULL CHECK(json_valid(record_json))
+    ) STRICT;
+    CREATE INDEX exports_cv_date ON exports(cv_id,exported_at DESC);
+  `},
 ];
 const checksum = (m: StorageMigration): string => createHash('sha256').update(`${m.version}\n${m.name}\n${m.sql}`).digest('hex');
 export function checkStorageVersion(db: Database.Database, steps: readonly StorageMigration[] = migrations): number {

@@ -18,7 +18,7 @@ test('SQLite worker round-trips a complete synthetic library across new instance
   assert.deepEqual((await second.read())?.content,content);
   const health = await second.health();
   assert.deepEqual(health.integrity,['ok']); assert.equal(health.foreignKeyViolations,0);
-  assert.equal(health.schemaVersion,2); assert.equal(health.journalMode,'wal'); assert.equal(health.synchronous,2);
+  assert.equal(health.schemaVersion,3); assert.equal(health.journalMode,'wal'); assert.equal(health.synchronous,2);
   assert.equal(health.counts.blobs,1); assert.equal(health.counts.entities,3);
   await assert.rejects(second.commit(null,content),/LIBRARY_CONFLICT/);
   const invalid = structuredClone(content); invalid.workspace.cvOrder.reverse(); invalid.workspace.cvOrder.push(invalid.workspace.cvOrder[0]!);

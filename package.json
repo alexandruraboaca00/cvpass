@@ -30,7 +30,13 @@
     "validate:f7:offline": "node scripts/f7-offline-check.mjs",
     "validate:f7:pdf": "node scripts/f7-render-check.mjs && node scripts/f7-inspect-pdfs.mjs",
     "validate:f7:package": "node scripts/f7-package-check.mjs",
-    "validate:f7:reader": "node scripts/f7-external-reader.mjs"
+    "validate:f7:reader": "node scripts/f7-external-reader.mjs",
+    "test:f8": "npm run build && node --test dist/tests/f8-*.test.js",
+    "test:f8:ui": "playwright test --config playwright.config.ts f8.spec.ts",
+    "validate:f8:pdf": "node scripts/f8-render-check.mjs && node scripts/f8-inspect-pdfs.mjs",
+    "validate:f8:reader": "node scripts/f8-external-reader.mjs",
+    "validate:f8:offline": "node scripts/f8-offline-check.mjs",
+    "validate:f8:package": "node scripts/f8-package-check.mjs"
   },
   "dependencies": {
     "@tiptap/core": "3.32.0",
@@ -63,6 +69,6 @@
     "electron@44.7.2": true,
     "better-sqlite3@13.0.3": true
   },
-  "description": "CVForge — local CV editor",
+  "description": "CVForge \u2014 local CV editor",
   "author": "CVForge contributors"
 }

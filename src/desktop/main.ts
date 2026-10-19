@@ -45,7 +45,7 @@ async function run():Promise<void> {
     const preview=new PdfPreviewService(new RenderSnapshotFactory(host.library,resources,nativeImageNormalizer,sha256,ctx,process.versions.chrome!),host.library,new ChromiumPdfRenderer(),{
       async choose(defaultPath){const result=await dialog.showSaveDialog(win!,{title:message('Exportar PDF'),defaultPath,filters:[{name:'PDF',extensions:['pdf']}],properties:['createDirectory','showOverwriteConfirmation']});return result.canceled?null:result.filePath??null;},
       async write(path,bytes){return writeProjectFile(path,bytes,true);},
-    },sha256,ctx);
+    },sha256,ctx,host.exports);
     const importer=new StructuredImportService(host.library,new LocalStructuredImport(),ctx);
     uiLocale=(await editor.start()).uiLocale;
     session.defaultSession.setPermissionRequestHandler((_webContents,_permission,callback)=>callback(false));
@@ -62,7 +62,7 @@ async function run():Promise<void> {
     const target = z.union([EditorTargetSchema,z.strictObject({kind:z.literal('newEntry'),sectionId:id,entryKind:z.enum(['nativeLanguage','foreignLanguage']).optional()}),z.strictObject({kind:z.literal('newCustomSection')})]);
     const form = z.custom<EditorForm>(value => !!value && typeof value === 'object');
     const schemas = {
-      pdfGenerate:z.tuple([id,revision]),pdfCancel:none,pdfOpenLink:z.tuple([z.string().min(1).max(10000)]),pdfExport:z.tuple([id,z.string().regex(/^[a-f0-9]{64}$/)]),presentation:z.tuple([id,revision,PresentationInputSchema]),
+      projectExport:z.tuple([id,revision]),pdfRecords:z.tuple([id]),pdfGenerate:z.tuple([id,revision]),pdfCancel:none,pdfOpenLink:z.tuple([z.string().min(1).max(10000)]),pdfExport:z.tuple([id,z.string().regex(/^[a-f0-9]{64}$/)]),presentation:z.tuple([id,revision,PresentationInputSchema]),
       importFile:z.tuple([id,z.instanceof(Uint8Array).refine(b=>b.byteLength>0&&b.byteLength<=IMPORT_WORKSPACE_LIMIT),z.string().min(1).max(255).refine(s=>!/[\/\\\u0000-\u001f]/.test(s))]),
       importChoose:z.tuple([id,z.string().min(1).max(100)]),importCancel:z.tuple([id]),
       importConfirm:z.tuple([id,z.custom<ImportReviewInput>(v=>!!v&&typeof v==='object')]),
@@ -86,6 +86,14 @@ async function run():Promise<void> {
           let value:unknown;
           if(importer.isOpen()&&!envelope.action.startsWith('import')&&!['list','status','flush','close','pdfCancel'].includes(envelope.action))throw new Error('IMPORT_ALREADY_OPEN');
           if(envelope.action==='pdfGenerate')value=await preview.generate(args[0] as string,args[1] as number);
+          else if(envelope.action==='pdfRecords')value=await host.exports.listExports(args[0] as string);
+          else if(envelope.action==='projectExport'){
+            if(editor.hasActiveForm())throw new Error('EDITOR_FORM_OPEN');
+            const cv=await host.library.openCv(args[0] as string);if(cv.revision!==args[1])throw new Error('REVISION_CONFLICT');
+            const bytes=await host.library.exportCvproj(cv.id);
+            const result=await dialog.showSaveDialog(win!,{title:message('Exportar proyecto (.cvproj)'),defaultPath:'CVForge.cvproj',filters:[{name:'CVForge',extensions:['cvproj']}],properties:['createDirectory','showOverwriteConfirmation']});
+            value=result.canceled||!result.filePath?{cancelled:true}:{cancelled:false,...await writeProjectFile(result.filePath,bytes,true)};
+          }
           else if(envelope.action==='pdfCancel')preview.invalidate();
           else if(envelope.action==='pdfOpenLink'){if(!preview.canOpenLink(args[0] as string))throw new Error('PDF_LINK_REJECTED');await shell.openExternal(args[0] as string);}
           else if(envelope.action==='pdfExport')value=await preview.export(args[0] as string,args[1] as string);

@@ -9,6 +9,7 @@ import type { ProjectData } from '../../application/contracts.js';
 import { decodeExportPayload, encodeExportPayload } from '../cvproj.js';
 import { decodeJson, encodeJson } from '../json.js';
 import { makeAsset, sha256 } from '../asset-bytes.js';
+import type { BuiltinResources } from '../../application/render-contract.js';
 
 // The F2 payload remains unchanged. This optional transport adds a digest of its exact bytes.
 const Envelope=z.strictObject({format:z.literal('cvforge-pdf-data'),containerFormatVersion:z.literal(1),byteLength:z.int().positive(),sha256:z.string().regex(/^[a-f0-9]{64}$/),payloadBase64:z.base64()});
@@ -31,7 +32,7 @@ export function readPdfPayload(bytes:Uint8Array):{projection:ExportProjection;in
 }
 type Values=ExportProjection['personal'][number]['values'];
 type TextValue=Extract<Values[number],{type:'text'}>;
-export function adaptPdfProjection(projection:ExportProjection,ctx:DomainContext,name:string,integrity:'sha256'|'structural'):{draft:ImportDraft;project:ProjectData}{
+export function adaptPdfProjection(projection:ExportProjection,ctx:DomainContext,name:string,integrity:'sha256'|'structural',builtin?:BuiltinResources):{draft:ImportDraft;project:ProjectData}{
   const draft=emptyImportDraft(ctx,projection.locale,name),cv=draft.cv,assetsById:ProjectData['snapshot']['assetsById']={},blobs=new Map<string,Uint8Array>();
   draft.localeEvidence='ExportPayload.projection.locale';
   const issue=(code:string,path:string[],value='')=>draft.issues.push({kind:'review',code,sourcePath:'/projection/'+path.join('/'),targetPath:path,valuePreview:value.slice(0,2048),resolution:'pending'});
@@ -51,8 +52,12 @@ export function adaptPdfProjection(projection:ExportProjection,ctx:DomainContext
   }
   if(integrity==='structural')issue('PAYLOAD_WITHOUT_TRANSPORT_DIGEST',[]);
   const sourceTemplate=projection.presentation.templateRef;
-  cv.presentation={...cv.presentation,...projection.presentation,templateRef:{id:importTemplate.id,version:importTemplate.version}};
-  if(sourceTemplate.id!==importTemplate.id||sourceTemplate.version!==importTemplate.version)issue('PDF_TEMPLATE_NOT_AVAILABLE',['presentation','templateRef'],canonical(sourceTemplate));
+  const template=builtin?.template??importTemplate;
+  if(builtin){Object.assign(assetsById,structuredClone(builtin.resources.assetsById));for(const [hash,bytes] of builtin.resources.blobs)blobs.set(hash,new Uint8Array(bytes));}
+  cv.presentation={...cv.presentation,...projection.presentation,templateRef:{id:template.id,version:template.version}};
+  // Dates are already minimized. Maximum precision cannot recover private omitted parts.
+  cv.presentation.datePrecision='day';
+  if(sourceTemplate.id!==template.id||sourceTemplate.version!==template.version)issue('PDF_TEMPLATE_NOT_AVAILABLE',['presentation','templateRef'],canonical(sourceTemplate));
   if(projection.documentTitle)cv.documentTitle=text(projection.documentTitle,'documentTitle');
   const p=cv.personalInformation,v=cv.presentation.personalFieldVisibility;
   // A PDF contains only included fields. No hidden values are reconstructed.
@@ -116,5 +121,5 @@ export function adaptPdfProjection(projection:ExportProjection,ctx:DomainContext
       s.ungroupedSkillIds=ids.filter((_,i)=>!grouped.has(i));
     }
   }
-  return {draft,project:{snapshot:{scope:'cv',cv,revisions:[],assetsById,templates:[importTemplate]},blobs}};
+  return {draft,project:{snapshot:{scope:'cv',cv,revisions:[],assetsById,templates:[template]},blobs}};
 }

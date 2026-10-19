@@ -1,6 +1,6 @@
 # Arquitectura propuesta
 
-Versión 0.9 · 18 de octubre de 2026 · F1/F2/F3 aprobadas e integradas en main. Editor principal F4 aprobado por el usuario e integrado en main mediante merge commit desde `f4-core-editor`. Véanse [aceptación F2](f2/VALIDATION.md), [validación F3](f3/VALIDATION.md) y [arquitectura/validación F4](f4/EDITOR.md). F5 tiene áreas e idiomas aprobados por el usuario e integrados en main mediante merge commit desde `f5-mvp-sections-languages`; [detalle](f5/IMPLEMENTATION.md). F6 aprobada por el usuario e integrada en main mediante merge commit desde `f6-structured-import`; [pipeline y límites](f6/IMPORT.md).
+Versión 0.10 · 19 de octubre de 2026 · F1/F2/F3 aprobadas e integradas en main. Editor principal F4 aprobado por el usuario e integrado en main mediante merge commit desde `f4-core-editor`. Véanse [aceptación F2](f2/VALIDATION.md), [validación F3](f3/VALIDATION.md) y [arquitectura/validación F4](f4/EDITOR.md). F5 tiene áreas e idiomas aprobados por el usuario e integrados en main mediante merge commit desde `f5-mvp-sections-languages`; [detalle](f5/IMPLEMENTATION.md). F6 aprobada por el usuario e integrada en main mediante merge commit desde `f6-structured-import`; [pipeline y límites](f6/IMPORT.md).
 
 ## Decisión principal [D]
 
@@ -226,7 +226,7 @@ Una memoria sensible no empareja automáticamente títulos ambiguos por texto: i
 | Versionar una plantilla cambia su aspecto histórico. | Mantener versiones disponibles; si falta una, proponer sustitución y comunicar que el PDF original sigue siendo la referencia visual. No prometer bytes idénticos entre motores/versiones. |
 | Los objetivos de rapidez no se cumplen. | Medición sobre equipo/corpus fijados; perfilar y ajustar antes de declarar el MVP, sin recortar contenido silenciosamente. |
 
-La autorización general para implementar está concedida y las decisiones de producto están cerradas. La fase actual es **F7, Simple y preview PDF.js implementadas y validadas técnicamente en `f7-simple-template-preview`, pendientes de aprobación del usuario e integración**. F1/F2/F3/F4/F5/F6 permanecen aprobadas e integradas en main, con sus límites. El motor automático definitivo sigue pendiente y no cambia el alcance manual/offline autorizado de F5. F8 no se ha iniciado. La validación real de F7 se registra en [f7/VALIDATION.md](f7/VALIDATION.md).
+La autorización general para implementar está concedida y las decisiones de producto están cerradas. F1–F7 y el pulido visual están aprobados e integrados en main. La fase actual es **F8, aprobada por el usuario e integrada en main mediante merge commit desde `f8-lateral-portable-cycle`, con base `7803271`**. F9 no iniciada y requiere nueva autorización. El motor automático definitivo sigue pendiente y no cambia el alcance manual/offline autorizado de F5. [Validación F7](f7/VALIDATION.md), [implementación y validación F8](f8/VALIDATION.md).
 
 ## Resultado de la puerta F1 — 16 de octubre de 2026
 
@@ -344,3 +344,26 @@ La plantilla/renderer Simple v1 fija recursos Liberation Sans 2.1.5/OFL-1.1,
 incluido el pie con contadores CSS. Se rechazan fuentes alteradas y caracteres
 fuera de su cobertura, sin fallback del equipo. No cambia SQLite v2, el modelo
 portable v1 ni los contratos cvproj/payload v1. [Detalles y límites](f7/SIMPLE_TEMPLATE.md).
+
+## Concreción F8 — Dos presentaciones y ciclo portable
+
+El selector versionado Simple/Lateral reutiliza snapshot, proyección visible,
+Chromium aislado, worker y PDF.js. Simple conserva sus HTML/CSS/recursos; Lateral
+añade composición medida con dos colas por página. ExportProjection es el
+DistributionSnapshot explícito de lo representado, único origen del payload.
+Plantillas/cambios de presentación no alteran contenido. El codec PDF v1 sigue
+igual: el importador reconoce las dos plantillas v1 mediante recursos locales,
+y rechaza versiones futuras en lugar de reescribirlas.
+
+ExportRecordRepository es un puerto privado de aplicación. El mismo worker
+SQLite añade esquema v3 (migración con backup) y tabla exports independiente del
+snapshot de contenido. Guarda revisión, configuración, versiones y hashes, sin
+texto, assets ni ruta. Se confirma después de verificar la escritura; un fallo
+posterior informa que el archivo existe pero falta su recibo. No se promete una
+transacción distribuida filesystem/SQLite. El backup SQLite lo conserva, mientras
+.cvproj v1 mantiene su alcance de proyecto/historia, sin recibos operativos locales.
+
+Exportar proyecto se expone en la GUI con el codec y escritura atómica existentes,
+sin aceptar implícitamente perder borradores. Los ciclos PDF visible y proyecto
+completo pasan por bibliotecas independientes. [Diseño y lectura](f8/LATERAL_TEMPLATE.md),
+[contratos/privacidad](f8/PORTABLE_EXPORT.md), [pruebas y límites](f8/VALIDATION.md).
