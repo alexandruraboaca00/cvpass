@@ -4,9 +4,9 @@
 
 CVForge es una aplicación local para crear y gestionar CV, generar PDF profesionales e importar proyectos/CV existentes. La investigación funcional de Europass está terminada. La implementación está autorizada por el usuario y debe seguir las fases del roadmap.
 
-Fase actual: **F7 — plantilla Simple y preview PDF.js, aprobada por el usuario e integrada en `main` mediante merge commit desde `f7-simple-template-preview`**, con base `7230814`. F1–F7 permanecen aprobadas e integradas. F1 cerrada salvo regresión directa. La preview y la exportación usan los mismos bytes PDF finales desde RenderSnapshot congelado; una columna, recursos locales y contenido visible. No Lateral, dos columnas, OCR, PDF genérico, motor automático definitivo ni F8. Datos privados nunca en fixtures/Git. F8 no iniciada; no comenzarla sin nueva autorización del usuario.
+Fase actual: **F8 — Lateral y ciclo portable, autorizada por el usuario en `f8-lateral-portable-cycle`**, desde `main` limpio/sincronizado `78032712f74ecfeb868e1a91b3b4ccbb4f47dda3`. F1–F7 permanecen aprobadas e integradas; Simple queda congelada funcionalmente. F1 cerrada salvo regresión directa. Mantener RenderSnapshot, recursos locales e identidad de bytes preview/export. F8 añade Lateral, selector, ciclo PDF visible/`.cvproj` completo y ExportRecord durable. Datos privados nunca en fixtures/Git. No OCR, PDF genérico, motor automático definitivo ni F9. No fusionar F8 ni comenzar F9 sin aprobación posterior del usuario.
 
-Pulido visual independiente **aprobado por el usuario e integrado en `main` mediante merge commit desde `ui-visibility-polish`**, con base `8ff5e69`. Solo UI/CSS y validación: tema claro, contraste, modales y visor. No modifica el PDF Simple ni los contratos de F1–F7. [Alcance y validación](docs/ui/VISIBILITY_POLISH.md), [revisión completa de layout](docs/ui/LAYOUT_REVIEW.md). F8 no iniciada.
+Pulido visual independiente **aprobado por el usuario e integrado en `main` mediante merge commit desde `ui-visibility-polish`**, con base `8ff5e69`. Solo UI/CSS y validación: tema claro, contraste, modales y visor. No modifica el PDF Simple ni los contratos de F1–F7. [Alcance y validación](docs/ui/VISIBILITY_POLISH.md), [revisión completa de layout](docs/ui/LAYOUT_REVIEW.md). Mantener esa UI durante F8.
 
 ## Especificación vigente
 
