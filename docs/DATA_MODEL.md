@@ -1,6 +1,6 @@
 # Modelo de datos de CVForge
 
-Versión 0.7 · 18 de octubre de 2026 · Especificación conceptual y concreciones F2/F3/F5/F6/F7. El dominio MVP y el contrato portable inicial están implementados; correspondencias y límites en [f2/IMPLEMENTATION.md](f2/IMPLEMENTATION.md). La biblioteca, revisiones, activos y borradores son durables en F3; [esquema y límites](f3/PERSISTENCE.md). La importación estructurada F6 se concreta en [f6/IMPORT.md](f6/IMPORT.md); inventario V1 e importadores genéricos siguen siendo especificación.
+Versión 0.8 · 19 de octubre de 2026 · Especificación conceptual y concreciones F2/F3/F5/F6/F7/F8. El dominio MVP y el contrato portable inicial están implementados; correspondencias y límites en [f2/IMPLEMENTATION.md](f2/IMPLEMENTATION.md). La biblioteca, revisiones, activos y borradores son durables en F3; [esquema y límites](f3/PERSISTENCE.md). La importación estructurada F6 se concreta en [f6/IMPORT.md](f6/IMPORT.md); inventario V1 e importadores genéricos siguen siendo especificación.
 
 ## Convenciones y principios [D]
 
@@ -420,3 +420,24 @@ los assets/templates existentes de SQLite/cvproj, sin migración nueva. Presenta
 se confirma como revisión normal, sin cambiar datos ni aumentar precisión de fechas.
 Zoom, página actual y apertura del visor no se añaden al contenido exportable.
 [Implementación y validación](f7/SIMPLE_TEMPLATE.md).
+
+## Concreción F8 — Exportación durable y recuperación de la distribución
+
+El modelo privado/portable v1 no cambia. TemplateDefinition lateral/1 declara
+twoColumn y comparte los recursos locales F7; PresentationSettings ya admite su
+selección versionada. El renderer lateral-1 pertenece al mismo puerto de impresión.
+Las fechas y variantes siguen resolviéndose en ExportProjection antes de paginar.
+
+ExportRecord conceptual se concreta en un contrato privado de aplicación v1 y
+una tabla SQLite v3, fuera del contenido exportable del CV. Incluye CV/revisión,
+plantilla/renderer/Chromium, configuración efectiva, huellas de proyección y
+composición, fecha UTC, SHA-256/longitud/páginas finales y política visible-export-v1.
+No guarda ruta ni duplica contenido. El recibo describe una generación fija y no
+se actualiza al editar. No viaja en PDF ni se añade a .cvproj v1; el backup SQLite
+sí lo conserva. Eliminación de CV retira sus recibos, sin borrar archivos externos.
+
+Reimportar PDF propio v1 conserva la proyección representada y recursos propios
+de Simple/Lateral v1, con nuevos IDs. Los ocultos no se reconstruyen y la máxima
+precisión editable no inventa partes omitidas. Las variantes C importadas siguen
+sin aprobación/original fabricados. .cvproj conserva datos privados y checkpoints
+según su contrato previo. [Detalle y límites](f8/PORTABLE_EXPORT.md).

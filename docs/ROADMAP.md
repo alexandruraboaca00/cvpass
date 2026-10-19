@@ -1,12 +1,12 @@
 # Roadmap de implementación
 
-Versión 0.7 · 18 de octubre de 2026 · Decisiones de producto consolidadas e implementación autorizada por fases. **Fase actual: F7 aprobada por el usuario e integrada en `main` mediante merge commit desde `f7-simple-template-preview`, con base `7230814`. F8 no iniciada.** F1–F7 permanecen aprobadas e integradas en main; la base previa a F6 es `238dee3`. Véanse [importación F6](f6/IMPORT.md) y [validación F6](f6/VALIDATION.md).
+Versión 0.8 · 19 de octubre de 2026 · Decisiones de producto consolidadas e implementación autorizada por fases. **Fase actual: F8 autorizada en `f8-lateral-portable-cycle`, desde main `7803271`. F1–F7 y el pulido visual están aprobados e integrados. F9 no iniciada.** F1–F7 permanecen aprobadas e integradas en main; la base previa a F6 es `238dee3`. Véanse [importación F6](f6/IMPORT.md) y [validación F6](f6/VALIDATION.md).
 
 ## Alcance y criterio de avance [D]
 
 Las fases concretan las decisiones finales del usuario [D], descritas en [REQUIREMENTS.md](REQUIREMENTS.md), [ARCHITECTURE.md](ARCHITECTURE.md) y [DATA_MODEL.md](DATA_MODEL.md). La evidencia histórica principal está en [23 — Cierre](research/23-cierre-investigacion-y-criterios.md), [28 — Mejoras](research/28-mejoras-necesarias-y-aceptacion.md) y [29](research/29-simulacion-caducidad-y-recuperacion.md). Las propuestas históricas incompatibles no prevalecen sobre esta especificación.
 
-La investigación ha terminado y la implementación está autorizada. No hay esperas de 48 horas ni acciones manuales pendientes en Europass. Las comprobaciones siguientes se harán sobre nuestra aplicación; las pruebas de Europass no las sustituyen. La orden vigente autoriza integrar F7 mediante merge commit; no autoriza comenzar F8. F1 permanece cerrada y F1–F7 integradas.
+La investigación ha terminado y la implementación está autorizada. No hay esperas de 48 horas ni acciones manuales pendientes en Europass. Las comprobaciones siguientes se harán sobre nuestra aplicación; las pruebas de Europass no las sustituyen. La orden vigente autoriza implementar F8 en su rama; no autoriza fusionarla ni comenzar F9. F1 permanece cerrada y F1–F7 integradas.
 
 Cada fase debe entregar un resultado revisable y superar su criterio antes de ampliar alcance. Se fija entonces la versión de dependencias utilizada y se conserva la evidencia de aceptación. No se asignan fechas sin estimar sobre los primeros resultados.
 
@@ -106,7 +106,7 @@ Por decisión final del usuario para este cierre, la traducción no forma parte 
 
 ## F7 — Primera plantilla original y preview real
 
-**Estado: APROBADA por el usuario e integrada en `main` mediante merge commit desde `f7-simple-template-preview`.** Simple original, snapshot congelado y preview/exportación de los mismos bytes validados. F1 3/3, F2–F7 151/151, 15 flujos UI sin red, 7 casos PDF, TypeScript/build y paquete Linux pasan. La aceptación GTK real pasó como comprobación adicional; su automatización depende del backend y no se presenta como estable. [Implementación](f7/SIMPLE_TEMPLATE.md), [validación y límites](f7/VALIDATION.md). F8 no iniciada.
+**Estado: APROBADA por el usuario e integrada en `main` mediante merge commit desde `f7-simple-template-preview`.** Simple original, snapshot congelado y preview/exportación de los mismos bytes validados. F1 3/3, F2–F7 151/151, 15 flujos UI sin red, 7 casos PDF, TypeScript/build y paquete Linux pasan. La aceptación GTK real pasó como comprobación adicional; su automatización depende del backend y no se presenta como estable. [Implementación](f7/SIMPLE_TEMPLATE.md), [validación y límites](f7/VALIDATION.md). Al cerrar F7 todavía no se había iniciado F8; su estado actual figura a continuación.
 
 **Depende de:** F6 y contrato PDF de F1. **Salida:** plantilla Simple de una columna y visor del PDF generado.
 
@@ -117,6 +117,8 @@ Por decisión final del usuario para este cierre, la traducción no forma parte 
 **Aceptación:** títulos unidos al primer contenido, ninguna línea fuera de margen y textos largos íntegros. Un documento de 48 párrafos propios conserva los 48. Cambiar ajustes no cambia contenido; exportar los mismos bytes vistos conserva páginas y enlaces. Medir el primer conjunto de tiempos, todavía sin declarar el MVP.
 
 ## F8 — Segunda plantilla y ciclo portable completo
+
+**Estado: APROBADA técnicamente en `f8-lateral-portable-cycle`, pendiente de aprobación del usuario y merge.** Lateral/selector, proyección mínima, ciclos PDF/`.cvproj` y recibos SQLite v3 validados: F1 3/3, F2–F8 163/163, UI 23/23, 26 PDF/corpus, TypeScript/build, paquete Linux 3/3 y offline PASS. [Criterios y límites](f8/VALIDATION.md). No se declara F9 ni aceptación global del MVP.
 
 **Depende de:** F7. **Salida:** Lateral, Exportar → PDF normal y `.cvproj` completo.
 
@@ -229,4 +231,4 @@ Nuevos motores/memorias de traducción, diseños, ajuste de extensión, catálog
 
 ## Decisiones que siguen pendientes [P]
 
-F0 está cerrada por las decisiones finales del usuario. F1 está aprobada con versiones, mediciones y límites en [F1_VALIDATION.md](F1_VALIDATION.md). La traducción queda fuera de sus criterios de cierre por instrucción final del usuario; no se presenta como validada para el producto. F2 está aprobada e integrada en `main` con los límites del contrato inicial en [f2/VALIDATION.md](f2/VALIDATION.md). F3 está aprobada por el usuario e integrada en main [con evidencia propia](f3/VALIDATION.md). F4 está [aprobada por el usuario e integrada en main](f4/VALIDATION.md). F5 está aprobada por el usuario e integrada en main con el alcance manual/contrato autorizado; véase [validación F5](f5/VALIDATION.md). El motor automático definitivo permanece pendiente. F6 está aprobada por el usuario e integrada en main mediante merge commit; véase [validación F6](f6/VALIDATION.md). F7 está aprobada por el usuario e integrada en main mediante merge commit. [Validación F7](f7/VALIDATION.md). F8 no se ha iniciado.
+F0 está cerrada por las decisiones finales del usuario. F1 está aprobada con versiones, mediciones y límites en [F1_VALIDATION.md](F1_VALIDATION.md). La traducción queda fuera de sus criterios de cierre por instrucción final del usuario; no se presenta como validada para el producto. F2 está aprobada e integrada en `main` con los límites del contrato inicial en [f2/VALIDATION.md](f2/VALIDATION.md). F3 está aprobada por el usuario e integrada en main [con evidencia propia](f3/VALIDATION.md). F4 está [aprobada por el usuario e integrada en main](f4/VALIDATION.md). F5 está aprobada por el usuario e integrada en main con el alcance manual/contrato autorizado; véase [validación F5](f5/VALIDATION.md). El motor automático definitivo permanece pendiente. F6 está aprobada por el usuario e integrada en main mediante merge commit; véase [validación F6](f6/VALIDATION.md). F7 está aprobada por el usuario e integrada en main mediante merge commit. [Validación F7](f7/VALIDATION.md). F8 está validada técnicamente en su rama, pendiente de aprobación y merge; [estado real](f8/VALIDATION.md). F9 no iniciada.

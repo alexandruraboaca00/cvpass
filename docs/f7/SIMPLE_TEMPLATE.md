@@ -1,8 +1,10 @@
 # F7 — Simple y preview PDF.js
 
 Implementación en `f7-simple-template-preview`, desde main `7230814`.
-El cierre técnico se registra en [VALIDATION.md](VALIDATION.md). No se fusiona la
-rama ni se inicia F8 sin aprobación del usuario.
+El cierre técnico se registra en [VALIDATION.md](VALIDATION.md). F7 está aprobada
+e integrada; F8 se autoriza posteriormente en su rama. El alcance histórico de F7
+descrito aquí se amplía en [f8/LATERAL_TEMPLATE.md](../f8/LATERAL_TEMPLATE.md), sin
+cambiar funcionalmente Simple.
 
 ## Base y límites de fase
 
