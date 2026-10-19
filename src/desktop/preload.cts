@@ -3,6 +3,8 @@ import type { EditorApi } from '../application/editor-contract.js';
 const {contextBridge,ipcRenderer} = electron;
 const invoke = (action:string,...args:unknown[]) => ipcRenderer.invoke('cvforge:editor',{action,args});
 const api:EditorApi = {
+  projectExport:(...args)=>invoke('projectExport',...args),
+  pdfRecords:(...args)=>invoke('pdfRecords',...args),
   pdfGenerate:(...args)=>invoke('pdfGenerate',...args),pdfCancel:()=>invoke('pdfCancel'),pdfOpenLink:(...args)=>invoke('pdfOpenLink',...args),pdfExport:(...args)=>invoke('pdfExport',...args),presentation:(...args)=>invoke('presentation',...args),
   importFile:(...args)=>invoke('importFile',...args),importChoose:(...args)=>invoke('importChoose',...args),importCancel:(...args)=>invoke('importCancel',...args),importConfirm:(...args)=>invoke('importConfirm',...args),importRestore:(...args)=>invoke('importRestore',...args),importPhoto:(...args)=>invoke('importPhoto',...args),
   list:()=>invoke('list'),create:(...args)=>invoke('create',...args),open:(...args)=>invoke('open',...args),

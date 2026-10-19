@@ -14,6 +14,7 @@ export function lateralHtml(snapshot:RenderSnapshot):string {
     .lateral-columns{display:flex;gap:8mm;flex:1;min-height:0;align-items:stretch}
     .lateral-side{width:52mm;flex:none;background:#f0f3f6;border-left:0.6mm solid ${snapshot.projection.presentation.accentColor};padding:4mm}
     .lateral-body{width:114mm;flex:none;padding-top:0}
+    .lateral-no-sidebar .lateral-side{display:none}.lateral-no-sidebar .lateral-body{width:174mm}
     .lateral-column{min-height:0;display:flow-root}
     .lateral-column h2{font-size:11.5pt;border-bottom:0.2mm solid #b3bdc9;margin-top:4mm}
     .lateral-column>section:first-child>h2:first-child{margin-top:0}
@@ -41,6 +42,7 @@ export function paginateLateral():{pages:number;overflow:boolean} {
   }
   for(const el of [...main.children])if(el!==identity)(el.getAttribute('data-lane')==='side'?side:body).push(el);
   main.replaceChildren();
+  main.classList.toggle('lateral-no-sidebar',side.length===0);
   const text=(nodes:Node[])=>nodes.map(n=>n.textContent??'').join('');
   const expected={side:text(side),body:text(body)};
   const pending={side:[...side],body:[...body]};
@@ -51,7 +53,10 @@ export function paginateLateral():{pages:number;overflow:boolean} {
   function fill(node:Node,parent:Node,column:HTMLElement):Node|null {
     parent.appendChild(node);
     if(fits(column))return null;
+    const height=node instanceof HTMLElement?node.getBoundingClientRect().height:0;
     parent.removeChild(node);
+    // Keep short entries and list items whole when they can fit on a fresh page.
+    if(node instanceof HTMLElement&&node.matches('.entry.compact,li')&&height<column.clientHeight*0.8)return node;
     if(node.nodeType===Node.TEXT_NODE){
       const source=node.textContent??'';let lo=0,hi=source.length;
       const prefix=document.createTextNode('');parent.appendChild(prefix);
@@ -74,17 +79,18 @@ export function paginateLateral():{pages:number;overflow:boolean} {
       // A heading/metadata chain must have its first content on the same page.
       while(prefix.lastChild&&keep(prefix.lastChild))rest.prepend(prefix.lastChild);
       if(!prefix.textContent?.trim()&&!prefix.querySelector('img')){prefix.remove();return rest;}
-      if(node.matches('ol'))rest.setAttribute('start',String(Number(node.getAttribute('start')??1)+prefix.children.length));
+      if(node.matches('ol'))rest.setAttribute('start',String(Number(node.getAttribute('start')??1)+i));
       return rest;
     }
     return null;
   }
-  while(pending.side.length||pending.body.length){
+  while(!pages||pending.side.length||pending.body.length){
     if(++pages>200)throw Error('RENDER_PAGE_LIMIT');
     const page=document.createElement('div');page.className='lateral-page';main.append(page);
     if(pages===1)page.append(heading);
+    if(heading.getBoundingClientRect().height>page.clientHeight)throw Error('RENDER_BLOCK_TOO_LARGE');
     const row=document.createElement('div');row.className='lateral-columns';page.append(row);
-    let progress=false;
+    let progress=pages===1&&!!heading.textContent?.trim();
     for(const lane of ['side','body'] as const){
       const column=document.createElement('div');column.className=`lateral-column lateral-${lane}`;row.append(column);
       // Freeze its measured available height so scrollHeight detects a real overflow.

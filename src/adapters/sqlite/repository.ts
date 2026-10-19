@@ -2,10 +2,11 @@ import { Worker } from 'node:worker_threads';
 import type { BackupReceipt, LibraryContent, LibraryRecord, LibraryRepository, StorageHealth } from '../../application/contracts.js';
 import { LibraryError } from '../../application/contracts.js';
 import type { WorkerRequest, WorkerResponse } from './protocol.js';
+import type { ExportRecord, ExportRecordRepository } from '../../application/export-record.js';
 
 type Request = WorkerRequest extends infer R ? R extends WorkerRequest ? Omit<R, 'id'> : never : never;
 // Instantiate only from a trusted main/host process. Renderer receives application operations.
-export class SqliteLibraryRepository implements LibraryRepository {
+export class SqliteLibraryRepository implements LibraryRepository, ExportRecordRepository {
   private readonly worker: Worker;
   private readonly pending = new Map<number, {resolve:(value:unknown)=>void; reject:(error:Error)=>void}>();
   private nextId = 0;
@@ -44,6 +45,8 @@ export class SqliteLibraryRepository implements LibraryRepository {
   commit(expectedGeneration: number | null, content: LibraryContent): Promise<number> { return this.call({method:'commit',expectedGeneration,content}); }
   backup(): Promise<BackupReceipt> { return this.call({method:'backup'}); }
   health(): Promise<StorageHealth> { return this.call({method:'health'}); }
+  appendExport(record:ExportRecord):Promise<void>{return this.call({method:'appendExport',record});}
+  listExports(cvId:string):Promise<ExportRecord[]>{return this.call({method:'listExports',cvId});}
   close(): Promise<void> {
     return this.closeTask ??= (async () => {
       if (this.closed) return;

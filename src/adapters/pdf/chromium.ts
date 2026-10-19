@@ -3,7 +3,7 @@ import { Worker } from 'node:worker_threads';
 import { simpleHtml } from './simple.js';
 import { lateralHtml, paginateLateral } from './lateral.js';
 import { assertFontCoverage } from './font-coverage.js';
-import { renderFail, throwIfAborted } from '../../application/render-contract.js';
+import { builtinTemplate, renderFail, throwIfAborted } from '../../application/render-contract.js';
 import type { PdfArtifact, PdfRenderPort, RenderSnapshot } from '../../application/render-contract.js';
 
 // Register once, before app.whenReady(). Content is held in memory, never a user-supplied URL.
@@ -24,6 +24,8 @@ export class ChromiumPdfRenderer implements PdfRenderPort {
   }
   private async perform(snapshot:RenderSnapshot,signal:AbortSignal):Promise<PdfArtifact>{
     throwIfAborted(signal);assertFontCoverage(snapshot);
+    builtinTemplate(snapshot.projection.presentation.templateRef.id,snapshot.projection.presentation.templateRef.version);
+    if(snapshot.engineVersion!==process.versions.chrome)renderFail('RENDER_ENGINE_MISMATCH');
     const lateral=snapshot.projection.presentation.templateRef.id==='lateral';
     if(snapshot.rendererVersion!==(lateral?'lateral-1':'simple-1'))renderFail('RENDER_TEMPLATE_UNSUPPORTED');
     const url=`cvforge-render://snapshot/${snapshot.id}`,html=lateral?lateralHtml(snapshot):simpleHtml(snapshot);this.jobs.set(url,html);

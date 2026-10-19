@@ -1,5 +1,8 @@
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { randomUUID } from 'node:crypto';
+import { fileURLToPath } from 'node:url';
+import { loadSimpleResources } from '../pdf/resources.js';
+import { builtinTemplate } from '../../application/render-contract.js';
 import type { DomainContext } from '../../domain/index.js';
 import { IMPORT_FILE_LIMIT, IMPORT_WORKSPACE_LIMIT, IMPORT_XML_LIMIT, ImportFailure, importFail } from '../../application/import-contract.js';
 import type { ImportAnalysis, ImportCandidate } from '../../application/import-contract.js';
@@ -49,7 +52,16 @@ export async function analyzeImport(bytes:Uint8Array,fileName:string,ctx:DomainC
         const digest=sha256(content);
         try{
           const payload=readPdfPayload(content);
-          if(payload){const {draft,project}=adaptPdfProjection(payload.projection,ctx,name,payload.integrity);analysis.candidates.push({key,format:'cvforgePdf',attachmentName,sha256:digest,status:status(draft),code:null,draft,project});continue;}
+          if(payload){
+            const ref=payload.projection.presentation.templateRef;let builtin;
+            if(['simple','lateral'].includes(ref.id)){
+              if(ref.version!==1)importFail('PDF_TEMPLATE_VERSION_UNSUPPORTED');
+              if(payload.projection.presentation.fontFamily!=='Liberation Sans')importFail('PDF_FONT_UNSUPPORTED');
+              builtin=await loadSimpleResources(fileURLToPath(new URL('../../../../resources/fonts/',import.meta.url)));
+              builtin={...builtin,template:builtinTemplate(ref.id,ref.version)};
+            }
+            const {draft,project}=adaptPdfProjection(payload.projection,ctx,name,payload.integrity,builtin);analysis.candidates.push({key,format:'cvforgePdf',attachmentName,sha256:digest,status:status(draft),code:null,draft,project});continue;
+          }
           if(detectSignature(content)==='xml')analysis.candidates.push(xmlCandidate(content,key,attachmentName,'europassPdf'));
           else analysis.candidates.push({key,format:'europassPdf',attachmentName,sha256:digest,status:'incompatible',code:'ATTACHMENT_NOT_STRUCTURED_CV',draft:null,project:null});
         }catch(error){analysis.candidates.push({key,format:'cvforgePdf',attachmentName,sha256:digest,status:'invalid',code:safeCode(error,'CVFORGE_PAYLOAD_INVALID'),draft:null,project:null});}
