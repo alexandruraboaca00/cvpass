@@ -50,7 +50,10 @@ export class LibraryService {
   }
   private async persist(record: LibraryRecord): Promise<void> {
     collectUnused(record.content);
-    await this.repository.commit(record.generation,validateLibrary(record.content));
+    // The repository validates the complete dependency closure before its atomic
+    // commit. Entity edits are already validated above; avoid validating all
+    // unchanged CV twice for every draft/save in a 100-document library.
+    await this.repository.commit(record.generation,record.content);
   }
   private applyEntity(s: LibraryContent, input: unknown, expectedRevision: number, cause: Revision['cause'], resources: Resources, draftId?: string): Entity {
     const candidate = validateEntity(input), current = findEntity(s,candidate.id);

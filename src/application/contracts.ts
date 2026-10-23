@@ -42,7 +42,8 @@ export interface StorageHealth {
 }
 export interface LibraryRepository {
   read(): Promise<LibraryRecord | null>;
-  // Atomic compare-and-swap of a consistent library. null means an empty database.
+  // Validate the full library/dependency closure, then atomic compare-and-swap.
+  // Reject invalid input without mutation. null means an empty database.
   commit(expectedGeneration: number | null, content: LibraryContent): Promise<number>;
   backup(): Promise<BackupReceipt>;
   health(): Promise<StorageHealth>;

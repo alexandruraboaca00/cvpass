@@ -50,10 +50,14 @@ export function assertDataTree(value:unknown,maxDepth=128):void {
     if(!Array.isArray(v)&&proto!==Object.prototype&&proto!==null)fail('data.prototype');
     if(Object.getOwnPropertySymbols(v).length)fail('data.symbolKey');
     if(Array.isArray(v)&&Object.keys(v).length!==v.length)fail('data.sparseOrExtendedArray');
-    for(const descriptor of Object.values(Object.getOwnPropertyDescriptors(v)))if(descriptor.get||descriptor.set)fail('data.accessor');
+    const descriptors=Object.getOwnPropertyDescriptors(v);
     ancestors.add(v);
-    for(const [key,x]of Object.entries(v)){
-      if(['__proto__','prototype','constructor'].includes(key))fail('data.unsafeKey');visit(x,depth+1);
+    for(const key of Object.keys(descriptors)){
+      const descriptor=descriptors[key]!;
+      if(descriptor.get||descriptor.set)fail('data.accessor');
+      if(!descriptor.enumerable)continue;
+      if(key==='__proto__'||key==='prototype'||key==='constructor')fail('data.unsafeKey');
+      visit(descriptor.value,depth+1);
     }
     ancestors.delete(v);
   }

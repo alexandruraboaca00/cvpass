@@ -1,16 +1,21 @@
 import { z } from 'zod';
 import { IdSchema, Timestamp, parse, fail } from './primitives.js';
 import type { DomainContext } from './primitives.js';
-import { CvDocumentSchema, MasterProfileSchema, validateEntity, validateCv } from './model.js';
+import { CvDocumentSchema, MasterProfileSchema, validateEntity, validateCv, assertEntityInvariants } from './model.js';
 import type { Entity, CvDocument } from './model.js';
 export const RevisionSchema=z.strictObject({id:IdSchema,entityId:IdSchema,entityKind:z.enum(['profile','cv']),number:z.int().nonnegative(),createdAt:Timestamp,cause:z.enum(['checkpoint','beforeTranslation','edit','restore','import']),retention:z.enum(['ordinary','pinned']),snapshot:z.union([CvDocumentSchema,MasterProfileSchema])});
 export type Revision=z.infer<typeof RevisionSchema>;
 export function validateRevision(value:unknown):Revision {
   const r=parse(RevisionSchema,value);const e=validateEntity(r.snapshot);
+  assertRevisionInvariants({...r,snapshot:e});
+  return r;
+}
+// Internal: RevisionSchema and the containing graph were parsed by the caller.
+export function assertRevisionInvariants(r:Revision):void {
+  const e=r.snapshot;assertEntityInvariants(e);
   if(r.entityId!==e.id||r.entityKind!==e.kind||r.number!==e.revision)fail('revision.snapshotMismatch');
   if(r.createdAt<e.updatedAt)fail('revision.beforeSnapshot');
   if(r.cause==='beforeTranslation'&&r.retention!=='pinned')fail('revision.translationMustBePinned');
-  return r;
 }
 export function checkpoint(entity:Entity,ctx:DomainContext,cause:Revision['cause']='beforeTranslation'):Revision {
   const e=validateEntity(entity);

@@ -43,6 +43,7 @@ export interface EngineOptions {
   transactionProbe?: (stage: 'beforeWrite' | 'afterEntities' | 'beforeCommit', database: Database.Database) => void;
 }
 export class SqliteEngine {
+  private cached: {record:LibraryRecord|null;dataVersion:number}|undefined;
   private constructor(private readonly db: Database.Database, private readonly directory: string, private readonly options: EngineOptions) {}
   static async open(directory: string, options: EngineOptions = {}): Promise<SqliteEngine> {
     const location = privateDirectory(directory), path = join(location, DATABASE_NAME);
@@ -65,7 +66,11 @@ export class SqliteEngine {
     } catch (e) { db.close(); throw e; }
   }
   read(): LibraryRecord | null {
-    return this.db.transaction(() => {
+    // One writer owns this connection. External commits invalidate the validated
+    // snapshot through SQLite data_version; callers always receive a fresh copy.
+    const dataVersion=this.db.pragma('data_version',{simple:true}) as number;
+    if(this.cached?.dataVersion===dataVersion)return structuredClone(this.cached.record);
+    const record=this.db.transaction(() => {
       const row = this.db.prepare<[], {id:string; generation:number; settings_json:string; cv_order_json:string; model_version:number}>('SELECT * FROM workspace WHERE slot=1').get();
       if (!row) {
         if (TABLES.some(t => Number(this.db.prepare(`SELECT count(*) AS n FROM ${t}`).pluck().get()))) reject('STORAGE_ORPHAN_DATA');
@@ -102,6 +107,8 @@ export class SqliteEngine {
       this.checkReferences(content);
       return { generation:row.generation, content };
     })();
+    this.cached={record:structuredClone(record),dataVersion};
+    return record;
   }
   private checkReferences(s: LibraryContent): void {
     const expected: Record<string, string[]> = {
@@ -123,7 +130,8 @@ export class SqliteEngine {
   commit(expectedGeneration: number | null, input: LibraryContent): number {
     const s = validateLibrary(input);
     for (const a of Object.values(s.assetsById)) verifyAssetBytes(a, s.blobs.get(a.sha256)!);
-    return this.db.transaction(() => {
+    const dataVersion=this.db.pragma('data_version',{simple:true}) as number;
+    const generation=this.db.transaction(() => {
       const generation = this.db.prepare<[], {generation:number}>('SELECT generation FROM workspace WHERE slot=1').get()?.generation ?? null;
       if (generation !== expectedGeneration) reject('LIBRARY_CONFLICT');
       const next = (generation ?? -1) + 1;
@@ -168,6 +176,8 @@ export class SqliteEngine {
       if ((this.db.pragma('foreign_key_check') as unknown[]).length) reject('STORAGE_FOREIGN_KEY_FAILURE');
       return next;
     }).immediate();
+    this.cached={record:{generation,content:s},dataVersion};
+    return generation;
   }
   async backup(): Promise<BackupReceipt> {
     const name = `library-${randomUUID()}.sqlite3`, target = join(privateSubdirectory(this.directory, 'backups'), name);

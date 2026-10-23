@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createSection, emptyPersonal, parse, NonBlank, validateCv, referencedAssets, SectionKindSchema } from '../domain/index.js';
+import { createSection, emptyPersonal, parse, NonBlank, validateCv, referencedAssets, SectionKindSchema, canonical } from '../domain/index.js';
 import type { Asset, CvDocument, DomainContext, SectionKind, TemplateDefinition } from '../domain/index.js';
 import { DraftAutosaver } from './autosave.js';
 import type { AutosaveStatus } from './autosave.js';
@@ -20,7 +20,7 @@ export interface EditorLibraryView {
 }
 export interface EditorDocumentView {cv:CvDocument;photo:PhotoView|null}
 export interface PhotoView {mediaType:string;bytes:Uint8Array;dimensions:{width:number;height:number};crop:{x:number;y:number;width:number;height:number}}
-interface ActiveForm { form:EditorForm; draft:FormDraft; autosaver:DraftAutosaver; resources:Resources }
+interface ActiveForm { form:EditorForm; draft:FormDraft; autosaver:DraftAutosaver; resources:Resources;lastStaged?:string }
 export class CoreEditorService {
   private active:ActiveForm|null = null;
   constructor(private readonly library:LibraryService,private readonly ctx:DomainContext,private readonly initialTemplate?:()=>Promise<BuiltinResources>) {}
@@ -112,6 +112,9 @@ export class CoreEditorService {
     const active = this.active ?? reject('EDITOR_NO_FORM');
     if (input.draftId !== active.draft.id || JSON.stringify(input.target) !== JSON.stringify(active.form.target)) reject('EDITOR_DRAFT_MISMATCH');
     assertEditorScope(validateCv(active.draft.baseSnapshot),input);
+    const fingerprint=canonical(input);
+    if(active.lastStaged===fingerprint)return;
+    active.lastStaged=fingerprint;
     active.form = structuredClone(input);
     // Explicit resource references keep only the current draft photo reachable.
     const ids = [...referencedAssets(input.cv)];

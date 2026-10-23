@@ -1,9 +1,9 @@
 import { z } from 'zod';
 import { IdSchema, DocumentLocale, parse, fail, assertOrder, checkMap, assertDataTree, canonical } from './primitives.js';
-import { MasterProfileSchema, CvDocumentSchema, AssetMapSchema, TemplateSchema, validateEntity } from './model.js';
+import { MasterProfileSchema, CvDocumentSchema, AssetMapSchema, TemplateSchema, assertEntityInvariants } from './model.js';
 import type { Entity, Asset, TemplateDefinition } from './model.js';
-import { RevisionSchema, validateRevision } from './revisions.js';
-import { referencedAssets, validateResources } from './assets.js';
+import { RevisionSchema, assertRevisionInvariants } from './revisions.js';
+import { referencedAssets, assertResourceReferences } from './assets.js';
 export const DOMAIN_MODEL_VERSION=1;
 export const WorkspaceSchema=z.strictObject({id:IdSchema,profile:MasterProfileSchema.nullable(),cvsById:z.record(IdSchema,CvDocumentSchema),cvOrder:z.array(IdSchema),settings:z.strictObject({uiLocale:DocumentLocale})});
 export type Workspace=z.infer<typeof WorkspaceSchema>;
@@ -17,6 +17,7 @@ export function entitiesOf(project:ProjectSnapshot):Entity[]{return project.scop
 export const templateKey=(t:{id:string;version:number}):string=>`${t.id}@${t.version}`;
 export function validateProject(value:unknown):ProjectSnapshot {
   assertDataTree(value);const p=parse(ProjectSnapshotSchema,value);
+  checkMap(p.assetsById,['assetsById']);
   const entities=entitiesOf(p);const owners=new Map(entities.map(e=>[e.id,e]));
   if(owners.size!==entities.length)fail('project.duplicateEntityId');
   if(p.scope==='workspace'){
@@ -29,11 +30,11 @@ export function validateProject(value:unknown):ProjectSnapshot {
     if(!v||typeof v!=='object')return;if(Array.isArray(v)){v.forEach(unique);return;}
     for(const[k,x]of Object.entries(v)){if(['sourceRef','catalog','templateRef'].includes(k))continue;if(k==='id'&&typeof x==='string'){if(ids.has(x))fail('project.duplicateId',[x]);ids.add(x);}else unique(x);}
   }
-  entities.forEach(e=>{validateEntity(e);unique(e);});
+  entities.forEach(e=>{assertEntityInvariants(e);unique(e);});
   const revisions=new Set<string>();
   const all=[...entities];
   const versions=new Map(entities.map(e=>[`${e.id}@${e.revision}`,canonical(e)]));
-  for(const r of p.revisions){validateRevision(r);const owner=owners.get(r.entityId);
+  for(const r of p.revisions){assertRevisionInvariants(r);const owner=owners.get(r.entityId);
     if(!owner||owner.kind!==r.entityKind||r.number>owner.revision)fail('revision.invalidOwnerOrFuture');
     const key=`${r.entityId}@${r.number}`,serialized=canonical(r.snapshot);
     if(versions.has(key)&&versions.get(key)!==serialized)fail('revision.divergentSnapshot');versions.set(key,serialized);
@@ -53,7 +54,7 @@ export function validateProject(value:unknown):ProjectSnapshot {
   const requiredTemplates=new Set(all.filter(e=>e.kind==='cv').map(e=>templateKey(e.presentation.templateRef)));
   if(keys.length!==requiredTemplates.size||keys.some(k=>!requiredTemplates.has(k)))fail('template.extraOrMissing');
   const requiredAssets=new Set<string>();
-  for(const e of all){validateResources(e,p.assetsById,p.templates);referencedAssets(e).forEach(id=>requiredAssets.add(id));}
+  for(const e of all){assertResourceReferences(e,p.assetsById,p.templates);referencedAssets(e).forEach(id=>requiredAssets.add(id));}
   for(const t of p.templates)for(const r of t.resourceRefs)requiredAssets.add(r.assetId);
   const assetIds=Object.keys(p.assetsById);if(assetIds.length!==requiredAssets.size||assetIds.some(id=>!requiredAssets.has(id)))fail('asset.extraOrMissing');
   for(const a of Object.values(p.assetsById))if(idOwners.has(a.id)||revisions.has(a.id))fail('asset.idCollision',[a.id]);
