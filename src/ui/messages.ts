@@ -1,6 +1,13 @@
 // Message IDs are Spanish source strings with named placeholders.
 // Only application messages use this catalog; CV content never passes through it.
 export const english:Record<string,string>={
+  "No se ha podido abrir la biblioteca. Comprueba el espacio disponible y los permisos de la carpeta de datos. Conserva ese directorio y restaura una copia si el error continúa. Código: {code}": "Could not open the library. Check available space and the data folder permissions. Keep that folder and restore a backup if the problem continues. Code: {code}",
+  "No se pudo escribir en la carpeta elegida. El CV confirmado se conserva. Elige otra carpeta o revisa sus permisos.": "Could not write to the selected folder. Your confirmed CV is unchanged. Choose another folder or check its permissions.",
+  "No hay espacio disponible para completar el guardado. El CV confirmado se conserva. Libera espacio y vuelve a intentarlo.": "There is not enough space to save. Your confirmed CV is unchanged. Free some space and try again.",
+  "La biblioteca está ocupada por otra operación. El CV confirmado se conserva. Espera y vuelve a intentarlo.": "The library is busy with another operation. Your confirmed CV is unchanged. Wait and try again.",
+  "Selecciona Simple o Lateral en Presentación y vuelve a generar la preview. El CV confirmado se conserva.": "Select Simple or Lateral in Presentation and generate the preview again. Your confirmed CV is unchanged.",
+  "Escribe un nombre para el CV.": "Enter a name for the CV.",
+  "Escribe el nombre que debe aparecer en el CV.": "Enter the name to display on the CV.",
   "Ajustar al ancho": "Fit to width",
   "Español": "Español",
   "English": "English",

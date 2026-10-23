@@ -152,7 +152,7 @@ async function run():Promise<void> {
   } catch (error) {
     // Diagnostic codes contain no CV values, SQL text or local filenames.
     console.error('CVForge startup:',safeCode(error));
-    dialog.showErrorBox(message('CVForge — almacenamiento no disponible'),message('No se ha abierto la biblioteca. Código: {code}',{code:safeCode(error)}));
+    dialog.showErrorBox(message('CVForge — almacenamiento no disponible'),message('No se ha podido abrir la biblioteca. Comprueba el espacio disponible y los permisos de la carpeta de datos. Conserva ese directorio y restaura una copia si el error continúa. Código: {code}',{code:safeCode(error)}));
     closing = true; win?.destroy(); app.exit(1);
   }
 }

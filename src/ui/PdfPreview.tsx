@@ -9,6 +9,7 @@ import type { EditorDocumentView } from '../application/editor.js';
 import { useMessages } from './i18n.js';
 import { Modal } from './Modal.js';
 import type { ExportRecord } from '../application/export-record.js';
+import { operationErrorMessage } from './error-message.js';
 GlobalWorkerOptions.workerSrc=workerUrl;
 const api=window.cvforge;
 export function PresentationDialog({cv,onSaved,onCancel}:{cv:CvDocument;onSaved:(v:EditorDocumentView)=>void;onCancel:()=>void}){
@@ -22,7 +23,7 @@ export function PresentationDialog({cv,onSaved,onCancel}:{cv:CvDocument;onSaved:
       <label className="field span-full">{t('Precisión máxima de fechas')}<select aria-label={t('Precisión máxima de fechas')} value={input.datePrecision} onChange={e=>setInput({...input,datePrecision:e.target.value as PresentationInput['datePrecision']})}><option value="year">{t('Solo año')}</option><option value="month">{t('Mes y año')}</option><option value="day">{t('Fecha completa si existe')}</option></select></label>
       </div><div className="presentation-toggles"><label className="check"><input type="checkbox" checked={input.numbering} onChange={e=>setInput({...input,numbering:e.target.checked})}/>{t('Numerar páginas')}</label>
       <label className="check"><input type="checkbox" checked={input.showCefrGuide} onChange={e=>setInput({...input,showCefrGuide:e.target.checked})}/>{t('Mostrar guía CEFR')}</label>
-    </div></fieldset>{error&&<p role="alert">{t('No se pudo generar o guardar ({code}). El CV confirmado se conserva.',{code:error})}</p>}
+    </div></fieldset>{error&&<p role="alert" data-error-code={error}>{t(operationErrorMessage(error,'No se pudo generar o guardar ({code}). El CV confirmado se conserva.'),{code:error})}</p>}
     <footer className="form-actions"><button type="button" disabled={busy} onClick={onCancel}>{t('Cancelar')}</button><button type="submit" disabled={busy}>{t('Confirmar')}</button></footer>
   </form></Modal>;
 }
@@ -42,7 +43,7 @@ export function PdfPreview({cv}:{cv:CvDocument}){
   const current=generation?.cvId===cv.id?generation:null,ready=state==='ready'&&current?.revision===cv.revision;
   return <section className="pdf-preview section-card" aria-label={t('Vista previa PDF')} data-state={state} data-sha256={current?.sha256} data-generation-id={current?.id} data-revision={current?.revision} data-preview-ms={viewMs===null?undefined:Math.round(viewMs)} data-pdf-bytes={current?.metrics.pdfBytes} data-pdf-ms={current?.metrics.snapshotToPdfMs} data-page-count={current?.metrics.pageCount}>
     <h2>{t('Vista previa PDF')}</h2><p role="status">{t(({empty:'Sin preview todavía',generating:'Generando PDF…',ready:'Preview lista',stale:'Preview desactualizada',error:'Error de preview'})[state])}</p>
-    {error&&<p role="alert">{t('No se pudo generar o guardar ({code}). El CV confirmado se conserva.',{code:error})}</p>}
+    {error&&<p role="alert" data-error-code={error}>{t(operationErrorMessage(error,'No se pudo generar o guardar ({code}). El CV confirmado se conserva.'),{code:error})}</p>}
     {!['simple','lateral'].includes(cv.presentation.templateRef.id)&&<p>{t('Selecciona Simple o Lateral en Presentación para generar este CV.')}</p>}
     <div className="actions"><button onClick={()=>setRetry(v=>v+1)}>{t(state==='error'?'Reintentar preview':'Actualizar preview')}</button><button className="primary" disabled={!ready||exporting} onClick={()=>{if(!current)return;setExporting(true);setReceipt('');void api.pdfExport(current.id,current.sha256).then(result=>{
       if(!result.ok){setError(result.error.code);return;}
