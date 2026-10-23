@@ -14,8 +14,9 @@ async function harness() {
   let browser:Browser,page:Page,child:ChildProcess;
   const logs:string[]=[],errors:string[]=[],remoteRequests:string[]=[];
   const launch=async()=>{
+    const platform=process.env.CVFORGE_UI_PLATFORM;if(platform&&!['x11','wayland'].includes(platform))throw Error('Unsupported test display platform');
     const executable=createRequire(import.meta.url)('electron') as string;
-    child=spawn(executable,[process.cwd(),'--user-data-dir='+directory,'--remote-debugging-port=0','--no-sandbox','--cvforge-diagnostics'],{detached:true,stdio:['ignore','pipe','pipe']});
+    child=spawn(executable,[process.cwd(),'--user-data-dir='+directory,'--remote-debugging-port=0','--no-sandbox','--cvforge-diagnostics',...platform?['--ozone-platform='+platform]:[]],{detached:true,stdio:['ignore','pipe','pipe']});
     const endpoint=await new Promise<string>((resolve,reject)=>{
       const timer=setTimeout(()=>reject(new Error('Electron CDP startup timed out: '+logs.join(''))),30000);
       child.once('error',reject);child.once('exit',code=>{clearTimeout(timer);reject(new Error('Electron exited before CDP: '+code+' '+logs.join('')));});
@@ -69,7 +70,8 @@ test('Confirmar/Cancelar email, focus/keyboard, invalid date, field visibility a
     await dialog.getByRole('button',{name:'Añadir email',exact:true}).click();await dialog.getByLabel(/^Email \(/).fill('a@example.test');await confirm(page);
     dialog=await personal(page);await dialog.getByLabel(/^Email \(/).fill('b@example.test');await page.keyboard.press('Escape');await expect(dialog).not.toBeVisible();
     await expect(page.getByText('a@example.test',{exact:true})).toBeVisible();await expect(page.getByText('b@example.test',{exact:true})).not.toBeVisible();
-    await page.bringToFront();await expect(page.getByRole('button',{name:'Editar datos personales',exact:true})).toBeFocused();
+    await page.bringToFront();
+    await expect(page.getByRole('button',{name:'Editar datos personales',exact:true})).toBeFocused();
     await page.keyboard.press('Enter');dialog=page.getByRole('dialog');
     await expect(dialog.getByLabel(/^Nombre para mostrar/)).toBeFocused();await page.keyboard.press('Tab');await expect(dialog.getByLabel(/^Nombre \(/)).toBeFocused();
     await dialog.getByLabel(/^Email \(/).fill('b@example.test');await dialog.getByLabel(/^Fecha de nacimiento/).fill('2020-02-31');

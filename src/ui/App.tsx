@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import type { CvDocument, CvEntry, CvSection } from '../domain/index.js';
 import { entryIds, plainText } from '../domain/index.js';
@@ -49,7 +49,8 @@ export function App(){
   const [busy,setBusy]=useState(false),[collapsed,setCollapsed]=useState<Set<string>>(new Set()),[creating,setCreating]=useState(false),[cvName,setCvName]=useState(''),[personName,setPersonName]=useState('');
   const [duplicating,setDuplicating]=useState(false),[duplicateName,setDuplicateName]=useState(''),[history,setHistory]=useState<{id:string;number:number;cause:string;pinned:boolean}[]|null>(null),[restoring,setRestoring]=useState<{id:string;number:number}|null>(null);
   const [deleting,setDeleting]=useState<{sectionId:string;entryId:string|null;label:string}|null>(null),[saveStatus,setSaveStatus]=useState('');
-  const currentForm=useRef<EditorForm|null>(null),pending=useRef<Promise<void>>(Promise.resolve()),activeAction=useRef<Promise<unknown>>(Promise.resolve()),closeRequested=useRef<()=>void>(()=>{}),returnFocus=useRef<HTMLElement|null>(null),titleRef=useRef<HTMLHeadingElement>(null);
+  const currentForm=useRef<EditorForm|null>(null),pending=useRef<Promise<void>>(Promise.resolve()),activeAction=useRef<Promise<unknown>>(Promise.resolve()),closeRequested=useRef<()=>void>(()=>{}),returnFocus=useRef<HTMLElement|null>(null),restoreFormFocus=useRef(false),titleRef=useRef<HTMLHeadingElement>(null);
+  useLayoutEffect(()=>{if(!form&&!busy&&restoreFormFocus.current){restoreFormFocus.current=false;const target=returnFocus.current;if(target?.isConnected)target.focus();else titleRef.current?.focus();}},[form,busy]);
   const refresh=async()=>{const value=unwrap(await api.list());setLibrary(value);setLocale(value.uiLocale);};
   const report=(error:unknown)=>{const e=failure(error);setError(e);setIssues(e.issues);if(e.issues.length)setTimeout(()=>window.document.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus(),0);};
   const perform=async<T,>(operation:()=>Promise<T>):Promise<T|undefined>=>{setBusy(true);setError(null);setIssues([]);const task=Promise.resolve().then(operation);activeAction.current=task.then(()=>undefined,()=>undefined);try{return await task;}catch(error){report(error);return undefined;}finally{setBusy(false);}};
@@ -66,7 +67,7 @@ export function App(){
     setDocument(value);setPhoto(value.photo);setIssues([]);
     setLibrary(previous=>previous?{...previous,cvs:previous.cvs.map(item=>item.id===value.cv.id?{...item,name:value.cv.name,revision:value.cv.revision,documentLocale:value.cv.documentLocale}:item)}:previous);
   };
-  const closeForm=(value:EditorDocumentView,confirmed:boolean)=>{opened(value);currentForm.current=null;setForm(null);setSaveStatus('');setNotice(confirmed?'Guardado localmente.':'Cambios cancelados.');void refresh();requestAnimationFrame(()=>{if(returnFocus.current?.isConnected)returnFocus.current.focus();else titleRef.current?.focus();});};
+  const closeForm=(value:EditorDocumentView,confirmed:boolean)=>{restoreFormFocus.current=true;opened(value);currentForm.current=null;setForm(null);setSaveStatus('');setNotice(confirmed?'Guardado localmente.':'Cambios cancelados.');void refresh();};
   const begin=(target:BeginEditorTarget)=>{returnFocus.current=window.document.activeElement as HTMLElement;void perform(async()=>{const value=unwrap(await api.begin(document!.cv.id,document!.cv.revision,target));currentForm.current=value;setForm(value);setPhoto(document!.photo);setSaveStatus('Borrador abierto.');});};
   const confirm=(event:FormEvent)=>{event.preventDefault();void perform(async()=>{await pending.current;const result=await api.confirm(currentForm.current!);if(!result.ok){setTimeout(()=>window.document.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus(),0);throw result.error;}closeForm(result.value,true);});};
   const cancel=()=>{if(busy)return;void perform(async()=>{await pending.current;closeForm(unwrap(await api.cancel()),false);});};
