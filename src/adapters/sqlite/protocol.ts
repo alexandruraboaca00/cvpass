@@ -4,7 +4,7 @@ import type { LibraryContent } from '../../application/contracts.js';
 import type { ExportRecord } from '../../application/export-record.js';
 
 export type WorkerRequest =
-  | { id: number; method: 'read' | 'health' | 'backup' | 'close' }
+  | { id: number; method: 'read' | 'readVersion' | 'health' | 'backup' | 'close' }
   | { id: number; method: 'commit'; expectedGeneration: number | null; content: LibraryContent }
   | { id:number; method:'appendExport'; record:ExportRecord }
   | { id:number; method:'listExports'; cvId:string };

@@ -15,6 +15,7 @@ try {
         let value: unknown;
         switch (request.method) {
           case 'read': value = engine.read(); break;
+          case 'readVersion': value=engine.readVersion(); break;
           case 'commit': value = engine.commit(request.expectedGeneration, request.content); break;
           case 'health': value = engine.health(); break;
           case 'backup': value = await engine.backup(); break;

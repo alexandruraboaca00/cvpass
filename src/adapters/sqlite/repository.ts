@@ -12,6 +12,7 @@ export class SqliteLibraryRepository implements LibraryRepository, ExportRecordR
   private nextId = 0;
   private closed = false;
   private closeTask: Promise<void> | null = null;
+  private cached:{stamp:{generation:number|null;dataVersion:number};record:LibraryRecord|null}|undefined;
   private constructor(directory: string) {
     this.worker = new Worker(new URL('./worker.js', import.meta.url), { workerData:{directory} });
     this.worker.on('message', (response: WorkerResponse) => {
@@ -29,6 +30,7 @@ export class SqliteLibraryRepository implements LibraryRepository, ExportRecordR
   }
   private failAll(code: string): void {
     this.closed = true;
+    this.cached=undefined;
     for (const pending of this.pending.values()) pending.reject(new LibraryError(code));
     this.pending.clear();
   }
@@ -41,8 +43,21 @@ export class SqliteLibraryRepository implements LibraryRepository, ExportRecordR
       catch { this.pending.delete(id); reject(new LibraryError('STORAGE_MESSAGE_INVALID')); }
     });
   }
-  read(): Promise<LibraryRecord | null> { return this.call({method:'read'}); }
-  commit(expectedGeneration: number | null, content: LibraryContent): Promise<number> { return this.call({method:'commit',expectedGeneration,content}); }
+  async read(): Promise<LibraryRecord | null> {
+    const stamp=await this.call<{generation:number|null;dataVersion:number}>({method:'readVersion'});
+    if(this.cached?.stamp.generation===stamp.generation&&this.cached.stamp.dataVersion===stamp.dataVersion)return structuredClone(this.cached.record);
+    const record=await this.call<LibraryRecord|null>({method:'read'});
+    if((record?.generation??null)===stamp.generation)this.cached={stamp,record:structuredClone(record)};
+    return record;
+  }
+  async commit(expectedGeneration: number | null, content: LibraryContent): Promise<number> {
+    // Capture the exact submitted values. A caller may mutate its object while
+    // awaiting the worker; only the worker-validated submitted copy is cached.
+    const submitted=structuredClone(content),stamp=await this.call<{generation:number|null;dataVersion:number}>({method:'readVersion'});
+    const generation=await this.call<number>({method:'commit',expectedGeneration,content:submitted});
+    this.cached={record:{generation,content:submitted},stamp:{...stamp,generation}};
+    return generation;
+  }
   backup(): Promise<BackupReceipt> { return this.call({method:'backup'}); }
   health(): Promise<StorageHealth> { return this.call({method:'health'}); }
   appendExport(record:ExportRecord):Promise<void>{return this.call({method:'appendExport',record});}
@@ -51,6 +66,7 @@ export class SqliteLibraryRepository implements LibraryRepository, ExportRecordR
     return this.closeTask ??= (async () => {
       if (this.closed) return;
       const result = this.call<void>({method:'close'}); this.closed = true;
+      this.cached=undefined;
       await result;
       // Wait for the worker to release its connection before acknowledging close.
       await this.worker.terminate();

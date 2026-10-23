@@ -110,6 +110,9 @@ export class SqliteEngine {
     this.cached={record:structuredClone(record),dataVersion};
     return record;
   }
+  readVersion():{generation:number|null;dataVersion:number}{
+    return {generation:(this.db.prepare('SELECT generation FROM workspace WHERE slot=1').pluck().get() as number|undefined)??null,dataVersion:this.db.pragma('data_version',{simple:true}) as number};
+  }
   private checkReferences(s: LibraryContent): void {
     const expected: Record<string, string[]> = {
       entity_assets: currentEntities(s).flatMap(e => [...referencedAssets(e)].map(id => canonical([e.id, id]))),

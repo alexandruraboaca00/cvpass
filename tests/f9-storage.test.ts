@@ -4,6 +4,7 @@ import Database from 'better-sqlite3';
 import {join} from 'node:path';
 import {mkdtemp,rm} from 'node:fs/promises';
 import {SqliteEngine,DATABASE_NAME} from '../src/adapters/sqlite/engine.js';
+import {SqliteLibraryRepository} from '../src/adapters/sqlite/repository.js';
 import {assertDataTree,canonical,emptyPersonal} from '../src/domain/index.js';
 import {libraryFixture} from './library-helpers.js';
 import {f9Workspace} from './f9-fixtures.js';
@@ -27,6 +28,14 @@ test('F9 graph validation rejects accessors without invoking them and retains gr
   assert.throws(()=>assertDataTree(v),/data.accessor/);assert.equal(called,false);
   const a:any[]=[];a.push(a);assert.throws(()=>assertDataTree(a),/data.cycle/);
   assert.throws(()=>assertDataTree([,1]),/data.sparseOrExtendedArray/);assert.throws(()=>assertDataTree(-0),/data.negativeZero/);
+});
+test('F9 main-side snapshot cache uses exactly committed bytes and observes external changes without a generation bump',async t=>{
+  const f=await libraryFixture(t),r=(await f.repository.read())!,before=structuredClone(r.content);
+  const save=f.repository.commit(r.generation,r.content);r.content.workspace.cvOrder=[];await save;
+  assert.deepEqual((await f.repository.read())!.content,before);
+  const second=await SqliteLibraryRepository.open(f.directory);t.after(()=>second.close());const external=(await second.read())!;external.content.workspace.settings.uiLocale='en';await second.commit(external.generation,external.content);
+  assert.equal((await f.repository.read())!.content.workspace.settings.uiLocale,'en');
+  const db=new Database(join(f.directory,DATABASE_NAME));db.prepare('UPDATE entities SET name=? WHERE kind=?').run('invalid external index','cv');db.close();await assert.rejects(f.repository.read(),/STORAGE_INDEX_MISMATCH/);
 });
 test('F9 AC-06 two CV from a profile remain independent after CV and profile edits and reopening',async t=>{
   const f=await libraryFixture(t,false);const profile=await f.library.createProfile(emptyPersonal('F9 profile'));
