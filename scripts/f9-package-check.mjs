@@ -1,0 +1,20 @@
+import {mkdir,readFile,writeFile,cp,mkdtemp,stat} from 'node:fs/promises';
+import {resolve,join} from 'node:path';
+import {spawnSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+import {listPackage,extractFile} from '@electron/asar';
+import assert from 'node:assert/strict';
+const output=process.env.CVFORGE_F9_PACKAGE_OUTPUT??'/tmp/cvforge-f9/package';await mkdir(output,{recursive:true});
+const artifact=resolve('out/f9/CVForge-0.1.0-x86_64.AppImage'),hash=b=>createHash('sha256').update(b).digest('hex'),original=hash(await readFile(artifact));
+const standalone=await mkdtemp(join(output,'standalone-')),copy=join(standalone,'CVForge-0.1.0-x86_64.AppImage');await cp(artifact,copy,{preserveTimestamps:true});
+const extracted=await mkdtemp(join(output,'inventory-')),result=spawnSync(copy,['--appimage-extract'],{cwd:extracted,env:{...process.env,APPIMAGELAUNCHER_DISABLE:'1'},encoding:'utf8',maxBuffer:20*1024*1024});assert.equal(result.status,0,'AppImage extraction failed');
+const root=join(extracted,'squashfs-root'),asar=join(root,'resources/app.asar'),files=listPackage(asar),metadata=JSON.parse(extractFile(asar,'package.json').toString());assert.equal(metadata.version,'0.1.0');
+assert(!files.some(f=>/^\/(src|tests|docs|spikes|private|data|\.git)(\/|$)/.test(f)));assert(!files.some(f=>/\.(pdf|cvproj|sqlite|db)$/i.test(f)));
+for(const name of ['dist/src/desktop/main.js','dist/src/desktop/preload.cjs','dist/src/adapters/pdf/lateral.js','dist/src/application/export-record.js','dist/src/ui/error-message.js','resources/fonts/OFL.txt','node_modules/pdfjs-dist/LICENSE','node_modules/pdf-lib/LICENSE.md'])assert(files.includes('/'+name),name);
+assert(files.some(f=>/\/dist\/renderer\/assets\/pdf\.worker.*\.mjs$/.test(f)));await stat(join(root,'.DirIcon'));
+const desktop=(await readFile(join(root,'cvforge.desktop'),'utf8'));assert(!desktop.includes('--no-sandbox'),'Release must preserve Chromium sandbox');
+const parity=[];for(const name of files.filter(f=>/^\/(dist\/src\/|dist\/renderer\/|resources\/fonts\/)/.test(f)&&/\.(js|cjs|mjs|css|html|json|ttf|txt)$/.test(f))){assert.equal(hash(extractFile(asar,name.slice(1))),hash(await readFile(name.slice(1))),name);parity.push(name);}
+const run=spawnSync('npm',['run','test:f9:ui'],{encoding:'utf8',maxBuffer:30*1024*1024,env:{...process.env,CVFORGE_F9_EXECUTABLE:copy,CVFORGE_F9_CWD:standalone,CVFORGE_F9_OUTPUT:join(output,'e2e'),CVFORGE_F4_OUTPUT:join(output,'ui'),CVFORGE_F4_REPORT:join(output,'ui/report.json')}});
+await writeFile(join(output,'ui.log'),(run.stdout??'')+(run.stderr??''));assert.equal(run.status,0,'Packaged AppImage acceptance failed: '+join(output,'ui.log'));
+assert.equal(hash(await readFile(artifact)),original);assert.equal(hash(await readFile(copy)),original);
+await writeFile(join(output,'proof.json'),JSON.stringify({version:metadata.version,artifactSha256:original,byteLength:(await stat(artifact)).size,linux:'x86_64',standaloneCopy:true,workingDirectoryOutsideRepository:true,chromiumSandboxPreserved:true,localFonts:true,pdfjsWorker:true,sourceParityFiles:parity.length,noPrivateFiles:true,noSourceTestsOrSpikes:true,artifactUnchanged:true,packagedUiPassed:true,defaultElectronIcon:true},null,2));console.log('F9 AppImage package PASS '+output);
