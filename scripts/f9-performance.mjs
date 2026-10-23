@@ -31,6 +31,7 @@ let versions,active;
 const hash=b=>createHash('sha256').update(b).digest('hex');
 const executableSha256=hash(await readFile(executable)),sourceCommit=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
 const interfaces=Object.keys(networkInterfaces()),routes=(await readFile('/proc/net/route','utf8')).trim().split('\n');assert(interfaces.every(i=>i==='lo'));assert.equal(routes.length,1);
+assert(/^CapEff:\s+0+$/m.test(await readFile('/proc/self/status','utf8')));
 let viewport;
 async function ok(p){const r=await p;if(!r.ok)throw Error(r.error.code);return r.value;}
 async function select(page,cvId){await page.getByRole('complementary').getByRole('button',{name:/F9 002 medium/}).click();await page.getByRole('heading',{name:'F9 002 medium',exact:true}).waitFor();return (await ok(page.evaluate(id=>window.cvforge.open(id),cvId))).cv;}
@@ -40,6 +41,7 @@ try{
   const start=performance.now();active=await electron.launch({chromiumSandbox:true,executablePath:executable,env:{...process.env,APPIMAGELAUNCHER_DISABLE:'1',APPIMAGE_EXTRACT_AND_RUN:'1',GDK_BACKEND:'x11',GTK_USE_PORTAL:'0'},args:['--user-data-dir='+dir,'--ozone-platform=x11'],timeout:60000});
   const page=await active.firstWindow();await page.getByRole('heading',{name:'Tu biblioteca',exact:true}).waitFor();await page.getByRole('complementary').locator('.cv-list li').nth(99).waitFor({state:'attached'});results.startup.push(performance.now()-start);
   assert.equal(await active.evaluate(({app})=>app.commandLine.hasSwitch('no-sandbox')),false);
+  assert(await active.evaluate(()=>/^CapEff:\s+0+$/m.test(process.getBuiltinModule('fs').readFileSync('/proc/self/status','utf8'))));
   viewport??=await page.evaluate(()=>({width:innerWidth,height:innerHeight,devicePixelRatio}));
   const errors=[],requests=[];page.on('pageerror',e=>errors.push(e.message));active.context().on('request',r=>{if(/^https?:/.test(r.url()))requests.push(r.url());});
   versions??=await active.evaluate(({app})=>({app:app.getVersion(),electron:process.versions.electron,node:process.versions.node,chromium:process.versions.chrome}));

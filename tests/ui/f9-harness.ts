@@ -23,6 +23,7 @@ export async function harness(directory?:string){
     app=await electron.launch({chromiumSandbox:true,executablePath:executable,cwd:process.env.CVFORGE_F9_CWD??process.cwd(),env:{...process.env,APPIMAGELAUNCHER_DISABLE:'1',APPIMAGE_EXTRACT_AND_RUN:'1',GDK_BACKEND:'x11',GTK_USE_PORTAL:'0'},args:['--user-data-dir='+dir,'--ozone-platform=x11'],timeout:60000});
     page=await app.firstWindow();page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});app.context().on('request',r=>{if(/^https?:/.test(r.url()))requests.push(r.url());});
     expect(await app.evaluate(({app})=>app.commandLine.hasSwitch('no-sandbox'))).toBe(false);
+    expect(await app.evaluate(()=>/^CapEff:\s+0+$/m.test(process.getBuiltinModule('fs').readFileSync('/proc/self/status','utf8')))).toBe(true);
     await expect(page.getByRole('heading',{name:/^(Tu biblioteca|Your library)$/})).toBeVisible({timeout:30000});startups.push(performance.now()-start);return page;
   };
   const close=async()=>{if(!app)return;const exit=app.waitForEvent('close');await page.evaluate(()=>window.close());await exit;app=undefined;};
