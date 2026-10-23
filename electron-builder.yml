@@ -2,8 +2,10 @@ appId: org.cvforge.desktop
 productName: CVForge
 electronVersion: 44.7.2
 electronDist: node_modules/electron/dist
+toolsets:
+  appimage: '1.0.3'
 directories:
-  output: out/f7
+  output: out/f9
 files:
   - dist/src/**/*
   - dist/renderer/**/*
@@ -17,3 +19,6 @@ linux:
   executableName: cvforge
   category: Office
   target: dir
+appImage:
+  artifactName: CVForge-${version}-x86_64.AppImage
+  executableArgs: []
