@@ -14,7 +14,7 @@ import {entryIds,plainText} from '../dist/src/domain/index.js';
 import {sha256} from '../dist/src/adapters/asset-bytes.js';
 const paths=process.argv.slice(2);assert.equal(paths.length,2,'Two private PDF paths required');
 const output=process.env.CVFORGE_F9_PRIVATE_OUTPUT??'/tmp/cvforge-f9/private';await mkdir(output,{recursive:true});
-const ctx={newId:randomUUID,now:()=>new Date().toISOString()},results=[];
+const ctx={newId:randomUUID,now:()=>new Date().toISOString()},results=[],privacyFindings=[];
 const canonicalLanguage=s=>Intl.getCanonicalLocales(s)[0];
 const date=p=>!p?null:p.precision==='year'?String(p.year):`${p.year}-${String(p.month).padStart(2,'0')}`+(p.precision==='day'?`-${String(p.day).padStart(2,'0')}`:'');
 const period=p=>({start:date(p.start),end:date(p.end),ongoing:p.ongoing});
@@ -54,11 +54,13 @@ for(let i=0;i<paths.length;i++){
     const photoBase64=Buffer.from(state.content.blobs.get(photo.sha256)).toString('base64');
     const prohibited=[cv.personalInformation.displayName,originalHash,photo.sha256,photoBase64.slice(Math.floor(photoBase64.length/2),Math.floor(photoBase64.length/2)+80),...cv.personalInformation.contacts.flatMap(c=>c.kind==='email'?[c.value]:[])].filter(s=>s.length>=8);
     const sources=execFileSync('git',['ls-files','--cached','--others','--exclude-standard','-z'],{encoding:'utf8'}).split('\0').filter(f=>/\.(?:md|ts|tsx|cts|mjs|js|py|json|yml|yaml|html|css|txt)$/.test(f));
-    for(const path of sources){const text=await readFile(path,'utf8');assert(!prohibited.some(s=>text.includes(s)),'PRIVATE_ACCEPTANCE_DATA_IN_REPOSITORY');}
+    for(const path of sources){const text=await readFile(path,'utf8');prohibited.forEach((value,index)=>{if(text.includes(value))privacyFindings.push({case:i+1,path,category:['displayName','sourcePdfDigest','photoDigest','photoFragment'][index]??'email'});});}
     const objects=execFileSync('git',['rev-list','--objects','main..HEAD'],{encoding:'utf8'}).trim().split('\n').map(row=>row.split(' ')[0]).filter(Boolean);
-    for(const id of objects){if(execFileSync('git',['cat-file','-t',id],{encoding:'utf8'}).trim()!=='blob')continue;const text=execFileSync('git',['cat-file','blob',id],{maxBuffer:20*1024*1024}).toString('utf8');assert(!prohibited.some(s=>text.includes(s)),'PRIVATE_ACCEPTANCE_DATA_IN_F9_HISTORY');}
+    for(const id of objects){if(execFileSync('git',['cat-file','-t',id],{encoding:'utf8'}).trim()!=='blob')continue;const text=execFileSync('git',['cat-file','blob',id],{maxBuffer:20*1024*1024}).toString('utf8');prohibited.forEach((value,index)=>{if(text.includes(value))privacyFindings.push({case:i+1,objectId:id,category:['displayName','sourcePdfDigest','photoDigest','photoFragment'][index]??'email'});});}
     assert.equal(execFileSync('git',['log','--all','--format=','--name-only','--','*.pdf','*.PDF'],{encoding:'utf8'}).trim(),'','PRIVATE_PDF_TRACKED_IN_HISTORY');
     results.push({case:i+1,pass:true,education:8,work:3,skills:18,groups:2,native:2,foreign:1,fiveB2:true,valuesCompared:true,contactsCompared:true,photoCompared:true,reviewedUrls,partial:true,reopened:true,originalUnchanged:true,repositoryScan:true});
   }finally{await reopened.close();}
 }
+await writeFile(join(output,'privacy-findings.json'),JSON.stringify({findings:privacyFindings},null,2));
+assert.equal(privacyFindings.length,0,'PRIVATE_ACCEPTANCE_DATA_IN_REPOSITORY_OR_F9_HISTORY');
 await writeFile(join(output,'results.json'),JSON.stringify({results,privateValuesPublished:false},null,2));console.log(JSON.stringify({privateAcceptance:results.map(r=>({case:r.case,pass:r.pass,valuesCompared:r.valuesCompared,reopened:r.reopened})),privateValuesPublished:false}));
