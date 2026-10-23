@@ -1,12 +1,12 @@
 # Roadmap de implementación
 
-Versión 0.8 · 19 de octubre de 2026 · Decisiones de producto consolidadas e implementación autorizada por fases. **Fase actual: F8 aprobada por el usuario e integrada en main mediante merge commit desde `f8-lateral-portable-cycle`, con base `7803271`. F1–F7 y el pulido visual están aprobados e integrados. F9 no iniciada.** F1–F7 permanecen aprobadas e integradas en main; la base previa a F6 es `238dee3`. Véanse [importación F6](f6/IMPORT.md) y [validación F6](f6/VALIDATION.md).
+Versión 0.8 · 19 de octubre de 2026 · Decisiones de producto consolidadas e implementación autorizada por fases. **Fase actual: F8 aprobada por el usuario e integrada en main mediante merge commit desde `f8-lateral-portable-cycle`, con base `7803271`. F1–F7 y el pulido visual están aprobados e integrados. F9 autorizada en su rama de aceptación; cierre pendiente.** F1–F7 permanecen aprobadas e integradas en main; la base previa a F6 es `238dee3`. Véanse [importación F6](f6/IMPORT.md) y [validación F6](f6/VALIDATION.md).
 
 ## Alcance y criterio de avance [D]
 
 Las fases concretan las decisiones finales del usuario [D], descritas en [REQUIREMENTS.md](REQUIREMENTS.md), [ARCHITECTURE.md](ARCHITECTURE.md) y [DATA_MODEL.md](DATA_MODEL.md). La evidencia histórica principal está en [23 — Cierre](research/23-cierre-investigacion-y-criterios.md), [28 — Mejoras](research/28-mejoras-necesarias-y-aceptacion.md) y [29](research/29-simulacion-caducidad-y-recuperacion.md). Las propuestas históricas incompatibles no prevalecen sobre esta especificación.
 
-La investigación ha terminado y la implementación está autorizada. No hay esperas de 48 horas ni acciones manuales pendientes en Europass. Las comprobaciones siguientes se harán sobre nuestra aplicación; las pruebas de Europass no las sustituyen. La orden vigente aprueba F8 y autoriza su integración mediante merge commit; no autoriza comenzar F9. F1 permanece cerrada y F1–F7 integradas.
+La investigación ha terminado y la implementación está autorizada. No hay esperas de 48 horas ni acciones manuales pendientes en Europass. Las comprobaciones siguientes se harán sobre nuestra aplicación; las pruebas de Europass no las sustituyen. La orden vigente autoriza F9 para aceptación/entrega y corrección de bloqueos; no autoriza fusionar su rama ni comenzar F10. F1 permanece cerrada y F1–F7 integradas.
 
 Cada fase debe entregar un resultado revisable y superar su criterio antes de ampliar alcance. Se fija entonces la versión de dependencias utilizada y se conserva la evidencia de aceptación. No se asignan fechas sin estimar sobre los primeros resultados.
 
@@ -130,7 +130,7 @@ Por decisión final del usuario para este cierre, la traducción no forma parte 
 
 ## F9 — Aceptación y entrega del MVP
 
-**Estado: NO INICIADA.** Punto pendiente de revisión en F9: **Crash/reconciliation between successful PDF file write and durable ExportRecord**. Deuda conocida de F8; no se implementa reconciliación en este merge.
+**Estado: EN VALIDACIÓN en `f9-mvp-acceptance`, autorizada desde main `cc7cf0d`.** Punto pendiente de revisión en F9: **Crash/reconciliation between successful PDF file write and durable ExportRecord**. Deuda conocida de F8; no se implementa reconciliación en este merge.
 
 **Depende de:** F0–F8. **Salida:** versión empaquetada usable para el flujo prioritario del usuario.
 
@@ -233,4 +233,4 @@ Nuevos motores/memorias de traducción, diseños, ajuste de extensión, catálog
 
 ## Decisiones que siguen pendientes [P]
 
-F0 está cerrada por las decisiones finales del usuario. F1 está aprobada con versiones, mediciones y límites en [F1_VALIDATION.md](F1_VALIDATION.md). La traducción queda fuera de sus criterios de cierre por instrucción final del usuario; no se presenta como validada para el producto. F2 está aprobada e integrada en `main` con los límites del contrato inicial en [f2/VALIDATION.md](f2/VALIDATION.md). F3 está aprobada por el usuario e integrada en main [con evidencia propia](f3/VALIDATION.md). F4 está [aprobada por el usuario e integrada en main](f4/VALIDATION.md). F5 está aprobada por el usuario e integrada en main con el alcance manual/contrato autorizado; véase [validación F5](f5/VALIDATION.md). El motor automático definitivo permanece pendiente. F6 está aprobada por el usuario e integrada en main mediante merge commit; véase [validación F6](f6/VALIDATION.md). F7 está aprobada por el usuario e integrada en main mediante merge commit. [Validación F7](f7/VALIDATION.md). F8 está aprobada por el usuario e integrada en main mediante merge commit; [estado real](f8/VALIDATION.md). F9 no iniciada.
+F0 está cerrada por las decisiones finales del usuario. F1 está aprobada con versiones, mediciones y límites en [F1_VALIDATION.md](F1_VALIDATION.md). La traducción queda fuera de sus criterios de cierre por instrucción final del usuario; no se presenta como validada para el producto. F2 está aprobada e integrada en `main` con los límites del contrato inicial en [f2/VALIDATION.md](f2/VALIDATION.md). F3 está aprobada por el usuario e integrada en main [con evidencia propia](f3/VALIDATION.md). F4 está [aprobada por el usuario e integrada en main](f4/VALIDATION.md). F5 está aprobada por el usuario e integrada en main con el alcance manual/contrato autorizado; véase [validación F5](f5/VALIDATION.md). El motor automático definitivo permanece pendiente. F6 está aprobada por el usuario e integrada en main mediante merge commit; véase [validación F6](f6/VALIDATION.md). F7 está aprobada por el usuario e integrada en main mediante merge commit. [Validación F7](f7/VALIDATION.md). F8 está aprobada por el usuario e integrada en main mediante merge commit; [estado real](f8/VALIDATION.md). F9 autorizada en su rama de aceptación; cierre pendiente.
