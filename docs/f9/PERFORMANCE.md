@@ -1,5 +1,9 @@
 # F9 — Rendimiento del producto
 
+**Control posterior a la aprobación del usuario: FAIL de arranque, integración bloqueada.**
+Confirmar durable PASS (236,9 ms p95). Véase el control completo al final y
+[MERGE_VALIDATION.md](MERGE_VALIDATION.md). Las mediciones anteriores se conservan.
+
 La aceptación usa los objetivos NF-05 anteriores al benchmark. No se cambian
 umbrales para convertir una medición lenta en PASS. Primera evaluación: **FAIL NF-05** en Confirmar; las demás métricas con
 presupuesto previo cumplen en este equipo. Se completaron las 20 repeticiones.
@@ -229,3 +233,36 @@ siendo transaccional; no se ha creado una persistencia diferencial compleja.
 
 La aprobación global de F9 requiere además las regresiones completas de
 [ACCEPTANCE.md](ACCEPTANCE.md); este PASS de rendimiento no las sustituye.
+
+## Control previo a la integración — 24/10/2026, 20:40 UTC
+
+20 procesos nuevos, mismo corpus SHA-256, 100 CV, SSD ext4, equipo y método IPC.
+Fuente `c4203dacb9f748ac4010d38ee250df264a6c70cd`; AppImage idéntica a la
+aprobada. No se modificó código, FULL/WAL, revisión, borrador ni umbrales.
+Datos crudos y entorno: [evidence/merge-performance.json](evidence/merge-performance.json).
+
+| Operación | n | p50 ms | p90 ms | p95 ms | Máximo ms | Objetivo / resultado |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| startup | 20 | 2343.6 | 2936.6 | 3462.3 | 3731.1 | ≤3000 / FAIL |
+| library | 20 | 36.2 | 53.3 | 66.9 | 68.6 | sin umbral previo |
+| openCv | 20 | 228.1 | 1305.4 | 1388.2 | 1628.6 | sin umbral previo |
+| confirm | 20 | 207.4 | 231.1 | 236.9 | 245.7 | ≤300 / PASS |
+| importAnalysis | 20 | 571.0 | 613.2 | 666.3 | 839.2 | sin umbral previo |
+| importCommit | 20 | 343.6 | 403.9 | 405.7 | 427.8 | sin umbral previo |
+| importTotal | 20 | 916.3 | 1009.6 | 1018.9 | 1243.1 | ≤3000 / PASS |
+| previewSimple | 20 | 1086.0 | 1217.0 | 1293.0 | 1584.0 | ≤2000 / PASS |
+| previewLateral | 20 | 999.0 | 1308.0 | 1533.0 | 1696.0 | ≤2000 / PASS |
+| previewSimpleWithDebounce | 20 | 1486.0 | 1617.0 | 1693.0 | 1984.0 | sin umbral previo |
+| previewLateralWithDebounce | 20 | 1399.0 | 1708.0 | 1933.0 | 2096.0 | sin umbral previo |
+| exportSimple | 20 | 36.4 | 54.9 | 59.2 | 61.0 | sin umbral previo |
+| exportLateral | 20 | 33.3 | 37.7 | 43.9 | 56.8 | sin umbral previo |
+| exportLongSimple | 20 | 1072.7 | 1207.8 | 1208.4 | 1234.8 | ≤5000 / PASS |
+| exportLongLateral | 20 | 1854.4 | 2064.8 | 2086.9 | 2101.9 | ≤5000 / PASS |
+| typing | 33 | 8.5 | 13.7 | 15.4 | 15.9 | ≤100 / PASS |
+
+**Resultado del comando: exit 1.** Arranque incumple 3000 ms; el resto de
+presupuestos pasa. No se fuerza una nueva ejecución hasta conseguir PASS.
+Un intento previo terminó con cierre de Electron después de 12 repeticiones:
+se conserva como intento incompleto y no sustituye la medición oficial de 20.
+La preferencia energética observada era `power` y el governor `powersave`;
+no se cambiaron y no se demuestra que expliquen el resultado.

@@ -1,6 +1,6 @@
 # F9 — Compatibilidad real
 
-Versión candidata 0.1.0. La matriz se refiere a los contratos y corpus probados;
+Versión MVP 0.1.0 aprobada por el usuario, pendiente de integración; véase [control previo](MERGE_VALIDATION.md). La matriz se refiere a los contratos y corpus probados;
 no promete compatibilidad universal con Europass ni con cualquier PDF.
 
 | Entrada | Estado | Alcance |

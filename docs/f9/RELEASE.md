@@ -1,8 +1,9 @@
-# CVForge 0.1.0 — candidata Linux
+# CVForge 0.1.0 — MVP Linux
 
-Candidata **técnicamente aceptada** en `f9-mvp-acceptance`, pendiente de aprobación
-del usuario; no es una publicación automática. El [resultado de F9](ACCEPTANCE.md) gobierna su entrega. No se
-fusiona la rama, no se publica automáticamente y F10 no se inicia.
+MVP **aprobado por el usuario** en `f9-mvp-acceptance`. La integración permanece
+bloqueada: el [control previo al merge](MERGE_VALIDATION.md) falla el límite de
+arranque. No se fusiona ni se publica main; F10 no se inicia. La AppImage se ha
+reconstruido sin cambios de bytes; no se presenta como una entrega integrada.
 
 ## Artefacto
 

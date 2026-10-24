@@ -1,8 +1,10 @@
 # F9 — Aceptación del MVP
 
-**F9 = APROBADA técnicamente tras corregir los tres bloqueos.** Candidata **0.1.0**,
+**F9 y MVP 0.1.0 APROBADOS por el usuario.** Integración bloqueada por la nueva
+regresión de arranque: p95 3462,3 ms >3000. [Control previo al merge](MERGE_VALIDATION.md).
+La aceptación técnica anterior permanece como evidencia. Versión **0.1.0**,
 rama `f9-mvp-acceptance`, base `cc7cf0d6b4aa56689ec9d0dec22b6aa9e5cba28c`.
-Sin fusionar ni publicar main; pendiente de aprobación del usuario. **F10 no iniciada.**
+Sin fusionar ni publicar main por el resultado del control previo. **F10 no iniciada.**
 La primera evaluación NO APROBADA y sus 471,1 ms se conservan íntegros más abajo.
 
 ## Reevaluación y evidencia final — 24/10/2026
@@ -79,7 +81,8 @@ transacción distribuida ni exploración automática de rutas privadas.
 | d367aae | Cancelar padre, reintentar backup y arranque normal FUSE. |
 
 El commit documental posterior registra este cierre, artefacto y limitaciones.
-No se fusiona, no se hace push de main y no se inicia F10.
+La aprobación posterior del usuario autoriza el merge condicionado a regresiones PASS.
+El nuevo [control](MERGE_VALIDATION.md) bloquea la fusión y el push; F10 no se inicia.
 
 ## Primera evaluación conservada — resultado histórico del commit 2efbd39
 

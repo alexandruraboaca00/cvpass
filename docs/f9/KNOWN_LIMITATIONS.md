@@ -1,6 +1,9 @@
 # F9 — Limitaciones conocidas de la candidata
 
-**F9 = APROBADA técnicamente**, pendiente de aprobación del usuario e integración.
+**F9 y MVP 0.1.0 aprobados por el usuario**, pendientes de integración.
+El [control previo al merge](MERGE_VALIDATION.md) detecta arranque p95 3462,3 ms
+frente al límite existente de 3000 ms; Confirmar pasa con p95 236,9 ms.
+La causa de esa variación no está demostrada y no se modifica el umbral.
 Los tres bloqueos iniciales se resolvieron: perfil/materialización GUI, workspace
 GUI y Confirmar p95 261,3 ms frente a 300 ms. Se conserva el fallo inicial
 471,1 ms en [aceptación](ACCEPTANCE.md) y [rendimiento](PERFORMANCE.md).
