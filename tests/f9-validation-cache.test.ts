@@ -20,3 +20,14 @@ test('F9 memoized validation preserves every project invariant and isolates retu
   let called=false;const bad=structuredClone(original);Object.defineProperty(bad.workspace,'unexpected',{enumerable:true,get(){called=true;return 1;}});assert.throws(()=>validateProject(bad,memo));assert.equal(called,false);
   assert.equal(canonical(validateProject(original,memo)),canonical(validateProject(original)));
 });
+
+test('F9 lazy canonical comparison preserves equivalent reordered snapshots and detects divergent historical versions',()=>{
+ const source=f9Workspace(6).snapshot;if(source.scope!=='workspace')throw Error();const memo=new ProjectValidationCache(),cv=source.workspace.cvsById[source.workspace.cvOrder[0]!]!;
+ const snapshot=Object.fromEntries(Object.entries(structuredClone(cv)).reverse()) as typeof cv;
+ const revision={id:'00000000-0000-4000-8000-000000009997',entityId:cv.id,entityKind:'cv' as const,number:cv.revision,createdAt:cv.updatedAt,cause:'edit' as const,retention:'ordinary' as const,snapshot};
+ const same={...source,revisions:[revision]};assert.equal(canonical(validateProject(same,memo)),canonical(validateProject(same)));
+ const different=structuredClone(same);different.revisions[0]!.snapshot.name='Divergent synthetic history';assert.throws(()=>validateProject(different,memo),/revision.divergentSnapshot/);assert.throws(()=>validateProject(different),/revision.divergentSnapshot/);
+ const past=structuredClone(source),owner=past.workspace.cvsById[past.workspace.cvOrder[0]!]!;owner.revision++;
+ past.revisions=[revision,{...structuredClone(revision),id:'00000000-0000-4000-8000-000000009998',snapshot:{...snapshot,name:'Second past snapshot'}}];assert.throws(()=>validateProject(past,memo),/revision.divergentSnapshot/);
+ let accessed=false;const bad=structuredClone(source);Object.defineProperty(bad.workspace,'unsafe',{enumerable:true,get(){accessed=true;return 1;}});assert.throws(()=>memo.schema.parse(bad),/data.accessor/);assert.equal(accessed,false);
+});

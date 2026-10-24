@@ -54,7 +54,7 @@ export class SqliteEngine {
     for (const name of [path, `${path}-wal`, `${path}-shm`]) {
       if (existsSync(name) && (!lstatSync(name).isFile() || lstatSync(name).isSymbolicLink())) reject('STORAGE_UNSAFE_PATH');
     }
-    let queries=0;const db = new Database(path, { timeout: 5000,...(startupTracing?{verbose:()=>{queries++;}}:{}) });startupMark('storage:connection');
+    let queries=0;const db = new Database(path, { timeout: 5000,...(startupTracing?{verbose:()=>{queries++;startupMark('storage:query');}}:{}) });startupMark('storage:connection');
     try {
       checkStorageVersion(db, options.migrations);
       db.pragma('foreign_keys = ON'); db.pragma('busy_timeout = 5000');
@@ -64,16 +64,19 @@ export class SqliteEngine {
       const engine = new SqliteEngine(db, location, options);
       startupMark('storage:health-start');const health = engine.health();startupMark('storage:health-end');
       if (health.integrity.join(',') !== 'ok' || health.foreignKeyViolations) reject('STORAGE_INTEGRITY_FAILURE');
-      startupMark('storage:initial-read-start');engine.read();startupMark('storage:initial-read-end'); // Revalidate domain, indexed metadata and byte integrity before exposing the library.
+      startupMark('storage:initial-read-start');engine.readValidated();startupMark('storage:initial-read-end'); // Revalidate domain, indexed metadata and byte integrity before exposing the library.
       engine.listExports();startupMark('storage:open-end',queries);flushStartup();
       return engine;
     } catch (e) { db.close(); throw e; }
   }
-  read(): LibraryRecord | null {
+  read(): LibraryRecord | null { return structuredClone(this.readValidated()); }
+  // The private validated snapshot never escapes. Public reads clone once;
+  // startup/index only consume metadata and do not need a whole defensive copy.
+  private readValidated(): LibraryRecord | null {
     // One writer owns this connection. External commits invalidate the validated
     // snapshot through SQLite data_version; callers always receive a fresh copy.
     const dataVersion=this.db.pragma('data_version',{simple:true}) as number;
-    if(this.cached?.dataVersion===dataVersion)return structuredClone(this.cached.record);
+    if(this.cached?.dataVersion===dataVersion)return this.cached.record;
     const record=this.db.transaction(() => {
       const row = this.db.prepare<[], {id:string; generation:number; settings_json:string; cv_order_json:string; model_version:number}>('SELECT * FROM workspace WHERE slot=1').get();
       if (!row) {
@@ -83,7 +86,9 @@ export class SqliteEngine {
       if (row.model_version !== 1) reject('STORAGE_UNSUPPORTED_MODEL');
       startupMark('storage:workspace');const entityRows = this.db.prepare<[], EntityRow>('SELECT * FROM entities ORDER BY id').all();
       const entities = entityRows.map(r => {
+        if(r.kind==='profile')startupMark('storage:profile-decode-start');
         const e = json<Entity>(r.snapshot_json);
+        if(r.kind==='profile')startupMark('storage:profile-decode-end');
         if (r.model_version !== 1 || e.id !== r.id || e.kind !== r.kind || e.revision !== r.revision || r.workspace_id !== row.id ||
             (e.kind === 'cv' && (e.name !== r.name || e.documentLocale !== r.locale || e.presentation.templateRef.id !== r.template_id || e.presentation.templateRef.version !== r.template_version))) reject('STORAGE_INDEX_MISMATCH');
         return e;
@@ -114,15 +119,15 @@ export class SqliteEngine {
       startupMark('storage:asset-hashes');this.checkReferences(content);startupMark('storage:references');
       return { generation:row.generation, content };
     })();
-    this.cached={record:structuredClone(record),dataVersion};
+    this.cached={record,dataVersion};
     return record;
   }
   readIndex(){
     const dataVersion=this.db.pragma('data_version',{simple:true}) as number;
     // Opening already validated the full graph, bytes and reference indices.
     // External writes must re-enter that same validation before exposing metadata.
-    if(!this.cached||this.cached.dataVersion!==dataVersion)this.read();
-    return this.cached!.record?libraryIndex(this.cached!.record.content):null;
+    if(!this.cached||this.cached.dataVersion!==dataVersion)this.readValidated();
+    const index=this.cached!.record?libraryIndex(this.cached!.record.content):null;startupMark('storage:index-ready');flushStartup();return index;
   }
   readVersion():{generation:number|null;dataVersion:number}{
     return {generation:(this.db.prepare('SELECT generation FROM workspace WHERE slot=1').pluck().get() as number|undefined)??null,dataVersion:this.db.pragma('data_version',{simple:true}) as number};

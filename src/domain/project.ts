@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { IdSchema, DocumentLocale, parse, fail, assertOrder, checkMap, assertDataTree, canonical } from './primitives.js';
-import { MasterProfileSchema, CvDocumentSchema, AssetMapSchema, TemplateSchema, assertEntityInvariants, validateEntity } from './model.js';
+import { MasterProfileSchema, CvDocumentSchema, AssetMapSchema, TemplateSchema, assertEntityInvariants } from './model.js';
 import type { Entity, Asset, TemplateDefinition } from './model.js';
 import { RevisionSchema, assertRevisionInvariants } from './revisions.js';
 import { referencedAssets, assertResourceReferences } from './assets.js';
@@ -20,25 +20,28 @@ export const templateKey=(t:{id:string;version:number}):string=>`${t.id}@${t.ver
 // ownership, history and resource closure are still checked on every call.
 // Only strings are retained: callers cannot mutate a cached validated object.
 export class ProjectValidationCache {
-  private values=new Map<string,{json:string;canonical:string}>();
-  private canonicalByEntity=new WeakMap<Entity,string>();
+  private values=new Map<string,{json:string;validated:string;canonical?:string}>();
+  private canonicalByEntity=new WeakMap<Entity,{validated:string;canonical?:string}>();
+  private readonly entitySchema=z.discriminatedUnion('kind',[MasterProfileSchema,CvDocumentSchema]);
   private used=new Set<string>();
   private entity(value:unknown,kind?:Entity['kind']):Entity{
     const e=value as Entity,key=`${e?.id}@${e?.revision}`,json=JSON.stringify(value),old=this.values.get(key);
-    if(!old||old.json!==json){const valid=validateEntity(value);this.values.set(key,{json,canonical:canonical(valid)});}
+    // schema's root preprocessor checked the entire graph before any transform.
+    // Keep every schema/invariant check, without walking each subtree again.
+    if(!old||old.json!==json){const valid=parse(this.entitySchema,value);assertEntityInvariants(valid);this.values.set(key,{json,validated:JSON.stringify(valid)});}
     if(kind&&e.kind!==kind)fail('entity.wrongKind');this.used.add(key);
-    const copy=JSON.parse(json) as Entity;this.canonicalByEntity.set(copy,this.values.get(key)!.canonical);return copy;
+    const copy=JSON.parse(json) as Entity;this.canonicalByEntity.set(copy,this.values.get(key)!);return copy;
   }
-  readonly schema=z.discriminatedUnion('scope',[
+  readonly schema=z.preprocess(value=>{assertDataTree(value);return value;},z.discriminatedUnion('scope',[
     ProjectSnapshotSchema.options[0].extend({cv:z.unknown().transform(v=>this.entity(v,'cv')),revisions:z.array(RevisionSchema.extend({snapshot:z.unknown().transform(v=>this.entity(v))}))}),
     ProjectSnapshotSchema.options[1].extend({workspace:WorkspaceSchema.extend({profile:z.unknown().nullable().transform(v=>v===null?null:this.entity(v,'profile')),cvsById:z.record(IdSchema,z.unknown().transform(v=>this.entity(v,'cv')))}),revisions:z.array(RevisionSchema.extend({snapshot:z.unknown().transform(v=>this.entity(v))}))}),
-  ]);
-  serialized(e:Entity):string{return this.canonicalByEntity.get(e)!;}
+  ]));
+  serialized(e:Entity):string{const value=this.canonicalByEntity.get(e)!;return value.canonical??=canonical(JSON.parse(value.validated));}
   begin():void{this.used.clear();}
   finish():void{for(const key of this.values.keys())if(!this.used.has(key))this.values.delete(key);}
 }
 export function validateProject(value:unknown,memo?:ProjectValidationCache):ProjectSnapshot {
-  assertDataTree(value);memo?.begin();const p=parse(memo?.schema??ProjectSnapshotSchema,value) as ProjectSnapshot;
+  if(!memo)assertDataTree(value);memo?.begin();const p=parse(memo?.schema??ProjectSnapshotSchema,value) as ProjectSnapshot;
   checkMap(p.assetsById,['assetsById']);
   const entities=entitiesOf(p);const owners=new Map(entities.map(e=>[e.id,e]));
   if(owners.size!==entities.length)fail('project.duplicateEntityId');
@@ -55,11 +58,13 @@ export function validateProject(value:unknown,memo?:ProjectValidationCache):Proj
   entities.forEach(e=>{if(!memo)assertEntityInvariants(e);unique(e);});
   const revisions=new Set<string>();
   const all=[...entities];
-  const versions=new Map(entities.map(e=>[`${e.id}@${e.revision}`,memo?.serialized(e)??canonical(e)]));
+  // Canonical comparison is needed only when two snapshots claim the same
+  // version, not for every unrelated current CV on every read/commit.
+  const versions=new Map(entities.map(e=>[`${e.id}@${e.revision}`,e]));
   for(const r of p.revisions){assertRevisionInvariants(r,!!memo);const owner=owners.get(r.entityId);
     if(!owner||owner.kind!==r.entityKind||r.number>owner.revision)fail('revision.invalidOwnerOrFuture');
-    const key=`${r.entityId}@${r.number}`,serialized=memo?.serialized(r.snapshot)??canonical(r.snapshot);
-    if(versions.has(key)&&versions.get(key)!==serialized)fail('revision.divergentSnapshot');versions.set(key,serialized);
+    const key=`${r.entityId}@${r.number}`,previous=versions.get(key);
+    if(previous&&(memo?.serialized(previous)??canonical(previous))!==(memo?.serialized(r.snapshot)??canonical(r.snapshot)))fail('revision.divergentSnapshot');versions.set(key,r.snapshot);
     if(ids.has(r.id)||revisions.has(r.id))fail('revision.duplicateId');revisions.add(r.id);all.push(r.snapshot);
   }
   const idOwners=new Map<string,string>(p.scope==='workspace'?[[p.workspace.id,'workspace']]:[]);
