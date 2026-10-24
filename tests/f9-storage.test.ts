@@ -64,3 +64,14 @@ test('F9 unchanged form staging does not create another durable draft write befo
   const before=await f.library.snapshot();editor.stage(structuredClone(form));await editor.flush();assert.equal((await f.library.snapshot()).generation,before.generation);
   form.cv.personalInformation.displayName='F9 confirmed';await editor.confirm(form);assert.equal((await f.library.openCv(cv.id)).personalInformation.displayName,'F9 confirmed');
 });
+test('F9 lossless worker transport rejects invalid JSON values without coercion or partial writes',async t=>{
+  const f=await libraryFixture(t),before=(await f.repository.read())!;
+  for(const value of [NaN,Infinity,-0,undefined]){
+    const changed=structuredClone(before.content);
+    (changed.workspace.settings as unknown as Record<string,unknown>).unexpected=value;
+    await assert.rejects(f.repository.commit(before.generation,changed));
+    assert.deepEqual(await f.repository.read(),before);
+  }
+  const cyclic=structuredClone(before.content);(cyclic.workspace.settings as unknown as Record<string,unknown>).cycle=cyclic.workspace.settings;
+  await assert.rejects(f.repository.commit(before.generation,cyclic));assert.deepEqual(await f.repository.read(),before);
+});

@@ -4,7 +4,7 @@ import {
   assertDataTree, parse, validateEntity, validateProject, referencedAssets, templateKey,
   canonical, validateResources, checkMap,
 } from '../domain/index.js';
-import type { Entity } from '../domain/index.js';
+import type { Entity,ProjectValidationCache } from '../domain/index.js';
 import type { FormDraft, LibraryContent, Resources, ProjectData } from './contracts.js';
 import type { DraftChanges } from './library.js';
 import { reject } from './contracts.js';
@@ -60,13 +60,13 @@ export function validateDraft(value: unknown): FormDraft {
   if (new TextEncoder().encode(canonical(d)).length > 10 * 1024 * 1024) reject('DRAFT_TOO_LARGE');
   return { ...d, baseSnapshot };
 }
-export function validateLibrary(s: LibraryContent): LibraryContent {
+export function validateLibrary(s: LibraryContent,memo?:ProjectValidationCache): LibraryContent {
   if(Array.isArray(s.drafts)&&s.drafts.length===0){
     // Without drafts the confirmed workspace IS the complete dependency closure.
     // One complete domain pass checks every field, identity, reference and history;
     // rebuilding a second project and parsing every CV again adds no protection.
-    const p=validateProject({scope:'workspace',workspace:s.workspace,revisions:s.revisions,assetsById:s.assetsById,templates:s.templates});
-    parse(LibrarySchema,s);
+    const p=validateProject({scope:'workspace',workspace:s.workspace,revisions:s.revisions,assetsById:s.assetsById,templates:s.templates},memo);
+    parse(LibrarySchema.extend({revisions:z.array(z.unknown())}),s);
     const hashes=new Set(Object.values(p.assetsById).map(a=>a.sha256));
     if(hashes.size!==s.blobs.size||[...hashes].some(h=>!s.blobs.has(h)))reject('ASSET_BYTES_MISSING_OR_EXTRA');
     if(p.scope!=='workspace')reject('WORKSPACE_PROJECT_REQUIRED');
@@ -121,6 +121,9 @@ export function validateLibrary(s: LibraryContent): LibraryContent {
   return structuredClone(s);
 }
 export function addResources(s: LibraryContent, r: Resources): void {
+  // No incoming resources means there is no upload/dependency closure to check.
+  // In particular, an ordinary text edit must not clone the entire library here.
+  if(!Object.keys(r.assetsById??{}).length&&!r.templates?.length&&!r.blobs?.size)return;
   if (r.assetsById) { parse(AssetMapSchema,r.assetsById); checkMap(r.assetsById,['assetsById']); }
   for (const [id, asset] of Object.entries(r.assetsById ?? {})) {
     if (s.assetsById[id] && canonical(s.assetsById[id]) !== canonical(asset)) reject('ASSET_ID_CONFLICT');

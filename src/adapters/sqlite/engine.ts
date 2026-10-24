@@ -3,7 +3,7 @@ import { chmodSync, existsSync, lstatSync, mkdirSync, realpathSync } from 'node:
 import { dirname, join, resolve, relative } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { canonical, referencedAssets, templateKey } from '../../domain/index.js';
+import { canonical, referencedAssets, templateKey, ProjectValidationCache } from '../../domain/index.js';
 import type { Asset, Entity, Revision, TemplateDefinition, Workspace } from '../../domain/index.js';
 import type { BackupReceipt, FormDraft, LibraryContent, LibraryRecord, StorageHealth } from '../../application/contracts.js';
 import { reject } from '../../application/contracts.js';
@@ -14,6 +14,7 @@ import { checkStorageVersion, migrateStorage, privateSubdirectory } from './migr
 import type { StorageMigration } from './migrations.js';
 import { ExportRecordSchema } from '../../application/export-record.js';
 import type { ExportRecord } from '../../application/export-record.js';
+import { includeTimings, measure, timingEnabled } from '../../application/timing.js';
 
 export const DATABASE_NAME = 'library.sqlite3';
 function privateDirectory(input: string): string {
@@ -44,6 +45,7 @@ export interface EngineOptions {
 }
 export class SqliteEngine {
   private cached: {record:LibraryRecord|null;dataVersion:number}|undefined;
+  private readonly validationCache=new ProjectValidationCache();
   private constructor(private readonly db: Database.Database, private readonly directory: string, private readonly options: EngineOptions) {}
   static async open(directory: string, options: EngineOptions = {}): Promise<SqliteEngine> {
     const location = privateDirectory(directory), path = join(location, DATABASE_NAME);
@@ -102,7 +104,10 @@ export class SqliteEngine {
         if (d.id !== r.id || d.entityId !== r.entity_id || d.baseRevision !== r.base_revision || d.version !== r.version) reject('STORAGE_INDEX_MISMATCH'); return d;
       });
       const blobs = new Map(this.db.prepare<[], {sha256:string; bytes:Buffer}>('SELECT sha256,bytes FROM blobs').all().map(r => [r.sha256, new Uint8Array(r.bytes)]));
-      const content = validateLibrary({ workspace, revisions, assetsById, templates, blobs, drafts });
+      // Populate exact-value validation reuse while opening the library, not
+      // on the first interactive confirmation. External changes take this same
+      // full-validation path before any cached data can be reused.
+      const content = validateLibrary({ workspace, revisions, assetsById, templates, blobs, drafts },this.validationCache);
       for (const a of Object.values(content.assetsById)) verifyAssetBytes(a, blobs.get(a.sha256)!);
       this.checkReferences(content);
       return { generation:row.generation, content };
@@ -131,10 +136,16 @@ export class SqliteEngine {
     }
   }
   commit(expectedGeneration: number | null, input: LibraryContent): number {
-    const s = validateLibrary(input);
-    for (const a of Object.values(s.assetsById)) verifyAssetBytes(a, s.blobs.get(a.sha256)!);
+    const s = measure('storage.validation',()=>validateLibrary(input,this.validationCache));
+    measure('storage.assetIntegrity',()=>{for (const a of Object.values(s.assetsById)) verifyAssetBytes(a, s.blobs.get(a.sha256)!);});
+    // SQLite stores JSON values, not canonical strings/hashes. Ordering keys is
+    // unnecessary here; full schema/graph validation above preserves rejection
+    // of values JSON would otherwise silently coerce or discard.
+    const encode=(value:unknown)=>measure('storage.serialization',()=>JSON.stringify(value));
+    const trace=timingEnabled(),transactionStart=performance.now();let bodyMs=0;
     const dataVersion=this.db.pragma('data_version',{simple:true}) as number;
     const generation=this.db.transaction(() => {
+      const bodyStart=performance.now();
       const generation = this.db.prepare<[], {generation:number}>('SELECT generation FROM workspace WHERE slot=1').get()?.generation ?? null;
       if (generation !== expectedGeneration) reject('LIBRARY_CONFLICT');
       const next = (generation ?? -1) + 1;
@@ -145,21 +156,21 @@ export class SqliteEngine {
       for (const table of ['entity_assets','revision_assets','template_assets','draft_assets','draft_templates']) this.db.exec(`DELETE FROM ${table}`);
       // Keep entities/revisions until dependency rows are gone; replacement is atomic to readers.
       this.db.exec('DELETE FROM drafts; DELETE FROM revisions; DELETE FROM entities; DELETE FROM templates; DELETE FROM assets; DELETE FROM workspace;');
-      this.db.prepare('INSERT INTO workspace VALUES (1,?,?,?,?,1)').run(s.workspace.id, next, canonical(s.workspace.settings), canonical(s.workspace.cvOrder));
+      this.db.prepare('INSERT INTO workspace VALUES (1,?,?,?,?,1)').run(s.workspace.id, next, encode(s.workspace.settings), encode(s.workspace.cvOrder));
       const insertBlob = this.db.prepare('INSERT INTO blobs VALUES (?,?,?) ON CONFLICT(sha256) DO NOTHING');
       for (const [hash, bytes] of s.blobs) insertBlob.run(hash, bytes.length, bytes);
       const insertAsset = this.db.prepare('INSERT INTO assets VALUES (?,?,?)');
-      Object.values(s.assetsById).forEach(a => insertAsset.run(a.id, a.sha256, canonical(a)));
+      Object.values(s.assetsById).forEach(a => insertAsset.run(a.id, a.sha256, encode(a)));
       const insertTemplate = this.db.prepare('INSERT INTO templates VALUES (?,?,?)');
-      s.templates.forEach(t => insertTemplate.run(t.id, t.version, canonical(t)));
+      s.templates.forEach(t => insertTemplate.run(t.id, t.version, encode(t)));
       const insertEntity = this.db.prepare('INSERT INTO entities VALUES (?,?,?,?,?,?,?,?,?,1)');
       currentEntities(s).forEach(e => insertEntity.run(e.id, s.workspace.id, e.kind, e.revision, e.kind === 'cv' ? e.name : null, e.kind === 'cv' ? e.documentLocale : null,
-        e.kind === 'cv' ? e.presentation.templateRef.id : null, e.kind === 'cv' ? e.presentation.templateRef.version : null, canonical(e)));
+        e.kind === 'cv' ? e.presentation.templateRef.id : null, e.kind === 'cv' ? e.presentation.templateRef.version : null, encode(e)));
       this.options.transactionProbe?.('afterEntities',this.db);
       const insertRevision = this.db.prepare('INSERT INTO revisions VALUES (?,?,?,?,?,?,?,1)');
-      s.revisions.forEach(r => insertRevision.run(r.id,r.entityId,r.number,r.cause,r.retention,r.createdAt,canonical(r.snapshot)));
+      s.revisions.forEach(r => insertRevision.run(r.id,r.entityId,r.number,r.cause,r.retention,r.createdAt,encode(r.snapshot)));
       const insertDraft = this.db.prepare('INSERT INTO drafts VALUES (?,?,?,?,?)');
-      s.drafts.forEach(d => insertDraft.run(d.id,d.entityId,d.baseRevision,d.version,canonical(d)));
+      s.drafts.forEach(d => insertDraft.run(d.id,d.entityId,d.baseRevision,d.version,encode(d)));
       const linkEntity = this.db.prepare('INSERT INTO entity_assets VALUES (?,?)');
       currentEntities(s).forEach(e => referencedAssets(e).forEach(id => linkEntity.run(e.id,id)));
       const linkRevision = this.db.prepare('INSERT INTO revision_assets VALUES (?,?)');
@@ -177,8 +188,9 @@ export class SqliteEngine {
       this.db.exec("DELETE FROM exports WHERE cv_id NOT IN (SELECT id FROM entities WHERE kind='cv')");
       this.options.transactionProbe?.('beforeCommit',this.db);
       if ((this.db.pragma('foreign_key_check') as unknown[]).length) reject('STORAGE_FOREIGN_KEY_FAILURE');
-      return next;
+      bodyMs=performance.now()-bodyStart;return next;
     }).immediate();
+    if(trace)includeTimings([{stage:'storage.transactionBody',ms:bodyMs},{stage:'storage.beginAndDurableCommit',ms:performance.now()-transactionStart-bodyMs}]);
     this.cached={record:{generation,content:s},dataVersion};
     return generation;
   }

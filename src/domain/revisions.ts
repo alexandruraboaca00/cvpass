@@ -11,8 +11,8 @@ export function validateRevision(value:unknown):Revision {
   return r;
 }
 // Internal: RevisionSchema and the containing graph were parsed by the caller.
-export function assertRevisionInvariants(r:Revision):void {
-  const e=r.snapshot;assertEntityInvariants(e);
+export function assertRevisionInvariants(r:Revision,entityAlreadyValidated=false):void {
+  const e=r.snapshot;if(!entityAlreadyValidated)assertEntityInvariants(e);
   if(r.entityId!==e.id||r.entityKind!==e.kind||r.number!==e.revision)fail('revision.snapshotMismatch');
   if(r.createdAt<e.updatedAt)fail('revision.beforeSnapshot');
   if(r.cause==='beforeTranslation'&&r.retention!=='pinned')fail('revision.translationMustBePinned');

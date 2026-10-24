@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { IdSchema, DocumentLocale, parse, fail, assertOrder, checkMap, assertDataTree, canonical } from './primitives.js';
-import { MasterProfileSchema, CvDocumentSchema, AssetMapSchema, TemplateSchema, assertEntityInvariants } from './model.js';
+import { MasterProfileSchema, CvDocumentSchema, AssetMapSchema, TemplateSchema, assertEntityInvariants, validateEntity } from './model.js';
 import type { Entity, Asset, TemplateDefinition } from './model.js';
 import { RevisionSchema, assertRevisionInvariants } from './revisions.js';
 import { referencedAssets, assertResourceReferences } from './assets.js';
@@ -15,8 +15,30 @@ export const ProjectSnapshotSchema=z.discriminatedUnion('scope',[
 export type ProjectSnapshot=z.infer<typeof ProjectSnapshotSchema>;
 export function entitiesOf(project:ProjectSnapshot):Entity[]{return project.scope==='cv'?[project.cv]:[...(project.workspace.profile?[project.workspace.profile]:[]),...Object.values(project.workspace.cvsById)];}
 export const templateKey=(t:{id:string;version:number}):string=>`${t.id}@${t.version}`;
-export function validateProject(value:unknown):ProjectSnapshot {
-  assertDataTree(value);const p=parse(ProjectSnapshotSchema,value);
+// Optional local-validation memo for a durable repository. Exact JSON values,
+// never IDs/revision numbers alone, determine reuse. The complete graph bounds,
+// ownership, history and resource closure are still checked on every call.
+// Only strings are retained: callers cannot mutate a cached validated object.
+export class ProjectValidationCache {
+  private values=new Map<string,{json:string;canonical:string}>();
+  private canonicalByEntity=new WeakMap<Entity,string>();
+  private used=new Set<string>();
+  private entity(value:unknown,kind?:Entity['kind']):Entity{
+    const e=value as Entity,key=`${e?.id}@${e?.revision}`,json=JSON.stringify(value),old=this.values.get(key);
+    if(!old||old.json!==json){const valid=validateEntity(value);this.values.set(key,{json,canonical:canonical(valid)});}
+    if(kind&&e.kind!==kind)fail('entity.wrongKind');this.used.add(key);
+    const copy=JSON.parse(json) as Entity;this.canonicalByEntity.set(copy,this.values.get(key)!.canonical);return copy;
+  }
+  readonly schema=z.discriminatedUnion('scope',[
+    ProjectSnapshotSchema.options[0].extend({cv:z.unknown().transform(v=>this.entity(v,'cv')),revisions:z.array(RevisionSchema.extend({snapshot:z.unknown().transform(v=>this.entity(v))}))}),
+    ProjectSnapshotSchema.options[1].extend({workspace:WorkspaceSchema.extend({profile:z.unknown().nullable().transform(v=>v===null?null:this.entity(v,'profile')),cvsById:z.record(IdSchema,z.unknown().transform(v=>this.entity(v,'cv')))}),revisions:z.array(RevisionSchema.extend({snapshot:z.unknown().transform(v=>this.entity(v))}))}),
+  ]);
+  serialized(e:Entity):string{return this.canonicalByEntity.get(e)!;}
+  begin():void{this.used.clear();}
+  finish():void{for(const key of this.values.keys())if(!this.used.has(key))this.values.delete(key);}
+}
+export function validateProject(value:unknown,memo?:ProjectValidationCache):ProjectSnapshot {
+  assertDataTree(value);memo?.begin();const p=parse(memo?.schema??ProjectSnapshotSchema,value) as ProjectSnapshot;
   checkMap(p.assetsById,['assetsById']);
   const entities=entitiesOf(p);const owners=new Map(entities.map(e=>[e.id,e]));
   if(owners.size!==entities.length)fail('project.duplicateEntityId');
@@ -30,13 +52,13 @@ export function validateProject(value:unknown):ProjectSnapshot {
     if(!v||typeof v!=='object')return;if(Array.isArray(v)){v.forEach(unique);return;}
     for(const[k,x]of Object.entries(v)){if(['sourceRef','catalog','templateRef'].includes(k))continue;if(k==='id'&&typeof x==='string'){if(ids.has(x))fail('project.duplicateId',[x]);ids.add(x);}else unique(x);}
   }
-  entities.forEach(e=>{assertEntityInvariants(e);unique(e);});
+  entities.forEach(e=>{if(!memo)assertEntityInvariants(e);unique(e);});
   const revisions=new Set<string>();
   const all=[...entities];
-  const versions=new Map(entities.map(e=>[`${e.id}@${e.revision}`,canonical(e)]));
-  for(const r of p.revisions){assertRevisionInvariants(r);const owner=owners.get(r.entityId);
+  const versions=new Map(entities.map(e=>[`${e.id}@${e.revision}`,memo?.serialized(e)??canonical(e)]));
+  for(const r of p.revisions){assertRevisionInvariants(r,!!memo);const owner=owners.get(r.entityId);
     if(!owner||owner.kind!==r.entityKind||r.number>owner.revision)fail('revision.invalidOwnerOrFuture');
-    const key=`${r.entityId}@${r.number}`,serialized=canonical(r.snapshot);
+    const key=`${r.entityId}@${r.number}`,serialized=memo?.serialized(r.snapshot)??canonical(r.snapshot);
     if(versions.has(key)&&versions.get(key)!==serialized)fail('revision.divergentSnapshot');versions.set(key,serialized);
     if(ids.has(r.id)||revisions.has(r.id))fail('revision.duplicateId');revisions.add(r.id);all.push(r.snapshot);
   }
@@ -58,7 +80,7 @@ export function validateProject(value:unknown):ProjectSnapshot {
   for(const t of p.templates)for(const r of t.resourceRefs)requiredAssets.add(r.assetId);
   const assetIds=Object.keys(p.assetsById);if(assetIds.length!==requiredAssets.size||assetIds.some(id=>!requiredAssets.has(id)))fail('asset.extraOrMissing');
   for(const a of Object.values(p.assetsById))if(idOwners.has(a.id)||revisions.has(a.id))fail('asset.idCollision',[a.id]);
-  return p;
+  memo?.finish();return p;
 }
 export function projectForCv(workspaceProject:ProjectSnapshot,cvId:string):ProjectSnapshot {
   const source=validateProject(workspaceProject);if(source.scope!=='workspace')fail('project.workspaceRequired');

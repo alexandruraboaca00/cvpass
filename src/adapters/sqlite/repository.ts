@@ -1,8 +1,10 @@
 import { Worker } from 'node:worker_threads';
+import { serialize, deserialize } from 'node:v8';
 import type { BackupReceipt, LibraryContent, LibraryRecord, LibraryRepository, StorageHealth } from '../../application/contracts.js';
 import { LibraryError } from '../../application/contracts.js';
 import type { WorkerRequest, WorkerResponse } from './protocol.js';
 import type { ExportRecord, ExportRecordRepository } from '../../application/export-record.js';
+import { includeTimings, measure, measureAsync, timingEnabled } from '../../application/timing.js';
 
 type Request = WorkerRequest extends infer R ? R extends WorkerRequest ? Omit<R, 'id'> : never : never;
 // Instantiate only from a trusted main/host process. Renderer receives application operations.
@@ -12,12 +14,13 @@ export class SqliteLibraryRepository implements LibraryRepository, ExportRecordR
   private nextId = 0;
   private closed = false;
   private closeTask: Promise<void> | null = null;
-  private cached:{stamp:{generation:number|null;dataVersion:number};record:LibraryRecord|null}|undefined;
+  private cached:{stamp:{generation:number|null;dataVersion:number};content:Buffer|null}|undefined;
   private constructor(directory: string) {
     this.worker = new Worker(new URL('./worker.js', import.meta.url), { workerData:{directory} });
     this.worker.on('message', (response: WorkerResponse) => {
       const pending = this.pending.get(response.id); if (!pending) return;
       this.pending.delete(response.id);
+      if(response.timings)includeTimings(response.timings);
       if (response.error) pending.reject(new LibraryError(response.error.code)); else pending.resolve(response.value);
     });
     this.worker.on('error', () => this.failAll('STORAGE_WORKER_FAILED'));
@@ -39,23 +42,27 @@ export class SqliteLibraryRepository implements LibraryRepository, ExportRecordR
     const id = ++this.nextId;
     return new Promise<T>((resolve,reject) => {
       this.pending.set(id,{resolve: value => resolve(value as T),reject});
-      try { this.worker.postMessage({id,...request}); }
+      try { measure('repository.workerSerialization',()=>this.worker.postMessage({id,...request,trace:timingEnabled()})); }
       catch { this.pending.delete(id); reject(new LibraryError('STORAGE_MESSAGE_INVALID')); }
     });
   }
   async read(): Promise<LibraryRecord | null> {
-    const stamp=await this.call<{generation:number|null;dataVersion:number}>({method:'readVersion'});
-    if(this.cached?.stamp.generation===stamp.generation&&this.cached.stamp.dataVersion===stamp.dataVersion)return structuredClone(this.cached.record);
+    const stamp=await measureAsync('repository.readVersion',()=>this.call<{generation:number|null;dataVersion:number}>({method:'readVersion'}));
+    if(this.cached?.stamp.generation===stamp.generation&&this.cached.stamp.dataVersion===stamp.dataVersion)return measure('repository.readClone',()=>this.cached!.content===null?null:{generation:stamp.generation!,content:deserialize(this.cached!.content)});
     const record=await this.call<LibraryRecord|null>({method:'read'});
-    if((record?.generation??null)===stamp.generation)this.cached={stamp,record:structuredClone(record)};
+    if((record?.generation??null)===stamp.generation)this.cached={stamp,content:record?serialize(record.content):null};
     return record;
   }
   async commit(expectedGeneration: number | null, content: LibraryContent): Promise<number> {
     // Capture the exact submitted values. A caller may mutate its object while
     // awaiting the worker; only the worker-validated submitted copy is cached.
-    const submitted=structuredClone(content),stamp=await this.call<{generation:number|null;dataVersion:number}>({method:'readVersion'});
-    const generation=await this.call<number>({method:'commit',expectedGeneration,content:submitted});
-    this.cached={record:{generation,content:submitted},stamp:{...stamp,generation}};
+    // V8's lossless, process-local clone preserves Map/bytes, undefined, NaN,
+    // negative zero and cycles for the worker to validate/reject as before.
+    // It also captures caller mutations before the first await. This is IPC
+    // transport only: no V8 data enters SQLite or the portable project format.
+    const submitted=measure('repository.submitClone',()=>serialize(content)),stamp=await this.call<{generation:number|null;dataVersion:number}>({method:'readVersion'});
+    const generation=await measureAsync('repository.commitRoundTrip',()=>this.call<number>({method:'commit',expectedGeneration,data:submitted}));
+    this.cached={content:submitted,stamp:{...stamp,generation}};
     return generation;
   }
   backup(): Promise<BackupReceipt> { return this.call({method:'backup'}); }
