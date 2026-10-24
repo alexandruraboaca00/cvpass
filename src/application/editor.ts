@@ -1,6 +1,7 @@
+import { measure, measureAsync } from './timing.js';
 import { z } from 'zod';
 import { createSection, emptyPersonal, parse, NonBlank, validateCv, referencedAssets, SectionKindSchema, canonical } from '../domain/index.js';
-import type { Asset, CvDocument, DomainContext, SectionKind, TemplateDefinition } from '../domain/index.js';
+import type { Asset, Entity, CvDocument, DomainContext, SectionKind, TemplateDefinition } from '../domain/index.js';
 import { DraftAutosaver } from './autosave.js';
 import type { AutosaveStatus } from './autosave.js';
 import type { FormDraft, Resources } from './contracts.js';
@@ -15,12 +16,13 @@ const editorTemplate:TemplateDefinition = {id:'cvforge-core',version:2,rendererC
 export interface EditorLibraryView {
   cvs:CvSummary[];
   profileName:string|null;
+  profileId:string|null;
   uiLocale:'es'|'en';
   recovery:{id:string;cvId:string;name:string;conflict:boolean}[];
 }
 export interface EditorDocumentView {cv:CvDocument;photo:PhotoView|null}
 export interface PhotoView {mediaType:string;bytes:Uint8Array;dimensions:{width:number;height:number};crop:{x:number;y:number;width:number;height:number}}
-interface ActiveForm { form:EditorForm; draft:FormDraft; autosaver:DraftAutosaver; resources:Resources;lastStaged?:string }
+interface ActiveForm { form:EditorForm; draft:FormDraft; autosaver:DraftAutosaver; resources:Resources;photo:PhotoView|null;photoAssetId:string|null;lastStaged?:string }
 export class CoreEditorService {
   private active:ActiveForm|null = null;
   constructor(private readonly library:LibraryService,private readonly ctx:DomainContext,private readonly initialTemplate?:()=>Promise<BuiltinResources>) {}
@@ -35,8 +37,9 @@ export class CoreEditorService {
   hasActiveForm():boolean{return this.active!==null;}
   async list():Promise<EditorLibraryView> {
     const {content} = await this.library.snapshot();
-    return {cvs:await this.library.listCvs(),profileName:content.workspace.profile?.personalInformation.displayName ?? null,uiLocale:content.workspace.settings.uiLocale,
-      recovery:(await this.library.recoverableDrafts()).map(({draft,conflict}) => ({id:draft.id,cvId:draft.entityId,name:content.workspace.cvsById[draft.entityId]?.name ?? 'Perfil',conflict}))};
+    const pending=new Set(content.drafts.map(d=>d.entityId));
+    return {cvs:content.workspace.cvOrder.map(id=>{const cv=content.workspace.cvsById[id]!;return {id,name:cv.name,revision:cv.revision,documentLocale:cv.documentLocale,hasDraft:pending.has(id)};}),profileName:content.workspace.profile?.personalInformation.displayName ?? null,profileId:content.workspace.profile?.id??null,uiLocale:content.workspace.settings.uiLocale,
+      recovery:content.drafts.map(draft=>({id:draft.id,cvId:draft.entityId,name:content.workspace.cvsById[draft.entityId]?.name??'Perfil',conflict:(content.workspace.profile?.id===draft.entityId?content.workspace.profile:content.workspace.cvsById[draft.entityId])!.revision!==draft.baseRevision}))};
   }
   async setUiLocale(locale:'es'|'en'):Promise<EditorLibraryView> {
     await this.active?.autosaver.flush();await this.library.setUiLocale(locale);return this.list();
@@ -62,7 +65,7 @@ export class CoreEditorService {
     this.idle(); const cv = await this.library.openCv(id);
     return {cv,photo:await this.photo(cv)};
   }
-  async photo(cv:CvDocument):Promise<PhotoView|null> {
+  async photo(cv:Entity):Promise<PhotoView|null> {
     const placement = cv.personalInformation.photo;
     if (!placement) return null;
     const {content} = await this.library.snapshot();
@@ -104,7 +107,7 @@ export class CoreEditorService {
     const draft = await this.library.beginDraft(cvId,expectedRevision,['f5',actual.kind]);
     initial.draftId = draft.id;
     const autosaver = new DraftAutosaver(this.library,draft);
-    this.active = {form:initial,draft,autosaver,resources:{}};
+    this.active = {form:initial,draft,autosaver,resources:{},photo:await this.photo(cv),photoAssetId:cv.personalInformation.photo?.assetId??null};
     this.stage(initial); await autosaver.flush();
     return structuredClone(initial);
   }
@@ -132,20 +135,22 @@ export class CoreEditorService {
     active.resources.assetsById[asset.id] = asset; active.resources.blobs.set(asset.sha256,new Uint8Array(bytes));
     active.form.cv.personalInformation.photo = {assetId:asset.id,crop:{x:0,y:0,width:1,height:1},visible:true};
     this.stage(active.form); await active.autosaver.flush();
-    return {form:structuredClone(active.form),photo:(await this.photo(active.form.cv))!};
+    active.photo=(await this.photo(active.form.cv))!;active.photoAssetId=asset.id;
+    return {form:structuredClone(active.form),photo:active.photo};
   }
   status():{status:AutosaveStatus;error:boolean} {
     return {status:this.active?.autosaver.status ?? 'idle',error:!!this.active?.autosaver.lastError};
   }
   async flush():Promise<void> { await this.active?.autosaver.flush(); }
   async confirm(input:EditorForm):Promise<EditorDocumentView> {
-    this.stage(input); const active = this.active!;
-    await active.autosaver.flush();
-    const candidate = candidateFromForm(validateCv(active.draft.baseSnapshot),active.form,this.ctx);
-    const draft = (await this.library.recoverableDrafts()).find(x => x.draft.id === input.draftId)!.draft;
-    await this.library.confirmDraft(draft.id,draft.version,candidate,this.prepareTemplate(candidate),active.form.target.kind==='language'?'beforeTranslation':'edit');
+    measure('editor.stageAndScope',()=>this.stage(input)); const active = this.active!;
+    await measureAsync('editor.flushDraft',()=>active.autosaver.flush());
+    const candidate = measure('editor.candidateValidation',()=>candidateFromForm(validateCv(active.draft.baseSnapshot),active.form,this.ctx));
+    const confirmed=validateCv(await measureAsync('editor.durableConfirm',()=>this.library.confirmDraft(active.draft.id,active.autosaver.durableVersion,candidate,this.prepareTemplate(candidate),active.form.target.kind==='language'?'beforeTranslation':'edit')));
     await active.autosaver.finish(); this.active = null;
-    return this.open(candidate.id);
+    // Return the exact durable result rather than re-reading all 100 documents.
+    // Reuse only the immutable asset bytes captured by this form session.
+    return measureAsync('editor.confirmResponse',async()=>({cv:confirmed,photo:!confirmed.personalInformation.photo?null:confirmed.personalInformation.photo.assetId===active.photoAssetId&&active.photo?{...active.photo,crop:confirmed.personalInformation.photo.crop}:await this.photo(confirmed)}));
   }
   async cancel():Promise<EditorDocumentView> {
     const active = this.active ?? reject('EDITOR_NO_FORM');
@@ -158,7 +163,7 @@ export class CoreEditorService {
     const form = draft.values as EditorForm;
     if (form.draftId !== draft.id) reject('EDITOR_RECOVERY_INVALID');
     assertEditorScope(validateCv(draft.baseSnapshot),form);
-    this.active = {form,draft,autosaver:new DraftAutosaver(this.library,draft),resources:{}};
+    this.active = {form,draft,autosaver:new DraftAutosaver(this.library,draft),resources:{},photo:await this.photo(form.cv),photoAssetId:form.cv.personalInformation.photo?.assetId??null};
     return {form:structuredClone(form),photo:await this.photo(form.cv)};
   }
   async discardRecovery(id:string):Promise<EditorLibraryView> {
