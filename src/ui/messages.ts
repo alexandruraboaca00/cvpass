@@ -1,6 +1,10 @@
 // Message IDs are Spanish source strings with named placeholders.
 // Only application messages use this catalog; CV content never passes through it.
 export const english:Record<string,string>={
+  "Cargando vista previa…": "Loading preview…",
+  "Cargando editor…": "Loading editor…",
+  "Reintentar": "Retry",
+  "No se ha podido cargar este componente local. Los datos confirmados se conservan.": "This local component could not be loaded. Confirmed data is preserved.",
   "Foto del perfil": "Profile photo",
   "Perfil maestro": "Master profile",
   "Exportar biblioteca (.cvproj)": "Back up library (.cvproj)",
