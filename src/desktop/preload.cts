@@ -21,3 +21,5 @@ const api:EditorApi = {
   },
 };
 contextBridge.exposeInMainWorld('cvforge',api);
+
+if(process.argv.includes('--cvforge-startup-trace'))ipcRenderer.send('cvforge:startup:preload');

@@ -1,3 +1,4 @@
+import {startupMark,flushStartup,startupTracing} from '../application/startup-timing.js';
 import { ProfileEditorService } from '../application/profile-editor.js';
 import { ProfileSelectionSchema } from '../application/profile-selection.js';
 import type { ProfileEditorForm } from '../application/editor-model.js';
@@ -31,6 +32,7 @@ import { PresentationInputSchema } from '../application/render-contract.js';
 import type { PresentationInput } from '../application/render-contract.js';
 import { writeProjectFile } from '../adapters/project-files.js';
 
+startupMark('main:body');
 app.setName('CVForge');
 // Electron's standard --user-data-dir is useful for isolated synthetic acceptance runs.
 const customData = app.commandLine.getSwitchValue('user-data-dir');
@@ -38,14 +40,16 @@ if (customData) app.setPath('userData',customData);
 if (!app.requestSingleInstanceLock()) app.quit();
 else void run();
 async function run():Promise<void> {
-  await app.whenReady();
+  await app.whenReady();startupMark('main:ready');
   const ctx = {newId:randomUUID,now:()=>new Date().toISOString()};
   let win:BrowserWindow|undefined, closing = false, uiLocale:'es'|'en'='es';
   const message=(key:string,values:Record<string,string|number>={})=>translateMessage(uiLocale,key,values);
   const diagnostic=(event:string):void=>{if(app.commandLine.hasSwitch('cvforge-diagnostics'))console.info('CVForge lifecycle:',event);};
   try {
     const resources=()=>loadSimpleResources(join(app.getAppPath(),'resources/fonts'));
-    const host = await openLocalLibrary(app,ctx), editor = new CoreEditorService(host.library,ctx,resources);
+    startupMark('library:open-start');
+    const host = await openLocalLibrary(app,ctx);startupMark('library:open-end');
+    const editor = new CoreEditorService(host.library,ctx,resources);
     const profileEditor=new ProfileEditorService(host.library,ctx,entity=>editor.photo(entity),resources);
     const presentation=new PresentationService(host.library,resources);
     const preview=new PdfPreviewService(new RenderSnapshotFactory(host.library,resources,nativeImageNormalizer,sha256,ctx,process.versions.chrome!),host.library,new ChromiumPdfRenderer(),{
@@ -53,12 +57,13 @@ async function run():Promise<void> {
       async write(path,bytes){return writeProjectFile(path,bytes,true);},
     },sha256,ctx,host.exports);
     const importer=new StructuredImportService(host.library,new LocalStructuredImport(),ctx);
-    uiLocale=(await editor.start()).uiLocale;
+    startupMark('library:start-start');uiLocale=(await editor.start()).uiLocale;startupMark('library:start-end');
     session.defaultSession.setPermissionRequestHandler((_webContents,_permission,callback)=>callback(false));
     session.defaultSession.webRequest.onBeforeRequest((details,callback)=>callback({cancel:!['file:','data:','blob:','devtools:'].includes(new URL(details.url).protocol)}));
     const base = fileURLToPath(new URL('.',import.meta.url));
-    win = new BrowserWindow({width:1180,height:860,minWidth:760,minHeight:620,show:false,backgroundColor:'#f4f5f7',title:'CVForge',
-      webPreferences:{preload:join(base,'preload.cjs'),contextIsolation:true,sandbox:true,nodeIntegration:false,webSecurity:true}});
+    startupMark('window:create-start');win = new BrowserWindow({width:1180,height:860,minWidth:760,minHeight:620,show:false,backgroundColor:'#f4f5f7',title:'CVForge',
+      webPreferences:{additionalArguments:startupTracing?['--cvforge-startup-trace']:[],preload:join(base,'preload.cjs'),contextIsolation:true,sandbox:true,nodeIntegration:false,webSecurity:true}});
+    startupMark('window:create-end');if(startupTracing)ipcMain.on('cvforge:startup:preload',()=>startupMark('preload:ready'));
     win.removeMenu();
     const page = fileURLToPath(new URL('../../renderer/index.html',import.meta.url));
     win.webContents.setWindowOpenHandler(()=>({action:'deny'}));
@@ -97,6 +102,7 @@ async function run():Promise<void> {
           const profileAction=envelope.action.startsWith('profile');
           if(profileAction&&editor.hasActiveForm()||!profileAction&&profileEditor.hasActiveForm()&&!['list','status','flush','close','setUiLocale','pdfCancel'].includes(envelope.action))throw new Error('EDITOR_FORM_OPEN');
           if(importer.isOpen()&&!envelope.action.startsWith('import')&&!['list','status','flush','close','pdfCancel'].includes(envelope.action))throw new Error('IMPORT_ALREADY_OPEN');
+          if(envelope.action==='list')startupMark('library:ipc-list-start');
           if(envelope.action==='pdfGenerate')value=await preview.generate(args[0] as string,args[1] as number);
           else if(envelope.action==='pdfRecords')value=await host.exports.listExports(args[0] as string);
           else if(envelope.action==='projectExport'||envelope.action==='workspaceExport'){
@@ -145,6 +151,7 @@ async function run():Promise<void> {
             if(envelope.action==='setUiLocale')uiLocale=args[0] as 'es'|'en';
           }
           if(['confirm','profileConfirm','profileRemove','profileRestore','presentation','visibility','remove','restore','recover','importRestore','importConfirm'].includes(envelope.action))preview.invalidate();
+          if(envelope.action==='list'){startupMark('library:ipc-list-end');flushStartup();}
           return {ok:true,value};
         } catch (error) {
           const issue:EditorFailure = error instanceof EditorValidationError ? {code:'EDITOR_VALIDATION',issues:error.issues}
@@ -169,7 +176,7 @@ async function run():Promise<void> {
       void queue.then(async()=>{await profileEditor.finish();await editor.close();}).catch(()=>dialog.showErrorBox(message('CVForge — borrador pendiente'),message('La ventana se ha cerrado inesperadamente y no se ha podido completar el guardado del borrador. El contenido confirmado se conserva.'))).finally(()=>{closing=true;win!.destroy();app.quit();});
     });
     app.on('second-instance',()=>{win?.restore();win?.focus();});
-    await win.loadFile(page); win.show();
+    startupMark('renderer:load-start');await win.loadFile(page);startupMark('renderer:load-end');flushStartup(); win.show();
   } catch (error) {
     // Diagnostic codes contain no CV values, SQL text or local filenames.
     console.error('CVForge startup:',safeCode(error));

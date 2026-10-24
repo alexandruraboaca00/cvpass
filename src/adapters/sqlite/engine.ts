@@ -1,3 +1,4 @@
+import {startupMark,flushStartup,startupTracing} from '../../application/startup-timing.js';
 import Database from 'better-sqlite3';
 import { chmodSync, existsSync, lstatSync, mkdirSync, realpathSync } from 'node:fs';
 import { dirname, join, resolve, relative } from 'node:path';
@@ -48,22 +49,22 @@ export class SqliteEngine {
   private readonly validationCache=new ProjectValidationCache();
   private constructor(private readonly db: Database.Database, private readonly directory: string, private readonly options: EngineOptions) {}
   static async open(directory: string, options: EngineOptions = {}): Promise<SqliteEngine> {
-    const location = privateDirectory(directory), path = join(location, DATABASE_NAME);
+    startupMark('storage:open-start');const location = privateDirectory(directory), path = join(location, DATABASE_NAME);
     for (const name of [path, `${path}-wal`, `${path}-shm`]) {
       if (existsSync(name) && (!lstatSync(name).isFile() || lstatSync(name).isSymbolicLink())) reject('STORAGE_UNSAFE_PATH');
     }
-    const db = new Database(path, { timeout: 5000 });
+    let queries=0;const db = new Database(path, { timeout: 5000,...(startupTracing?{verbose:()=>{queries++;}}:{}) });startupMark('storage:connection');
     try {
       checkStorageVersion(db, options.migrations);
       db.pragma('foreign_keys = ON'); db.pragma('busy_timeout = 5000');
       db.pragma('journal_mode = WAL'); db.pragma('synchronous = FULL');
-      await migrateStorage(db, location, options.migrations);
+      startupMark('storage:migrate-start');await migrateStorage(db, location, options.migrations);startupMark('storage:migrate-end');
       chmodSync(path, 0o600);
       const engine = new SqliteEngine(db, location, options);
-      const health = engine.health();
+      startupMark('storage:health-start');const health = engine.health();startupMark('storage:health-end');
       if (health.integrity.join(',') !== 'ok' || health.foreignKeyViolations) reject('STORAGE_INTEGRITY_FAILURE');
-      engine.read(); // Revalidate domain, indexed metadata and byte integrity before exposing the library.
-      engine.listExports();
+      startupMark('storage:initial-read-start');engine.read();startupMark('storage:initial-read-end'); // Revalidate domain, indexed metadata and byte integrity before exposing the library.
+      engine.listExports();startupMark('storage:open-end',queries);flushStartup();
       return engine;
     } catch (e) { db.close(); throw e; }
   }
@@ -79,16 +80,16 @@ export class SqliteEngine {
         return null;
       }
       if (row.model_version !== 1) reject('STORAGE_UNSUPPORTED_MODEL');
-      const entityRows = this.db.prepare<[], EntityRow>('SELECT * FROM entities ORDER BY id').all();
+      startupMark('storage:workspace');const entityRows = this.db.prepare<[], EntityRow>('SELECT * FROM entities ORDER BY id').all();
       const entities = entityRows.map(r => {
         const e = json<Entity>(r.snapshot_json);
         if (r.model_version !== 1 || e.id !== r.id || e.kind !== r.kind || e.revision !== r.revision || r.workspace_id !== row.id ||
             (e.kind === 'cv' && (e.name !== r.name || e.documentLocale !== r.locale || e.presentation.templateRef.id !== r.template_id || e.presentation.templateRef.version !== r.template_version))) reject('STORAGE_INDEX_MISMATCH');
         return e;
       });
-      const workspace: Workspace = { id: row.id, profile: entities.find(e => e.kind === 'profile') as Workspace['profile'] ?? null,
+      startupMark('storage:entities',entities.length);const workspace: Workspace = { id: row.id, profile: entities.find(e => e.kind === 'profile') as Workspace['profile'] ?? null,
         cvsById: Object.fromEntries(entities.filter(e => e.kind === 'cv').map(e => [e.id, e])), cvOrder: json(row.cv_order_json), settings: json(row.settings_json) };
-      const revisions = this.db.prepare<[], RevisionRow>('SELECT * FROM revisions ORDER BY rowid').all().map(r => {
+      startupMark('storage:profile-resolved',workspace.profile?1:0);const revisions = this.db.prepare<[], RevisionRow>('SELECT * FROM revisions ORDER BY rowid').all().map(r => {
         if (r.model_version !== 1) reject('STORAGE_UNSUPPORTED_MODEL');
         const snapshot = json<Entity>(r.snapshot_json);
         return { id:r.id, entityId:r.entity_id, entityKind:snapshot.kind, number:r.number, cause:r.cause, retention:r.retention, createdAt:r.created_at, snapshot } as Revision;
@@ -103,13 +104,13 @@ export class SqliteEngine {
         const d = json<FormDraft>(r.draft_json);
         if (d.id !== r.id || d.entityId !== r.entity_id || d.baseRevision !== r.base_revision || d.version !== r.version) reject('STORAGE_INDEX_MISMATCH'); return d;
       });
-      const blobs = new Map(this.db.prepare<[], {sha256:string; bytes:Buffer}>('SELECT sha256,bytes FROM blobs').all().map(r => [r.sha256, new Uint8Array(r.bytes)]));
+      startupMark('storage:metadata');const blobs = new Map(this.db.prepare<[], {sha256:string; bytes:Buffer}>('SELECT sha256,bytes FROM blobs').all().map(r => [r.sha256, new Uint8Array(r.bytes)]));
       // Populate exact-value validation reuse while opening the library, not
       // on the first interactive confirmation. External changes take this same
       // full-validation path before any cached data can be reused.
-      const content = validateLibrary({ workspace, revisions, assetsById, templates, blobs, drafts },this.validationCache);
-      for (const a of Object.values(content.assetsById)) verifyAssetBytes(a, blobs.get(a.sha256)!);
-      this.checkReferences(content);
+      startupMark('storage:blobs');const content = validateLibrary({ workspace, revisions, assetsById, templates, blobs, drafts },this.validationCache);
+      startupMark('storage:validation');for (const a of Object.values(content.assetsById)) verifyAssetBytes(a, blobs.get(a.sha256)!);
+      startupMark('storage:asset-hashes');this.checkReferences(content);startupMark('storage:references');
       return { generation:row.generation, content };
     })();
     this.cached={record:structuredClone(record),dataVersion};
