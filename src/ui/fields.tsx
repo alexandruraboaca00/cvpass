@@ -1,9 +1,10 @@
 import { useMessages } from './i18n.js';
 import { useId } from 'react';
 import type { ReactNode } from 'react';
-import type { EditorIssue, EditorForm } from '../application/editor-model.js';
+import type { EditorIssue, EditorForm, ContentForm } from '../application/editor-model.js';
 import type { AddressSchema, Period } from '../domain/index.js';
 import type { z } from 'zod';
+export type ContentChange=(mutate:(form:ContentForm)=>void)=>void;
 export type Change = (mutate:(form:EditorForm)=>void)=>void;
 export const nullable = (value:string):string|null => value === '' ? null : value;
 export function Field({label,path,value,onChange,issues=[],required=false,multiline=false,type='text',hint}:{label:string;path:string;value:string;onChange:(v:string)=>void;issues?:EditorIssue[];required?:boolean;multiline?:boolean;type?:string;hint?:string}) {
@@ -15,9 +16,9 @@ export function Field({label,path,value,onChange,issues=[],required=false,multil
     {hint && <small id={id+'-hint'}>{hint}</small>}{message && <p id={id+'-error'} className="error">{message}</p>}
   </div>;
 }
-export function Check({label,checked,onChange}:{label:ReactNode;checked:boolean;onChange:(v:boolean)=>void}) {
-  return <label className="check"><input type="checkbox" checked={checked} onChange={event=>onChange(event.target.checked)}/>{label}</label>;}
-export function PeriodFields({label,path,period,form,change,issues,setOngoing}:{label:string;path:string;period:Period;form:EditorForm;change:Change;issues:EditorIssue[];setOngoing:(form:EditorForm,value:boolean)=>void}) {
+export function Check({label,checked,onChange,disabled=false}:{label:ReactNode;checked:boolean;onChange:(v:boolean)=>void;disabled?:boolean}) {
+  return <label className="check"><input type="checkbox" disabled={disabled} checked={checked} onChange={event=>onChange(event.target.checked)}/>{label}</label>;}
+export function PeriodFields({label,path,period,form,change,issues,setOngoing}:{label:string;path:string;period:Period;form:ContentForm;change:ContentChange;issues:EditorIssue[];setOngoing:(form:ContentForm,value:boolean)=>void}) {
   const {t}=useMessages();
   const error = issues.filter(i=>i.path === path || i.path.includes('period.inverted')).map(i=>t(i.message)).join(' ');
   return <fieldset><legend>{label}</legend><p className="hint">{t("Fechas opcionales. Escribe AAAA, AAAA-MM o AAAA-MM-DD. También puedes indicar solo la fecha final.")}</p>

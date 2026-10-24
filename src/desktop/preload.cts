@@ -3,6 +3,7 @@ import type { EditorApi } from '../application/editor-contract.js';
 const {contextBridge,ipcRenderer} = electron;
 const invoke = (action:string,...args:unknown[]) => ipcRenderer.invoke('cvforge:editor',{action,args});
 const api:EditorApi = {
+  workspaceExport:()=>invoke('workspaceExport'),profileOpen:()=>invoke('profileOpen'),profileCreate:(...args)=>invoke('profileCreate',...args),profileMaterialize:(...args)=>invoke('profileMaterialize',...args),profileAddSection:(...args)=>invoke('profileAddSection',...args),profileBegin:(...args)=>invoke('profileBegin',...args),profileStage:(...args)=>invoke('profileStage',...args),profileConfirm:(...args)=>invoke('profileConfirm',...args),profileCancel:()=>invoke('profileCancel'),profilePhoto:(...args)=>invoke('profilePhoto',...args),profileRecover:(...args)=>invoke('profileRecover',...args),profileRemove:(...args)=>invoke('profileRemove',...args),profileRevisions:()=>invoke('profileRevisions'),profileRestore:(...args)=>invoke('profileRestore',...args),
   projectExport:(...args)=>invoke('projectExport',...args),
   pdfRecords:(...args)=>invoke('pdfRecords',...args),
   pdfGenerate:(...args)=>invoke('pdfGenerate',...args),pdfCancel:()=>invoke('pdfCancel'),pdfOpenLink:(...args)=>invoke('pdfOpenLink',...args),pdfExport:(...args)=>invoke('pdfExport',...args),presentation:(...args)=>invoke('presentation',...args),
