@@ -45,7 +45,29 @@ async function run():Promise<void> {
   let win:BrowserWindow|undefined, closing = false, uiLocale:'es'|'en'='es';
   const message=(key:string,values:Record<string,string|number>={})=>translateMessage(uiLocale,key,values);
   const diagnostic=(event:string):void=>{if(app.commandLine.hasSwitch('cvforge-diagnostics'))console.info('CVForge lifecycle:',event);};
+  let releaseStartup!:()=>void,rejectStartup!:(error:Error)=>void;
+  const startupReady=new Promise<void>((resolve,reject)=>{releaseStartup=resolve;rejectStartup=reject;});
+  void startupReady.catch(()=>{});
   try {
+    session.defaultSession.setPermissionRequestHandler((_webContents,_permission,callback)=>callback(false));
+    session.defaultSession.webRequest.onBeforeRequest((details,callback)=>callback({cancel:!['file:','data:','blob:','devtools:'].includes(new URL(details.url).protocol)}));
+    const base = fileURLToPath(new URL('.',import.meta.url));
+    startupMark('window:create-start');win = new BrowserWindow({width:1180,height:860,minWidth:760,minHeight:620,show:false,backgroundColor:'#f4f5f7',title:'CVForge',
+      webPreferences:{additionalArguments:startupTracing?['--cvforge-startup-trace']:[],preload:join(base,'preload.cjs'),contextIsolation:true,sandbox:true,nodeIntegration:false,webSecurity:true}});
+    startupMark('window:create-end');if(startupTracing)ipcMain.on('cvforge:startup:preload',()=>startupMark('preload:ready'));
+    win.removeMenu();
+    const page = fileURLToPath(new URL('../../renderer/index.html',import.meta.url));
+    win.webContents.setWindowOpenHandler(()=>({action:'deny'}));
+    win.webContents.on('will-navigate',event=>event.preventDefault());
+    let queue = Promise.resolve<unknown>(undefined);
+    // Load the real renderer while the worker validates storage. IPC cannot run
+    // application operations until initialization completes; the window remains
+    // hidden until then. The acceptance endpoint still waits for all 100 cards.
+    let dispatch:Parameters<typeof ipcMain.handle>[1]|undefined;
+    ipcMain.handle('cvforge:editor',async(event,input:unknown)=>{await startupReady;return dispatch!(event,input);});
+    startupMark('renderer:load-start');
+    const rendererLoading=win.loadFile(page).then(()=>startupMark('renderer:load-end'));
+    void rendererLoading.catch(()=>{}); // awaited below; avoid an early unhandled rejection
     const resources=()=>loadSimpleResources(join(app.getAppPath(),'resources/fonts'));
     startupMark('library:open-start');
     const host = await openLocalLibrary(app,ctx);startupMark('library:open-end');
@@ -58,17 +80,6 @@ async function run():Promise<void> {
     },sha256,ctx,host.exports);
     const importer=new StructuredImportService(host.library,new LocalStructuredImport(),ctx);
     startupMark('library:start-start');uiLocale=(await editor.start()).uiLocale;startupMark('library:start-end');
-    session.defaultSession.setPermissionRequestHandler((_webContents,_permission,callback)=>callback(false));
-    session.defaultSession.webRequest.onBeforeRequest((details,callback)=>callback({cancel:!['file:','data:','blob:','devtools:'].includes(new URL(details.url).protocol)}));
-    const base = fileURLToPath(new URL('.',import.meta.url));
-    startupMark('window:create-start');win = new BrowserWindow({width:1180,height:860,minWidth:760,minHeight:620,show:false,backgroundColor:'#f4f5f7',title:'CVForge',
-      webPreferences:{additionalArguments:startupTracing?['--cvforge-startup-trace']:[],preload:join(base,'preload.cjs'),contextIsolation:true,sandbox:true,nodeIntegration:false,webSecurity:true}});
-    startupMark('window:create-end');if(startupTracing)ipcMain.on('cvforge:startup:preload',()=>startupMark('preload:ready'));
-    win.removeMenu();
-    const page = fileURLToPath(new URL('../../renderer/index.html',import.meta.url));
-    win.webContents.setWindowOpenHandler(()=>({action:'deny'}));
-    win.webContents.on('will-navigate',event=>event.preventDefault());
-    let queue = Promise.resolve<unknown>(undefined);
     const id = z.uuid(), revision = z.int().nonnegative(), none = z.tuple([]);
     const target = z.union([EditorTargetSchema,z.strictObject({kind:z.literal('newEntry'),sectionId:id,entryKind:z.enum(['nativeLanguage','foreignLanguage']).optional()}),z.strictObject({kind:z.literal('newCustomSection')})]);
     const form = z.custom<EditorForm>(value => !!value && typeof value === 'object');
@@ -90,7 +101,7 @@ async function run():Promise<void> {
       visibility:z.tuple([id,revision,id,id.nullable(),z.boolean()]),remove:z.tuple([id,revision,id,id.nullable(),z.literal(true)]),
       recover:z.tuple([id]),discardRecovery:z.tuple([id]),status:none,flush:none,close:none,
     };
-    ipcMain.handle('cvforge:editor',(event,input:unknown) => {
+    dispatch=(event,input:unknown) => {
       const ipcReceivedAt=performance.timeOrigin+performance.now();
       const work = async () => {
         try {
@@ -166,7 +177,7 @@ async function run():Promise<void> {
       if(action==='importCancel'||action==='pdfGenerate'||action==='pdfCancel'||action==='pdfExport')return work();
       if(action==='close'&&allowedSender){preview.invalidate();try{importer.cancel();}catch{/* confirmation finishes in the queue before close */}}
       const result = queue.then(work,work); queue = result; return result;
-    });
+    };releaseStartup();
     win.on('close',event=>{diagnostic('window close');if (!closing) {event.preventDefault();win!.webContents.send('cvforge:close-requested');}});
     win.webContents.on('render-process-gone',()=>{
       diagnostic('renderer gone');
@@ -176,8 +187,9 @@ async function run():Promise<void> {
       void queue.then(async()=>{await profileEditor.finish();await editor.close();}).catch(()=>dialog.showErrorBox(message('CVForge — borrador pendiente'),message('La ventana se ha cerrado inesperadamente y no se ha podido completar el guardado del borrador. El contenido confirmado se conserva.'))).finally(()=>{closing=true;win!.destroy();app.quit();});
     });
     app.on('second-instance',()=>{win?.restore();win?.focus();});
-    startupMark('renderer:load-start');await win.loadFile(page);startupMark('renderer:load-end');flushStartup(); win.show();
+    await rendererLoading;flushStartup();win.show();
   } catch (error) {
+    rejectStartup(new Error('STORAGE_NOT_AVAILABLE'));
     // Diagnostic codes contain no CV values, SQL text or local filenames.
     console.error('CVForge startup:',safeCode(error));
     dialog.showErrorBox(message('CVForge — almacenamiento no disponible'),message('No se ha podido abrir la biblioteca. Comprueba el espacio disponible y los permisos de la carpeta de datos. Conserva ese directorio y restaura una copia si el error continúa. Código: {code}',{code:safeCode(error)}));
