@@ -4,7 +4,7 @@ import type { ExportRecord } from '../../application/export-record.js';
 import type { Timing } from '../../application/timing.js';
 
 export type WorkerRequest =
-  | { id: number; method: 'read' | 'readVersion' | 'health' | 'backup' | 'close' }
+  | { id: number; method: 'read' | 'readIndex' | 'readVersion' | 'health' | 'backup' | 'close' }
   | { id: number; method: 'commit'; expectedGeneration: number | null; data:Uint8Array }
   | { id:number; method:'appendExport'; record:ExportRecord }
   | { id:number; method:'listExports'; cvId:string };

@@ -1,3 +1,4 @@
+import type {LibraryIndex} from '../../application/contracts.js';
 import { Worker } from 'node:worker_threads';
 import { serialize, deserialize } from 'node:v8';
 import type { BackupReceipt, LibraryContent, LibraryRecord, LibraryRepository, StorageHealth } from '../../application/contracts.js';
@@ -46,6 +47,7 @@ export class SqliteLibraryRepository implements LibraryRepository, ExportRecordR
       catch { this.pending.delete(id); reject(new LibraryError('STORAGE_MESSAGE_INVALID')); }
     });
   }
+  readIndex():Promise<LibraryIndex|null>{return this.call({method:'readIndex'});}
   async read(): Promise<LibraryRecord | null> {
     const stamp=await measureAsync('repository.readVersion',()=>this.call<{generation:number|null;dataVersion:number}>({method:'readVersion'}));
     if(this.cached?.stamp.generation===stamp.generation&&this.cached.stamp.dataVersion===stamp.dataVersion)return measure('repository.readClone',()=>this.cached!.content===null?null:{generation:stamp.generation!,content:deserialize(this.cached!.content)});

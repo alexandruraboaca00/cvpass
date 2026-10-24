@@ -1,4 +1,4 @@
-import {startupMark,flushStartup,startupTracing} from '../application/startup-timing.js';
+import {startupMark,flushStartup,startupTracing} from '../host/startup-timing.js';
 import { ProfileEditorService } from '../application/profile-editor.js';
 import { ProfileSelectionSchema } from '../application/profile-selection.js';
 import type { ProfileEditorForm } from '../application/editor-model.js';

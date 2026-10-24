@@ -40,7 +40,14 @@ export interface StorageHealth {
   synchronous: number;
   counts: Record<string, number>;
 }
+// Lightweight immutable values for the library screen; never document snapshots.
+export interface LibraryIndex {
+  cvs:{id:string;name:string;revision:number;documentLocale:'es'|'en';hasDraft:boolean}[];
+  profileName:string|null;profileId:string|null;uiLocale:'es'|'en';
+  recovery:{id:string;cvId:string;name:string;conflict:boolean}[];
+}
 export interface LibraryRepository {
+  readIndex?():Promise<LibraryIndex|null>;
   read(): Promise<LibraryRecord | null>;
   // Validate the full library/dependency closure, then atomic compare-and-swap.
   // Reject invalid input without mutation. null means an empty database.

@@ -17,6 +17,7 @@ try {
         const operation=async()=>{let value: unknown;
         switch (request.method) {
           case 'read': value = engine.read(); break;
+          case 'readIndex': value=engine.readIndex();break;
           case 'readVersion': value=engine.readVersion(); break;
           case 'commit': value = engine.commit(request.expectedGeneration, deserialize(Buffer.from(request.data))); break;
           case 'health': value = engine.health(); break;

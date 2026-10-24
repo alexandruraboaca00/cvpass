@@ -1,3 +1,4 @@
+import {libraryIndex} from './library-index.js';
 import { selectProfileContent } from './profile-selection.js';
 import type { ProfileSelection } from './profile-selection.js';
 import { measure, measureAsync } from './timing.js';
@@ -22,6 +23,7 @@ export class LibraryService {
       revisions:[],assetsById:{},templates:[],blobs:new Map(),drafts:[] };
     await this.repository.commit(null,validateLibrary(content));
   }
+  async index(){return this.repository.readIndex?await this.repository.readIndex()??reject('LIBRARY_NOT_INITIALIZED'):libraryIndex((await this.loaded()).content);}
   async snapshot(): Promise<LibraryRecord> { return this.loaded(); }
   async setUiLocale(locale:'es'|'en'):Promise<void> {
     if(locale!=='es'&&locale!=='en')reject('UI_LOCALE_INVALID');

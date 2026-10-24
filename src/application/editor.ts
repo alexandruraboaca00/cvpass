@@ -27,7 +27,7 @@ export class CoreEditorService {
   private active:ActiveForm|null = null;
   constructor(private readonly library:LibraryService,private readonly ctx:DomainContext,private readonly initialTemplate?:()=>Promise<BuiltinResources>) {}
   async start():Promise<EditorLibraryView> {
-    try { await this.library.snapshot(); } catch (error) {
+    try { return await this.list(); } catch (error) {
       if ((error as {code?:string}).code !== 'LIBRARY_NOT_INITIALIZED') throw error;
       await this.library.initialize();
     }
@@ -36,11 +36,9 @@ export class CoreEditorService {
   private idle():void { if (this.active) reject('EDITOR_FORM_OPEN'); }
   hasActiveForm():boolean{return this.active!==null;}
   async list():Promise<EditorLibraryView> {
-    const {content} = await this.library.snapshot();
-    const pending=new Set(content.drafts.map(d=>d.entityId));
-    return {cvs:content.workspace.cvOrder.map(id=>{const cv=content.workspace.cvsById[id]!;return {id,name:cv.name,revision:cv.revision,documentLocale:cv.documentLocale,hasDraft:pending.has(id)};}),profileName:content.workspace.profile?.personalInformation.displayName ?? null,profileId:content.workspace.profile?.id??null,uiLocale:content.workspace.settings.uiLocale,
-      recovery:content.drafts.map(draft=>({id:draft.id,cvId:draft.entityId,name:content.workspace.cvsById[draft.entityId]?.name??'Perfil',conflict:(content.workspace.profile?.id===draft.entityId?content.workspace.profile:content.workspace.cvsById[draft.entityId])!.revision!==draft.baseRevision}))};
+    return this.library.index();
   }
+
   async setUiLocale(locale:'es'|'en'):Promise<EditorLibraryView> {
     await this.active?.autosaver.flush();await this.library.setUiLocale(locale);return this.list();
   }

@@ -1,4 +1,5 @@
-import {startupMark,flushStartup,startupTracing} from '../../application/startup-timing.js';
+import {libraryIndex} from '../../application/library-index.js';
+import {startupMark,flushStartup,startupTracing} from '../../host/startup-timing.js';
 import Database from 'better-sqlite3';
 import { chmodSync, existsSync, lstatSync, mkdirSync, realpathSync } from 'node:fs';
 import { dirname, join, resolve, relative } from 'node:path';
@@ -115,6 +116,13 @@ export class SqliteEngine {
     })();
     this.cached={record:structuredClone(record),dataVersion};
     return record;
+  }
+  readIndex(){
+    const dataVersion=this.db.pragma('data_version',{simple:true}) as number;
+    // Opening already validated the full graph, bytes and reference indices.
+    // External writes must re-enter that same validation before exposing metadata.
+    if(!this.cached||this.cached.dataVersion!==dataVersion)this.read();
+    return this.cached!.record?libraryIndex(this.cached!.record.content):null;
   }
   readVersion():{generation:number|null;dataVersion:number}{
     return {generation:(this.db.prepare('SELECT generation FROM workspace WHERE slot=1').pluck().get() as number|undefined)??null,dataVersion:this.db.pragma('data_version',{simple:true}) as number};
