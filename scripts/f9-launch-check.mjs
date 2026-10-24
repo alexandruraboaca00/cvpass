@@ -1,12 +1,14 @@
 // Normal default userData path, actual AppImage, outside the source checkout.
 import {_electron as electron} from '@playwright/test';
-import {mkdtemp,mkdir,writeFile} from 'node:fs/promises';
+import {mkdtemp,mkdir,writeFile,readFile,stat} from 'node:fs/promises';
 import {join,resolve,basename} from 'node:path';
 import assert from 'node:assert/strict';
 const output=process.env.CVFORGE_F9_LAUNCH_OUTPUT??'/tmp/cvforge-f9/normal-launch';await mkdir(output,{recursive:true});const executable=resolve('out/f9/CVForge-0.1.0-x86_64.AppImage'),results=[];
 // FUSE mounts are denied in the isolated user namespace on the acceptance host.
 // Exercise the documented runtime fallback; do not spawn repeated native errors.
-for(const mode of ['extract-and-run']){
+const modes=process.argv.includes('--host-fuse')?['fuse']:['extract-and-run'];
+if(process.argv.includes('--host-fuse')){assert((await stat('/dev/fuse')).isCharacterDevice());assert(/^\s*0\s+0\s+4294967295\s*$/.test(await readFile('/proc/self/uid_map','utf8')),'Host FUSE check must run outside user namespaces');}
+for(const mode of modes){
  const directory=await mkdtemp(join(output,'normal-')),config=join(directory,'config'),env={...process.env,APPIMAGELAUNCHER_DISABLE:'1',XDG_CONFIG_HOME:config};delete env.APPIMAGE_EXTRACT_AND_RUN;if(mode==='extract-and-run')env.APPIMAGE_EXTRACT_AND_RUN='1';
  let active;
  try{

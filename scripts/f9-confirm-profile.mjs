@@ -9,7 +9,8 @@ import {SqliteLibraryRepository} from '../dist/src/adapters/sqlite/repository.js
 import {LibraryService} from '../dist/src/application/library.js';
 import {cvprojCodec} from '../dist/src/adapters/library-cvproj.js';
 const output=process.env.CVFORGE_F9_PROFILE_OUTPUT??'/tmp/cvforge-f9/confirm-profile-before';await mkdir(output,{recursive:true});
-const directory=await mkdtemp(join(output,'library-')),ctx={newId:randomUUID,now:()=>new Date().toISOString()},repo=await SqliteLibraryRepository.open(join(directory,'library')),library=new LibraryService(repo,ctx,cvprojCodec);
+const dataRoot=process.env.CVFORGE_F9_PROFILE_DATA??output;await mkdir(dataRoot,{recursive:true});
+const directory=await mkdtemp(join(dataRoot,'library-')),ctx={newId:randomUUID,now:()=>new Date().toISOString()},repo=await SqliteLibraryRepository.open(join(directory,'library')),library=new LibraryService(repo,ctx,cvprojCodec);
 await library.initialize();await library.importCvproj(cvprojCodec.encode(f9Workspace(),'2026-10-23T12:00:00.000Z'),{mode:'emptyWorkspace'});await repo.close();
 const trace=join(output,'stages.ndjson'),app=await electron.launch({chromiumSandbox:true,executablePath:resolve(process.env.CVFORGE_F9_EXECUTABLE??'out/f9/linux-unpacked/cvforge'),env:{...process.env,CVFORGE_CONFIRM_TRACE:trace,APPIMAGELAUNCHER_DISABLE:'1',APPIMAGE_EXTRACT_AND_RUN:'1'},args:['--user-data-dir='+directory,'--ozone-platform=x11']});
 const page=await app.firstWindow();await page.getByRole('heading',{name:'Tu biblioteca',exact:true}).waitFor();
