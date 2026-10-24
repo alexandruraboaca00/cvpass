@@ -1,5 +1,92 @@
 # F9 — Aceptación del MVP
 
+**F9 = APROBADA técnicamente tras corregir los tres bloqueos.** Candidata **0.1.0**,
+rama `f9-mvp-acceptance`, base `cc7cf0d6b4aa56689ec9d0dec22b6aa9e5cba28c`.
+Sin fusionar ni publicar main; pendiente de aprobación del usuario. **F10 no iniciada.**
+La primera evaluación NO APROBADA y sus 471,1 ms se conservan íntegros más abajo.
+
+## Reevaluación y evidencia final — 24/10/2026
+
+Antes de repetir el cierre completo se ejecutaron AC-06 y AC-08 por GUI/AppImage
+(3 pruebas, incluyendo recuperación del perfil) y el benchmark oficial de AC-09.
+Solo al pasar los tres se repitieron F1–F9, UI, PDF, privacidad y el E2E empaquetado.
+No se cambió ningún criterio ni se relajó la durabilidad.
+
+| Caso | Resultado final | Evidencia actual |
+| --- | --- | --- |
+| AC-01 Europass | PASS, subconjunto probado | Dos PDF privados: 8 educaciones, 3 experiencias, 18 habilidades/2 grupos, 2 maternas y una extranjera/cinco B2, contactos/enlaces/foto. Valores comparados con oráculo XML independiente y reapertura; cinco URLs revisadas expresamente por muestra. Siguen siendo importaciones parciales, no compatibilidad universal. |
+| AC-02 Reapertura propia | PASS | Simple/Lateral exportados desde AppImage → otras bibliotecas vacías → revisión/confirmar/reabrir → proyección visible completa idéntica. `.cvproj` CV conserva el proyecto privado y dependencias según su contrato. |
+| AC-03 Confirmar/Cancelar | PASS | A → editar B → Cancelar mantiene A, revisión, resumen/PDF y ningún borrador. Confirmar B → reiniciar conserva B. También perfil y modales hijos. |
+| AC-04 Cierre inesperado | PASS | SIGKILL real con borrador CV y perfil: confirmado separado, recuperar/descartar/cancelar explícitos, PDF solo confirmado y reapertura consistente. |
+| AC-05 Idiomas | PASS en alcance manual vigente | ES→EN revisado con checkpoint, nombres B intactos, original/translation/ambos, aprobaciones reutilizadas y obsolescencia sin borrar original. Interfaz/documentLocale independientes. |
+| AC-06 Perfil independiente | PASS por GUI | Crear/rellenar ocho áreas del perfil, seleccionar campos/secciones/entradas y materializar A/B con IDs nuevos/sourceRef. Editar A y después perfil no cambia el otro CV. Comparación exacta tras reinicio; perfil sin presentación/documentLocale/inclusión de CV. |
+| AC-07 PDF | PASS | 33 casos F7/F8; 48 párrafos íntegros, márgenes, listas, enlaces/URL larga, glifos/foto, lectura PDF.js/Poppler y seis documentos en PDFium externo. Preview/export tienen el mismo SHA-256. Sin cambios al renderizador Simple/Lateral. |
+| AC-08 Copia recuperable | PASS por GUI | Exportar workspace con perfil/dos CV/assets/historial → biblioteca vacía → restaurar → reabrir → snapshot y blobs exactos. EACCES real, reintento después de éxito y Cancelar selector sin éxito falso; biblioteca ocupada rechazada. |
+| AC-09 Rendimiento/offline | PASS | Mismo corpus/hash de 100 CV, SSD/equipo y límites IPC, 20 procesos nuevos. Confirmar p50 251,1; p90 260,9; p95 261,3; máximo 271,5 ms, objetivo ≤300. Todos los presupuestos previos pasan. Cierre completo sin red. |
+| AC-10 Límites/privacidad | PASS en corpus probado | Ambigüedad, corruptos, futuro, exceso de tamaño y PDF genérico producen resultados útiles sin medio CV. Payload completo sin centinelas privados; auditoría actual de repositorio limpia, originales privados sin staged/tracked. Antecedente de huellas históricas conservado abajo. |
+
+**210 tests distintos PASS**: F1 3; dominio/aplicación/SQLite F2–F9 174;
+UI F4–F8/pulido 23; aceptación AppImage F9 10. Además 33 casos PDF y dos
+aceptaciones privadas, sin sumarlas como tests unitarios. TypeScript/build PASS.
+Paquete Linux/AppImage fuera del checkout: 95 archivos de código/recursos
+contrastados con dist, sin fuentes/tests/archivos privados y sandbox activo.
+
+Evidencia completa nueva: `/tmp/cvforge-f9/remediation/final-offline/`.
+`network-proof.json`: solo loopback, cero rutas, ENETUNREACH externo, CapEff=0,
+**resumedPrivateAudit=false**; todas las suites se ejecutaron de nuevo.
+Peticiones HTTP/errores del renderer: listas vacías. El mismo artefacto identificado
+en RELEASE supera benchmark y aceptación empaquetada.
+
+PDFium Chrome 153.0.8010.52 vuelve a abrir Simple 1/5 páginas y Lateral 1/3/5/8,
+con navegación a última página y capturas locales. GUI: 1180×880, 1366×768,
+1440×900 y 820×700, teclado/foco y geometría sin regresión. Se revisó además
+visualmente el perfil con todas las áreas y un formulario de educación compartido.
+No se declara WCAG ni PDF/UA completo.
+
+Arranque **FUSE normal fuera del namespace: PASS**, creación/cierre/reapertura,
+sin switch userData ni extracción, sandbox activo. En aislamiento sin red sigue
+pasando la ruta extract-and-run. AppImageLauncher se desactiva solo para que el
+harness no mueva el archivo; no es una dependencia de la aplicación.
+Evidencia: `/tmp/cvforge-f9/remediation/host-fuse/results.json`.
+
+### Correcciones acotadas
+
+- GUI de MasterProfile y materialización explícita: mismos ocho formularios,
+  entidad perfil real y borradores/revisiones/assets existentes. [Recorrido](PROFILE_AND_BACKUP.md).
+- Exportación workspace GUI: codec v1 y escritura existentes, diálogo nativo,
+  resolver borradores primero y anuncio solo después de escritura verificada.
+- Latencia: valores exactos reutilizables para validación local, invariantes
+  globales siempre verificadas, clones/transporte/relecturas y serialización
+  redundantes eliminados. FULL/WAL, revisión, atomicidad y borrador resuelto
+  antes del reconocimiento. [Perfilado A–K](CONFIRM_PROFILING.md).
+- Aviso de backup anterior: se limpia al iniciar otra operación, para que un
+  fallo o Cancelar no deje visible un éxito correspondiente al intento previo.
+
+El caso **Crash/reconciliation between successful PDF file write and durable
+ExportRecord** vuelve a pasar: PDF sin receipt posible, CV intacto, ningún recibo
+inventado ni anuncio de registro y reintento explícito durable. No se añade una
+transacción distribuida ni exploración automática de rutas privadas.
+
+### Commits nuevos de corrección
+
+| Commit | Trabajo |
+| --- | --- |
+| 29a9260 | Validación exacta reutilizable y transporte SQLite, con regresiones de integridad. |
+| 452d709 | Edición de contenido del perfil y materialización selectiva independiente. |
+| 4407f77 | GUI del perfil y export workspace; formularios compartidos. |
+| 97778ea | Perfilado por etapas, historial antes/después y percentiles oficiales. |
+| bb69f52 | Runner con nuevas regresiones y versión real del controlador. |
+| d367aae | Cancelar padre, reintentar backup y arranque normal FUSE. |
+
+El commit documental posterior registra este cierre, artefacto y limitaciones.
+No se fusiona, no se hace push de main y no se inicia F10.
+
+## Primera evaluación conservada — resultado histórico del commit 2efbd39
+
+El texto siguiente corresponde al primer intento fallido. Sus FAIL y métricas
+son evidencia histórica; el estado vigente es la matriz de reevaluación anterior.
+
+
 **F9 = NO APROBADA.** Versión candidata 0.1.0, rama `f9-mvp-acceptance`,
 base `cc7cf0d6b4aa56689ec9d0dec22b6aa9e5cba28c`. No fusionada; F10 no iniciada.
 Los bloqueos de GUI AC-06/AC-08 impiden aprobar el producto aunque las regresiones

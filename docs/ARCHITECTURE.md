@@ -226,7 +226,7 @@ Una memoria sensible no empareja automáticamente títulos ambiguos por texto: i
 | Versionar una plantilla cambia su aspecto histórico. | Mantener versiones disponibles; si falta una, proponer sustitución y comunicar que el PDF original sigue siendo la referencia visual. No prometer bytes idénticos entre motores/versiones. |
 | Los objetivos de rapidez no se cumplen. | Medición sobre equipo/corpus fijados; perfilar y ajustar antes de declarar el MVP, sin recortar contenido silenciosamente. |
 
-La autorización general para implementar está concedida y las decisiones de producto están cerradas. F1–F7 y el pulido visual están aprobados e integrados en main. F8 está aprobada e integrada en main mediante merge commit. **F9 está autorizada en `f9-mvp-acceptance` desde main `cc7cf0d`, sin fusionar ni comenzar F10**. La aceptación detecta bloqueos; [estado y evidencia F9](f9/ACCEPTANCE.md). El motor automático definitivo sigue pendiente y no cambia el alcance manual/offline autorizado de F5. [Validación F7](f7/VALIDATION.md), [implementación y validación F8](f8/VALIDATION.md).
+La autorización general para implementar está concedida y las decisiones de producto están cerradas. F1–F7 y el pulido visual están aprobados e integrados en main. F8 está aprobada e integrada en main mediante merge commit. **F9 está autorizada en `f9-mvp-acceptance` desde main `cc7cf0d`, sin fusionar ni comenzar F10**. La aceptación inicial detectó tres bloqueos, ya corregidos y revalidados; [estado y evidencia F9](f9/ACCEPTANCE.md). El motor automático definitivo sigue pendiente y no cambia el alcance manual/offline autorizado de F5. [Validación F7](f7/VALIDATION.md), [implementación y validación F8](f8/VALIDATION.md).
 
 ## Resultado de la puerta F1 — 16 de octubre de 2026
 
@@ -381,8 +381,9 @@ y PRAGMA data_version. Cada consumidor recibe una copia; modificaciones externas
 invalidan el cache, incluso sin cambio de generación. El cache se publica solo
 tras commit confirmado; errores no actualizan el estado supuesto durable.
 Se conserva validación completa antes de escribir, FULL/WAL, claves foráneas,
-transacciones y los formatos anteriores. La escritura de metadata global sigue
-siendo una deuda y no se declara cumplido NF-05 por haber añadido caches.
+transacciones y los formatos anteriores. La escritura de metadata global permanece;
+NF-05 se comprueba con el benchmark repetido (p95 Confirmar 261,3 ms ≤300), no se
+infiere solo de haber añadido caches.
 
 Los formularios devuelven el foco después del commit React con controles habilitados.
 Cancelar sigue descartando borradores y los modales hijos continúan dentro del
@@ -394,7 +395,29 @@ que bloquea SQLite y SIGKILL del main. Puede quedar un archivo válido sin recei
 no altera el CV ni anuncia registro. Se conserva la política explícita de reintento,
 sin rastrear destinos ni inventar recibos al iniciar.
 
-Las operaciones de perfil/workspace existentes en aplicación/SQLite carecen de
-algunos recorridos GUI de aceptación. Se registran como bloqueos, no como funciones
-terminadas. [Aceptación](f9/ACCEPTANCE.md), [rendimiento](f9/PERFORMANCE.md),
+Los recorridos GUI de perfil/workspace que faltaban en la primera aceptación se
+completan y revalidan en la AppImage: edición de perfil, selección/materialización
+independiente y exportación/restauración de biblioteca. El resultado inicial
+fallido permanece en el historial de aceptación. [Aceptación](f9/ACCEPTANCE.md), [rendimiento](f9/PERFORMANCE.md),
 [release](f9/RELEASE.md).
+
+
+## Cierre técnico F9: perfil, backup y confirmación durable
+
+La GUI comparte `ContentForm` para contenido de CvDocument y MasterProfile,
+con adaptadores hacia los contratos CV previos. El perfil conserva su esquema
+real, sin plantilla/presentación/documentLocale. `ProfileEditorService` usa
+DraftAutosaver, checkpoints, assets y LibraryService existentes. La selección
+se materializa con IDs/sourceRef nuevos mediante el dominio F2; no sincroniza.
+Workspace se exporta con el codec v1 y escritor atómico existentes, tras resolver
+borradores; la restauración mantiene sus salvaguardas.
+
+El adaptador usa transporte/clones V8 exclusivamente en memoria entre procesos,
+JSON validado para SQLite y caché de validación local por valor completo exacto.
+Siempre verifica límites del grafo e invariantes globales de propietarios, IDs,
+historial y recursos; los bytes se verifican. Confirmar devuelve el resultado
+durable sin relectura global; metadata UI posterior no retrasa ni adelanta su
+reconocimiento. FULL/WAL, CAS, checkpoint y resolución del borrador permanecen
+en la transacción crítica. No cambia el dominio persistido ni formatos públicos.
+[Perfil/backup](f9/PROFILE_AND_BACKUP.md), [perfilado](f9/CONFIRM_PROFILING.md),
+[aceptación F9](f9/ACCEPTANCE.md).

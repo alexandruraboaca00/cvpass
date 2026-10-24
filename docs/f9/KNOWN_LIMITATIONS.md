@@ -1,12 +1,14 @@
-# F9 — Límites y bloqueos de la versión candidata
+# F9 — Limitaciones conocidas de la candidata
 
-**F9 = NO APROBADA.** Esta lista no convierte FAIL en PASS. Los bloqueos
-de producto y rendimiento deben resolverse antes de aceptar la entrega del MVP.
+**F9 = APROBADA técnicamente**, pendiente de aprobación del usuario e integración.
+Los tres bloqueos iniciales se resolvieron: perfil/materialización GUI, workspace
+GUI y Confirmar p95 261,3 ms frente a 300 ms. Se conserva el fallo inicial
+471,1 ms en [aceptación](ACCEPTANCE.md) y [rendimiento](PERFORMANCE.md).
 
-- NF-05 falla con 100 CV: Confirmar durable p95 471,1 ms frente a 300 ms,
-  en 20 repeticiones finales de la AppImage/SSD. Arranque 2594,1 ms sí cumple.
-  Las mejoras de cache no convierten la confirmación global F3 en persistencia
-  diferencial. [Método y todas las métricas](PERFORMANCE.md).
+- La medición es de este equipo/corpus; arranque p95 2944,7 ms tiene poco margen
+  respecto a 3000. Abrir CV p95 1700,5 ms sigue siendo perceptible y no tenía umbral.
+  El adaptador conserva escritura global transaccional de metadata; no se declara
+  persistencia diferencial ni rendimiento universal.
 - Una pasada incompleta del benchmark terminó al cerrarse una instancia; causa
   no establecida. La repetición con diagnóstico completa 20/20 con salida 0 y no
   reproduce el cierre. No se declara una corrección de crash sin demostrarla.
@@ -14,8 +16,9 @@ de producto y rendimiento deben resolverse antes de aceptar la entrega del MVP.
   AUR/deb/rpm ni todos los portales gráficos.
 - En el namespace de aceptación el montaje FUSE está denegado. La AppImage funciona
   con `APPIMAGE_EXTRACT_AND_RUN=1`, que debe utilizarse en ese entorno. El montaje
-  normal con doble clic no se declara validado allí. No se desactiva Chromium
-  sandbox para pasar las pruebas nuevas.
+  normal no funciona dentro de ese namespace; fuera de él el arranque FUSE y
+  reapertura de la AppImage final sí pasan. No se certifican todos los launchers.
+  No se desactiva Chromium sandbox para pasar las pruebas nuevas.
 - Solo Simple/Lateral v1. Puede quedar espacio libre al mantener bloques unidos;
   se prioriza no perder contenido.
 - PDF/UA y accesibilidad completa no certificados. Poppler geométrico puede
@@ -28,14 +31,6 @@ de producto y rendimiento deben resolverse antes de aceptar la entrega del MVP.
   cuando hay campos sin correspondencia. No se copian diseños/recursos Europass.
 - PNG limitado al subconjunto verificado. Los tests controlan el resultado de
   diálogos nativos y escriben archivos reales; no certifican todos los escritorios.
-- La GUI crea CV independientes con los datos personales del perfil, pero no
-  ofrece un editor completo del perfil maestro ni selección gráfica de sus secciones.
-  La independencia completa se demuestra en aplicación/SQLite; eso no demuestra
-  un recorrido de edición de perfil accesible al usuario final (AC-06).
-- La GUI exporta proyectos CV y restaura workspace. La copia lógica de workspace
-  existe en aplicación, pero no tiene una acción de exportación GUI (AC-08).
-  Copiar el directorio completo con la aplicación cerrada es una alternativa
-  documentada; no se presenta como el recorrido `.cvproj` workspace solicitado.
 - La biblioteca de 100 CV se conserva y es seleccionable, pero no tiene buscador
   ni virtualización de lista. La lista larga exige desplazamiento; no se declara
   optimizada como una biblioteca grande definitiva.
@@ -48,9 +43,8 @@ de producto y rendimiento deben resolverse antes de aceptar la entrega del MVP.
 - Se conservan los avisos anteriores de Vite/VA-API y herramientas de desarrollo.
   No se silencian ni se declaran reparados en esta fase.
 
-Los huecos de GUI anteriores deben figurar expresamente en la matriz de producto,
-además de las pruebas API que sí pasan. No se improvisa un editor nuevo del perfil
-ni una nueva política de copias para aparentar una aceptación completa.
+Los huecos GUI y el p95 inicial permanecen documentados como resultado histórico;
+no siguen siendo limitaciones actuales. [Perfil y backup](PROFILE_AND_BACKUP.md).
 
 Un PDF escrito antes de un crash puede quedar sin ExportRecord. Es un archivo
 válido que el usuario conserva; no se anuncia como registrado, el CV no cambia y

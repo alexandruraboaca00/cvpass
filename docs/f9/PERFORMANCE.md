@@ -1,7 +1,7 @@
 # F9 — Rendimiento del producto
 
 La aceptación usa los objetivos NF-05 anteriores al benchmark. No se cambian
-umbrales para convertir una medición lenta en PASS. Resultado final: **FAIL NF-05** en Confirmar; las demás métricas con
+umbrales para convertir una medición lenta en PASS. Primera evaluación: **FAIL NF-05** en Confirmar; las demás métricas con
 presupuesto previo cumplen en este equipo. Se completaron las 20 repeticiones.
 
 ## Método fijado
@@ -51,7 +51,7 @@ todas las muestras y los mínimos/máximos. Veinte muestras son aceptación inic
 no una promesa estadística para todos los equipos.
 
 
-## Resultado final — 24/10/2026
+## Primera evaluación conservada — 24/10/2026
 
 Equipo: Intel Core i5-13420H, 12 CPU lógicas, 16 450 170 880 bytes de RAM
 reportada por el SO (15,32 GiB), SSD NVMe WD PC SN740/ext4, Arch Linux, kernel
@@ -61,7 +61,9 @@ Xvfb/Openbox y render software. No se extrapolan estas cifras al equipo propuest
 de 4 núcleos/8 GiB ni a otras distribuciones. Controlador y main con CapEff=0,
 solo loopback y cero rutas, sandbox Chromium activo.
 
-Artefacto: SHA-256 de RELEASE; `results.json` registra además el hash y el commit
+Artefacto de la primera evaluación: SHA-256
+`09325f4e4d2345238cae0bcf410977c37852e25fbaaf300bc887cbe5a453fdf0`;
+`results.json` registra además el hash y el commit
 `d69b7b7` del controlador. Todas las instancias de esta repetición terminan con
 código 0. Se conserva el diagnóstico pw:browser; no hay tests/builds concurrentes.
 
@@ -165,3 +167,65 @@ local incluye `virtual-session.sh` y versiones de herramientas; la AppImage no
 depende de ellas. El proceso devuelve 1 si algún presupuesto falla, después de
 guardar todas las muestras. El runner puede completar todas las muestras y devolver 1 por un presupuesto
 incumplido; eso es un FAIL de aceptación, no una aprobación del MVP.
+
+
+## Reevaluación tras corregir los tres bloqueos — 24/10/2026
+
+**AC-09 / NF-05: PASS en el benchmark oficial repetido.** El resultado inicial
+471,1 ms no se borra ni se sustituye por una pasada diagnóstica. Veinte procesos
+nuevos, misma máquina/SSD ext4, mismo script y puntos de inicio/fin, mismo corpus
+de 100 CV, viewport 1180×860/DPR 1, Xvfb/Openbox y cero tests/builds concurrentes.
+Solo loopback, cero rutas, CapEff=0 y sandbox Chromium activo.
+
+El hash del proyecto semilla coincide exactamente con el anterior:
+`83ae157d013de8c0423655186059076407449db8217d08659e892016b4577380`.
+Equipo, RAM, kernel y Electron/Node/Chromium de la aplicación permanecen iguales.
+El controlador instalado reporta ahora Node 26.12.1 (el registro anterior indicaba
+26.12.0); se publica esa diferencia de patch, sin atribuirle garantías nuevas.
+
+AppImage SHA-256:
+`6b984f6e96af918b815def7d0d12db28e5bf1920108beeaea9878e5a7d443d8c`.
+Controlador `bb69f52`; evidencia completa y muestras crudas:
+`/tmp/cvforge-f9/remediation/performance-official/results.json`.
+
+| Operación | n | p50 ms | p90 ms | p95 ms | Máximo ms | Objetivo ms / resultado |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| Arranque AppImage / 100 CV | 20 | 2793.6 | 2927.8 | 2944.7 | 2986.2 | ≤3000 / PASS |
+| Listar biblioteca IPC | 20 | 43.8 | 50.9 | 52.7 | 57.7 | sin umbral previo |
+| Abrir CV medio (informativo) | 20 | 1094.5 | 1644.7 | 1700.5 | 1757.6 | sin umbral previo |
+| Confirmar durable tras flush | 20 | 251.1 | 260.9 | 261.3 | 271.5 | ≤300 / PASS |
+| Importar / análisis | 20 | 699.1 | 719.8 | 726.0 | 736.8 | sin umbral previo |
+| Importar / confirmar | 20 | 402.8 | 428.9 | 434.6 | 559.3 | sin umbral previo |
+| Importar / total técnico | 20 | 1110.2 | 1145.0 | 1154.2 | 1250.6 | ≤3000 / PASS |
+| Preview Simple tras debounce | 20 | 1307.0 | 1423.0 | 1682.0 | 1895.0 | ≤2000 / PASS |
+| Preview Lateral tras debounce | 20 | 1185.0 | 1307.0 | 1312.0 | 1325.0 | ≤2000 / PASS |
+| Preview Simple incluido debounce | 20 | 1707.0 | 1823.0 | 2082.0 | 2295.0 | sin umbral previo |
+| Preview Lateral incluido debounce | 20 | 1585.0 | 1707.0 | 1712.0 | 1725.0 | sin umbral previo |
+| Exportar Simple ya previsualizado | 20 | 39.3 | 49.3 | 53.8 | 66.6 | sin umbral previo |
+| Exportar Lateral ya previsualizado | 20 | 37.8 | 41.9 | 42.5 | 43.5 | sin umbral previo |
+| Generar/exportar Simple / 19 páginas | 20 | 1127.2 | 1704.6 | 1781.1 | 1801.7 | ≤5000 / PASS |
+| Generar/exportar Lateral / 22 páginas | 20 | 1834.8 | 2183.8 | 2192.3 | 2214.1 | ≤5000 / PASS |
+| Input → siguiente frame | 33 | 7.1 | 14.4 | 15.3 | 16.9 | ≤100 / PASS |
+
+Confirmar: **p50 251,1; p90 260,9; p95 261,3; máximo 271,5 ms**. El límite
+es 300 ms sin redondearlo ni restar commit/fsync. Sigue midiendo IPC durable
+tras flush explícito; no afirma que cualquier clic con autosave aún pendiente
+termine en ese tiempo. Abrir CV baja de p95 2173,0 a **1700,5 ms**, informativo,
+sin convertirlo en un criterio nuevo. Arranque p95 2944,7 ms cumple 3000 con
+poco margen: no se promete el mismo resultado en otros equipos.
+
+La preview Simple completa incluyendo los 400 ms de espera mide p95 2082 ms;
+el presupuesto fijado y el script anterior comparan el tiempo posterior al
+debounce, 1682 ms. Se publican ambas medidas sin cambiar el método. Ninguna
+exportación produjo un hash distinto al de su generación.
+
+El cuello de botella y los intentos diagnósticos, incluidos los fallidos, están
+en [CONFIRM_PROFILING.md](CONFIRM_PROFILING.md). Se eliminan copias/relecturas
+redundantes, transporte costoso y ordenación JSON innecesaria; se reutiliza
+validación local solo ante valores completos idénticos. Las invariantes globales,
+validación de valores nuevos, integridad de bytes, revisión, resolución del
+borrador y commit FULL/WAL siguen en el recorrido crítico. La tabla SQLite sigue
+siendo transaccional; no se ha creado una persistencia diferencial compleja.
+
+La aprobación global de F9 requiere además las regresiones completas de
+[ACCEPTANCE.md](ACCEPTANCE.md); este PASS de rendimiento no las sustituye.

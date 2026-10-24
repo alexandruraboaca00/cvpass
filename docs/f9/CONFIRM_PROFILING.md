@@ -20,7 +20,7 @@ Antes de optimizar, p95 por etapa: validación completa del almacenamiento 136,7
 
 La última iteración registra validación 102,9 ms, copia de lectura 20,3 ms, clon de envío 17,7 ms, serialización SQLite 12,1 ms, cuerpo de transacción 38,0 ms, BEGIN/COMMIT durable 5,2 ms y respuesta desde el resultado confirmado 0,1 ms.
 
-Instrumentación optativa `CVFORGE_CONFIRM_TRACE`: solo nombres de etapas y duraciones, sin IDs, valores personales ni rutas de documentos. `scripts/f9-confirm-profile.mjs` conserva muestras y distribución por etapa. No está activada en uso normal. La medición de frame del diagnóstico es informativa; el recorrido de formulario real y el trabajo posterior de UI se comprueban adicionalmente mediante GUI.
+Instrumentación optativa `CVFORGE_CONFIRM_TRACE`: solo nombres de etapas, duraciones y tiempos numéricos de los límites IPC, sin IDs, valores personales ni rutas de documentos. `scripts/f9-confirm-profile.mjs` conserva muestras y distribución por etapa. No está activada en uso normal. La medición de frame del diagnóstico es informativa; el recorrido de formulario real y el trabajo posterior de UI se comprueban adicionalmente mediante GUI.
 
 ## Cambios y garantías
 
@@ -34,3 +34,34 @@ Instrumentación optativa `CVFORGE_CONFIRM_TRACE`: solo nombres de etapas y dura
 - WAL + `synchronous=FULL`, CAS, revisión previa, resolución del borrador y atomicidad permanecen. El reconocimiento sigue después de COMMIT. No hay escritura crítica diferida.
 
 Pruebas específicas: cambios inválidos con el mismo ID/revisión, divergencia histórica, colisiones entre CV, fechas, recursos ausentes, accesores sin ejecutar, mutaciones del llamador, escrituras externas y valores que JSON podría coaccionar. Pendiente de completar la aceptación oficial y los otros dos bloqueos antes de repetir F9 completa.
+
+
+## Desglose final A–K y aceptación oficial
+
+AppImage final, SQLite en SSD ext4, red aislada/CapEff=0: diez confirmaciones
+diagnósticas en el mismo proceso y un formulario GUI real adicional. No es el
+benchmark de veinte procesos nuevos. Evidencia completa:
+`/tmp/cvforge-f9/remediation/confirm-profile-final/{results.json,stages.ndjson,form-stages.json}`.
+Las etapas internas tienen 11 muestras; IPC 10; el formulario/frame, una muestra.
+Los tiempos jerárquicos se solapan y no se suman sus percentiles.
+
+| Etapa solicitada | Medición y alcance | Resultado ms |
+| --- | --- | ---: |
+| A formulario | submit → petición IPC, preparación/espera de stages; muestra GUI. La validación del dominio está en C. | 3,5 |
+| B renderer → main | IPC de entrada, p95; relojes monotónicos referidos a timeOrigin común. | 1,34 |
+| C snapshot/validación | Candidato p95 6,57; scope/stage 6,46; validación global de almacenamiento 82,84. | ver detalle |
+| D serialización | JSON SQLite p95; transporte al worker 1,85 adicional. | 8,93 |
+| E preparación | Captura de envío p95 13,35; copia de lectura 15,76; recoger recursos 0,22. | ver detalle |
+| F transacción | Cuerpo de transacción, incluye serialización/restricciones. | 26,32 |
+| G durable | Tiempo exterior al cuerpo: BEGIN + COMMIT FULL/WAL, incluye fsync requerido; no se afirma aislar la llamada de kernel. | 10,28 |
+| H drafts/revisions/assets | Revisión/aplicar 7,83; integridad bytes 0,37; flush ya preparado 0,07. Todos anteriores al reconocimiento. | ver detalle |
+| I metadata/listado | Cero relecturas globales para responder Confirmar. Se actualiza desde su resultado y el listado se refresca después; listar aparte p95 oficial. | 52,73 aparte |
+| J respuesta IPC | p95 de main listo → respuesta disponible en renderer. | 2,81 |
+| K UI posterior | Respuesta → siguiente frame tras actualizar/cerrar formulario; muestra GUI. | 10,5 |
+
+Confirmación diagnóstica estable: p50 136,9 / p90 161,0 / p95 y máximo 181,2 ms.
+**La aceptación usa exclusivamente el benchmark oficial de 20 procesos nuevos:**
+p50 **251,1**, p90 **260,9**, p95 **261,3**, máximo **271,5 ms**; ≤300 ms PASS.
+No se sustituye por los 181,2 ms del diagnóstico ni se descuenta fsync. La diferencia
+de método/caché explica por qué ambas distribuciones se publican por separado.
+Véase [PERFORMANCE.md](PERFORMANCE.md) para todos los presupuestos y muestras.

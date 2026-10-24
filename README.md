@@ -4,11 +4,9 @@ CVForge es una aplicación local para crear, editar y guardar CV. Incluye ocho
 áreas, las plantillas originales **Simple** y **Lateral**, preview PDF y proyectos
 editables `.cvproj`. La interfaz está disponible en español e inglés.
 
-Versión candidata **0.1.0**, Linux x86_64. F1–F8 están aprobadas e integradas;
-**F9 no está aprobada**, y su rama permanece sin fusionar. Faltan recorridos GUI
-del perfil/copia de workspace y no se cumple el objetivo de rendimiento de Confirmar.
-Resultado real y evidencia:
-[ACCEPTANCE](docs/f9/ACCEPTANCE.md).
+Versión **0.1.0**, Linux x86_64. F1–F8 están integradas y la aceptación técnica
+**F9 está superada**. La rama `f9-mvp-acceptance` sigue sin fusionar, pendiente de
+aprobación del usuario. [Resultados y evidencia](docs/f9/ACCEPTANCE.md).
 
 ## Instalar y abrir
 
@@ -51,6 +49,17 @@ tamaño, SHA-256, entorno y límites. No hay actualizaciones automáticas.
 Los CV son independientes. Tras un cierre inesperado se puede recuperar o descartar
 un borrador; la exportación utiliza siempre el contenido confirmado.
 
+## Perfil maestro
+
+En la biblioteca, abre **Perfil maestro** para guardar información reutilizable
+en las ocho áreas. Sus formularios también usan Confirmar/Cancelar y recuperación
+de borradores. No es un CV y no tiene plantilla ni presentación PDF.
+
+**Crear CV desde perfil** permite elegir campos personales, contactos, foto,
+secciones y entradas. Se crea una copia independiente: editar el perfil o un CV
+no actualiza los demás documentos. El idioma elegido no traduce automáticamente
+el contenido.
+
 ## Importar
 
 Pulsa **Importar archivo**, selecciona el archivo y revisa antes de confirmar.
@@ -76,6 +85,13 @@ registro de exportaciones permanece en la biblioteca.
 **Exportar proyecto (.cvproj)** guarda el CV completo: datos ocultos, memoria
 sensible, activos originales e historial necesario. Resuelve primero formularios y
 borradores pendientes. Es el formato para continuar trabajando o transferir un CV.
+
+Para copiar toda la biblioteca, pulsa **Exportar biblioteca (.cvproj)**.
+Incluye el perfil, todos los CV, assets, configuración e historial del manifiesto.
+Recupera/confirma o descarta primero los borradores pendientes. Para restaurar,
+usa **Importar archivo** sobre una biblioteca vacía; sustituir una existente
+requiere confirmación expresa y una copia previa. Cancelar el diálogo no guarda;
+un fallo de escritura se informa sin anunciar éxito.
 
 El PDF solo recupera lo visible exportado: no ocultos, borradores ni historial.
 Retirar su payload deja un PDF normal y válido. Los recibos operativos locales no
@@ -103,11 +119,11 @@ consistente. `.cvproj` conserva el proyecto editable de su alcance declarado.
 Los flujos actuales funcionan sin red ni cuenta. No se envían CV, fotos,
 traducciones o importaciones a servicios externos; no hay telemetría ni CDN.
 El PDF contiene solo datos visibles y recursos utilizados. El proyecto completo
-sí conserva sus datos privados y originales de importación.
+sí conserva los datos privados, valores originales y procedencia que pertenezcan
+a su alcance declarado.
 
-La GUI actual no ofrece un editor completo del perfil maestro ni exportación
-de workspace; esos límites y su efecto en F9 constan en
-[KNOWN_LIMITATIONS](docs/f9/KNOWN_LIMITATIONS.md).
+Linux primero, traducción manual y compatibilidad Europass limitada al subconjunto
+probado. PDF/UA y accesibilidad completa no certificados. [Limitaciones reales](docs/f9/KNOWN_LIMITATIONS.md).
 
 ## Desarrollo y validación
 

@@ -6,7 +6,7 @@ no promete compatibilidad universal con Europass ni con cualquier PDF.
 | Entrada | Estado | Alcance |
 | --- | --- | --- |
 | `.cvproj` v1, CV | Soportado | Proyecto completo, ocultos, memoria C, recursos/activos e historial necesario. Copia con IDs nuevos; la revisión de importación añade procedencia/revisión cuando corresponde. |
-| `.cvproj` v1, workspace | Soportado por restauración | Biblioteca/perfil/CV y dependencias declaradas. Biblioteca vacía o sustitución explícita con backup previo; sin fusionar por nombre. Exportación de workspace todavía sin acción GUI. |
+| `.cvproj` v1, workspace | Soportado por GUI | Biblioteca/perfil/CV y dependencias declaradas. Biblioteca vacía o sustitución explícita con backup previo; sin fusionar por nombre. Exportación desde Biblioteca con diálogo de archivo; resolver antes los borradores. |
 | PDF CVForge payload v1, Simple/Lateral v1 | Soportado | Solo distribución visible resuelta: campos, fechas, variantes, orden, imagen y configuración efectiva; revisión antes de crear copia. |
 | PDF CVForge sin payload | No soportado para reedición | Sigue siendo PDF válido y legible; se informa ausencia de estructura, sin inventar un CV. |
 | PDF Europass Candidate/HR-XML 4.0 probado | Parcial | Rutas MVP compatibles; nombre de adjunto libre y selección expresa de candidatos distintos. Otros campos/diseño quedan informados y privados. |
