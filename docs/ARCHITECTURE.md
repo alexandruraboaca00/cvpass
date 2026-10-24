@@ -226,7 +226,7 @@ Una memoria sensible no empareja automáticamente títulos ambiguos por texto: i
 | Versionar una plantilla cambia su aspecto histórico. | Mantener versiones disponibles; si falta una, proponer sustitución y comunicar que el PDF original sigue siendo la referencia visual. No prometer bytes idénticos entre motores/versiones. |
 | Los objetivos de rapidez no se cumplen. | Medición sobre equipo/corpus fijados; perfilar y ajustar antes de declarar el MVP, sin recortar contenido silenciosamente. |
 
-La autorización general para implementar está concedida y las decisiones de producto están cerradas. F1–F7 y el pulido visual están aprobados e integrados en main. La fase actual es **F8, aprobada por el usuario e integrada en main mediante merge commit desde `f8-lateral-portable-cycle`, con base `7803271`**. F9 no iniciada y requiere nueva autorización. El motor automático definitivo sigue pendiente y no cambia el alcance manual/offline autorizado de F5. [Validación F7](f7/VALIDATION.md), [implementación y validación F8](f8/VALIDATION.md).
+La autorización general para implementar está concedida y las decisiones de producto están cerradas. F1–F7 y el pulido visual están aprobados e integrados en main. F8 está aprobada e integrada en main mediante merge commit. **F9 está autorizada en `f9-mvp-acceptance` desde main `cc7cf0d`, sin fusionar ni comenzar F10**. La aceptación detecta bloqueos; [estado y evidencia F9](f9/ACCEPTANCE.md). El motor automático definitivo sigue pendiente y no cambia el alcance manual/offline autorizado de F5. [Validación F7](f7/VALIDATION.md), [implementación y validación F8](f8/VALIDATION.md).
 
 ## Resultado de la puerta F1 — 16 de octubre de 2026
 
@@ -367,3 +367,34 @@ Exportar proyecto se expone en la GUI con el codec y escritura atómica existent
 sin aceptar implícitamente perder borradores. Los ciclos PDF visible y proyecto
 completo pasan por bibliotecas independientes. [Diseño y lectura](f8/LATERAL_TEMPLATE.md),
 [contratos/privacidad](f8/PORTABLE_EXPORT.md), [pruebas y límites](f8/VALIDATION.md).
+
+
+## Concreción F9 — Aceptación del producto empaquetado
+
+La versión candidata 0.1.0 se empaqueta como AppImage Linux x86_64, con runtime,
+SQLite nativo, fuentes y PDF.js locales. El toolset 1.0.3 de electron-builder y
+SOURCE_DATE_EPOCH permiten dos builds binariamente idénticos en el entorno probado.
+No se añade motor PDF/traductor, formato portable ni auto-update.
+
+Lecturas main/worker reutilizan snapshots previamente validados mediante generación
+y PRAGMA data_version. Cada consumidor recibe una copia; modificaciones externas
+invalidan el cache, incluso sin cambio de generación. El cache se publica solo
+tras commit confirmado; errores no actualizan el estado supuesto durable.
+Se conserva validación completa antes de escribir, FULL/WAL, claves foráneas,
+transacciones y los formatos anteriores. La escritura de metadata global sigue
+siendo una deuda y no se declara cumplido NF-05 por haber añadido caches.
+
+Los formularios devuelven el foco después del commit React con controles habilitados.
+Cancelar sigue descartando borradores y los modales hijos continúan dentro del
+borrador padre; el cambio de foco no altera ese contrato. Errores locales de disco
+y permisos ofrecen acciones en ES/EN sin publicar contenido ni rutas.
+
+El caso de crash tras PDF y antes de ExportRecord se valida con una conexión real
+que bloquea SQLite y SIGKILL del main. Puede quedar un archivo válido sin receipt;
+no altera el CV ni anuncia registro. Se conserva la política explícita de reintento,
+sin rastrear destinos ni inventar recibos al iniciar.
+
+Las operaciones de perfil/workspace existentes en aplicación/SQLite carecen de
+algunos recorridos GUI de aceptación. Se registran como bloqueos, no como funciones
+terminadas. [Aceptación](f9/ACCEPTANCE.md), [rendimiento](f9/PERFORMANCE.md),
+[release](f9/RELEASE.md).

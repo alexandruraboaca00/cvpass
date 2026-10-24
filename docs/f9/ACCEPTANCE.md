@@ -1,32 +1,38 @@
 # F9 — Aceptación del MVP
 
-En ejecución, 23 de octubre de 2026, rama `f9-mvp-acceptance`, base
-`cc7cf0d6b4aa56689ec9d0dec22b6aa9e5cba28c`. No fusionar ni iniciar F10.
-F9 todavía no está aprobada.
+**F9 = NO APROBADA.** Versión candidata 0.1.0, rama `f9-mvp-acceptance`,
+base `cc7cf0d6b4aa56689ec9d0dec22b6aa9e5cba28c`. No fusionada; F10 no iniciada.
+Los bloqueos de GUI AC-06/AC-08 impiden aprobar el producto aunque las regresiones
+pasen. La aceptación de rendimiento se informa aparte, sin cambiar NF-05.
 
-Se han leído completos los diez documentos exigidos para esta fase. Main limpio,
-origin/main comprobado con fetch/ls-remote. La regresión inmediatamente anterior
-de este mismo commit pasa: F1 3/3, F2–F8 163/163, UI 23/23, 26 PDF F8 y 7 PDF
-F7, TypeScript/build, ejecutable Linux 3/3, offline y ciclos/privacidad.
-Evidencia local: `/tmp/cvforge-f8-recheck-20261023/`. Esto valida la base, no F9.
+Se leyeron completos los diez documentos requeridos, se verificaron main limpio,
+HEAD/base y origin/main mediante fetch/ls-remote y se validó F1–F8 antes de crear
+la rama. Evidencia de base: `/tmp/cvforge-f8-recheck-20261023/`. Eso no sustituye
+la aceptación nueva de producto.
 
-La aceptación nueva usa datos sintéticos reproducibles en la aplicación
-empaquetada. Las muestras Europass privadas disponibles se comprueban aparte,
-sin copiar valores a fixtures, documentación ni commits. Evidencia F9 bajo
-`/tmp/cvforge-f9/`, excluida de Git.
-
-| Caso | Estado F9 inicial | Prueba nueva requerida |
+| Caso | Resultado | Evidencia y límite real |
 | --- | --- | --- |
-| AC-01 | pendiente | Dos PDF privados y fixture sintético, cantidades y valores por bloque. |
-| AC-02 | pendiente | Ambas plantillas → PDF → bibliotecas vacías → comparar tras reapertura. |
-| AC-03 | pendiente | Email A/B, Cancelar, Confirmar, reiniciar, comparar. |
-| AC-04 | pendiente | SIGKILL con borrador, recuperar/descartar, exportación del confirmado. |
-| AC-05 | pendiente | Traducción manual real, checkpoint, B intacto, memoria C/modos/obsolescencia. |
-| AC-06 | pendiente | Perfil y dos CV independientes, cambios sin propagación. |
-| AC-07 | pendiente | Ambas plantillas, texto/listas/URL/glifos/foto, lectores y bytes. |
-| AC-08 | pendiente | Workspace completo en biblioteca vacía, fallo de escritura sin éxito falso. |
-| AC-09 | pendiente | Benchmark p95, 100 CV y E2E empaquetado sin red. |
-| AC-10 | pendiente | Errores revisables, límites y payload inspeccionado por centinelas. |
+| AC-01 Europass | PASS, subconjunto compatible | Ambas muestras privadas: 8 educaciones, 3 experiencias, 18 habilidades/2 grupos, 2 maternas, una extranjera/cinco B2; valores, periodos, contactos/enlaces y foto contrastados contra XML independiente, con reapertura. Cinco URLs por muestra corregidas expresamente; campos no soportados informados, sin prometer importación universal/completa. |
+| AC-02 Reapertura propia | PASS | E2E AppImage de ambas plantillas → otras bibliotecas vacías → confirmar/reiniciar → igualdad de ExportProjection. `.cvproj` recupera el proyecto completo y sus dependencias; regresiones SQLite comparan además bytes de assets e historial. |
+| AC-03 Confirmar/Cancelar | PASS | Email A → B → Cancelar conserva CV/revisión, resumen y PDF de A, sin borrador pendiente. Confirmar B y reiniciar conserva B; también F4 completo. |
+| AC-04 Cierre inesperado | PASS | SIGKILL del main de la AppImage con borrador durable, recuperación separada, Cancelar/descartar explícitos y PDF solo del confirmado. |
+| AC-05 Idiomas | PASS en alcance manual/revisable vigente | Cambio ES→EN revisado, checkpoint, B intacto, memoria C aprobada reutilizada, modos original/traducción/ambos y obsolescencia sin borrar original. Cancelar padre descarta hijo. No se declara motor automático de producción. |
+| AC-06 Perfil independiente | FAIL de producto | Nueva prueba aplicación/SQLite con perfil y dos CV, editar CV/perfil y reabrir: PASS. La GUI no ofrece creación/edición completa del perfil; el recorrido real solicitado no puede completarse. |
+| AC-07 PDF | PASS | 33 casos F7/F8, 48 párrafos completos, límites, listas, URLs, ES/EN/RO, imagen, etiquetas/enlaces y lectura PDF.js/Poppler; lector externo PDFium abre seis documentos y navega hasta la última página. No PDF/UA certificado. |
+| AC-08 Copia recuperable | FAIL de producto | Workspace completo exportado/restaurado por aplicación/SQLite: igualdad tras reapertura y fallo de archivo sin éxito falso. La GUI restaura workspace pero todavía no lo exporta. La copia CV por GUI sí supera su ciclo completo. |
+| AC-09 Rendimiento/offline | FAIL NF-05; offline funcional PASS | 100 CV, SSD, proceso/perfil nuevo, corpus determinista, 20 repeticiones por operación y presupuesto previo. Ver valores finales en PERFORMANCE. La AppImage completa el ciclo sin red; no se confunde eso con cumplir todos los p95. |
+| AC-10 Límites/privacidad | PASS para payload y flujos probados | Adjunto ambiguo, XML roto, payload/formato futuro, exceso de tamaño, genérico y corrupto: mensajes y cero medio CV. Payload extraído completo sin centinelas privados, imagen normalizada, fechas/variantes visibles. Auditoría Git y antecedente de dos huellas históricas descritos abajo. |
+
+No se eleva AC-06/AC-08 a PASS usando únicamente operaciones que el usuario no
+puede ejecutar desde la GUI. No se añade apresuradamente un editor de perfil ni
+una política nueva de copias durante la aceptación.
+
+Evidencia funcional final: `/tmp/cvforge-f9/accepted-environment/`; aceptación
+privada completada tras la redacción con `offline-completion.log` y `private/`.
+`--resume-private` exige primero los recibos sin fallos de F1/170 tests/UI 23/7,
+PDF 26/7, equivalencia, arranque y el mismo SHA-256 AppImage; no omite una regresión
+fallida ni reutiliza otro artefacto. La pasada inicial se conserva y documenta el
+hallazgo que motivó la redacción.
 
 Los objetivos previos son NF-05: arranque frío ≤3 s; escritura ≤100 ms;
 confirmación durable ≤300 ms; preview hasta 3 páginas ≤2 s tras debounce de
@@ -34,6 +40,173 @@ confirmación durable ≤300 ms; preview hasta 3 páginas ≤2 s tras debounce d
 Otras métricas se registran sin inventar un umbral. Se distinguirá inicio de
 proceso de caché fría del SO, y preparación/confirmación de importación.
 
-Deuda a reproducir sin prometer transacción distribuida:
+Caso F8 reproducido y decisión validada, sin prometer transacción distribuida:
 **Crash/reconciliation between successful PDF file write and durable ExportRecord**.
-No se declarará resuelta sin una prueba de fallo y reapertura.
+Archivo sin recibo posible, CV intacto y reintento explícito; detalle y prueba abajo.
+
+## Recorridos y fallos reproducidos en F9
+
+La prueba nueva `tests/ui/f9.spec.ts` usa el ejecutable AppImage real, con cwd
+fuera del repositorio, bibliotecas vacías independientes, archivos escritos de
+verdad y un resultado controlado del diálogo de destino. No conecta a Vite ni
+al ejecutable Node del desarrollador para ejecutar código de producción.
+
+El recorrido principal importa un PDF Europass sintético conocido, revisa y
+confirma; contrasta valores de cada bloque y foto; confirma email A, cancela B y
+comprueba también el PDF de A; confirma B y reinicia; cancela un plan lingüístico,
+revisa manualmente el cambio a English con instituciones/empresas intactas y
+checkpoint; oculta una entrada; exporta Simple y Lateral; reimporta cada PDF en
+otra biblioteca y compara la proyección completa tras reiniciar; exporta el
+proyecto completo y lo recupera en una tercera biblioteca; finalmente reabre el
+CV fuente. Se comprueban orden, fechas, niveles, foto y presentación además de
+cantidades. El origen es sintético; los dos documentos privados tienen otra
+aceptación local, sin trasladar sus valores a este recorrido versionado.
+
+El contrato PDF recupera la proyección visible efectiva, no el original privado:
+no se exige recuperar ocultos, memoria C privada ni precisión de fecha omitida.
+La comparación `.cvproj` normaliza solo IDs de copia y la revisión/procedencia
+que añade expresamente la importación. Compara todo el resto y sus recursos.
+
+| Hallazgo | Clasificación | Acción y evidencia |
+| --- | --- | --- |
+| Relecturas/validaciones y tránsito main/worker repetían toda la biblioteca de 100 CV. | Rendimiento bloqueante. | Cache de snapshots validados por generation/data_version, copias aisladas y staging idéntico sin segunda escritura. Siete regresiones F9 y suites existentes. Mejora parcial; no se elimina el FAIL p95. |
+| Cancelar podía dejar el foco en BODY con la ventana activa. | Bug de teclado. | Reproducido en F4, dos fallos de tres; restauración posterior al commit React con controles habilitados y sin cerrar un dialog ya desmontado. Tres repeticiones completas posteriores PASS; F9 añade cancelaciones consecutivas. |
+| Crear CV vacío devolvía error general sin señalar campos. | Validación/UX. | Labels/error asociado y foco al primer inválido, conservando validación del IPC. |
+| Fallos de permisos/espacio/lock o plantilla antigua mostraban códigos poco útiles. | UX de fallo local. | Mensajes ES/EN explican la conservación del confirmado y cómo reintentar. Los códigos quedan para diagnóstico, sin stack/rutas/valores. |
+| AppImage legacy variaba con el reloj pese a SOURCE_DATE_EPOCH. | Entrega. | Toolset 1.0.3 admitido por builder; dos builds idénticos con fuente/fecha fija. No se parchea node_modules. |
+| AppImageLauncher movía el artefacto durante los tests. | Entorno/harness. | Desactivar su integración solo en el proceso de prueba, sin tocar la configuración del host. |
+| Montaje FUSE denegado en el namespace de prueba. | Límite de ejecución. | Arranque por extracción incluido en el runtime, documentado y probado sin desactivar sandbox. No más intentos que abran avisos en el escritorio. |
+| Perfil maestro y exportación workspace no tienen los recorridos GUI requeridos. | Bloqueos de producto. | Se prueban las operaciones de aplicación/SQLite, pero AC-06/AC-08 no se declaran aceptados como usuario final. No se ocultan detrás de esos tests. |
+
+Las primeras pasadas gráficas conservaron sus fallos bajo `/tmp/cvforge-f9`.
+Una entrada recibió una V ajena al fixture en el escritorio compartido. Se pasó a
+Xvfb/Openbox temporales, con X11 explícito y autorización por cookie, para evitar
+pulsaciones externas y conservar foco de ventana real. Esto permitió reproducir
+la carrera BODY y corregirla; no se eliminó ni debilitó la aserción de foco.
+Los programas de pantalla virtual son herramientas de aceptación extraídas fuera
+del repositorio, verificadas contra el repositorio Arch; no son dependencias de
+la aplicación ni se instalan en el sistema.
+
+La primera prueba de permisos dentro de unshare conservaba capacidades del
+namespace y podía escribir en una carpeta chmod 0500. No era una simulación válida
+del usuario ordinario. El runner corregido prepara lo y elimina después bounding,
+inheritable y ambient capabilities con setpriv; comprueba CapEff=0 tanto en el
+controlador como en el main de la AppImage. El caso de permisos y crash vuelve a
+pasar sin capacidades. No se falsea el destino ni se relaja su aserción.
+
+## Disco, interrupción y registro de exportaciones
+
+La producción escribe/fsync/verifica el PDF antes de confirmar ExportRecord. Si
+el archivo falla o se cancela el selector, no crea recibo ni muestra éxito. Si
+falla después el recibo, `EXPORT_FILE_WRITTEN_RECORD_FAILED` explica que existe
+un archivo sin registro y que debe comprobarse el destino antes de reintentar.
+
+La prueba nueva retiene una conexión SQLite externa con `BEGIN IMMEDIATE`, espera
+a que el PDF real tenga longitud/hash correctos y mata con SIGKILL el **PID real
+del main de Electron**, no solo el launcher AppImage. Al reabrir exige CV intacto,
+ningún recibo para esa operación y PDF legible/reimportable. Reexporta a otro
+destino y exige un único recibo nuevo, durable tras otro reinicio. El PDF anterior
+no se elimina ni modifica.
+
+Decisión para **Crash/reconciliation between successful PDF file write and durable
+ExportRecord**: el archivo puede quedar sin receipt si muere el proceso en esa
+ventana; no hay pérdida/corrupción del CV ni falsa afirmación de registro. El
+usuario puede conservar/reimportar ese PDF o reexportar expresamente. No se añade
+una exploración automática de rutas privadas ni una transacción distribuida.
+La ausencia del recibo sigue siendo visible; no se inventa uno al iniciar.
+
+Las regresiones de almacenamiento fuerzan SQLITE_FULL real con el límite de
+páginas, SIGKILL dentro de transacción, fallo de migración y restauración. La
+AppImage añade destino sin permisos, cancelación y cierre en la ventana crítica.
+La copia de workspace se prueba por aplicación/SQLite con fallo de archivo y
+restauración exacta; sigue faltando su acción GUI de exportación.
+
+## Privacidad y límites de la comprobación
+
+Payload extraído completo, comparación con ExportProjection y búsqueda de
+centinelas en JSON/imágenes: perfil, otros CV, ocultos, borradores, historia,
+alternativas lingüísticas, procedencia, datos no mapeados y originales fuente.
+La foto normalizada no conserva EXIF ni píxeles fuera del recorte. Las fechas
+recuperan exclusivamente la precisión representada. Retirar el payload mantiene
+PDF legible, enlaces y el mismo resultado visual.
+
+El aislamiento de red se verifica antes de arrancar: solo lo, cero rutas IPv4 y
+conexión externa con ENETUNREACH. Los fixtures/corpus/recursos están instalados;
+todo el ciclo usa esa red aislada, sin CDN. Las peticiones HTTP del renderer y
+sus errores se recogen en evidencia. Además se revisan CSP connect-src none,
+webRequest del renderer/main y sesión de render restringida a recursos locales.
+No se convierte esta prueba en una certificación de todas las plataformas.
+
+Las muestras privadas se comparan con un oráculo XML independiente, incluyendo
+títulos/instituciones/periodos, puestos/empresas, miembros y orden de los grupos,
+contactos, dimensiones CEFR y hash/bytes de foto, antes y después de reabrir SQLite.
+Cinco URLs por muestra requieren una corrección **expresa** en revisión; no se
+añade corrección automática a producción ni se afirma importación completa de
+campos no soportados. Solo se publican cantidades y resultados booleanos.
+
+Se revisan working tree, índice, git ls-files e historial relevante, y se buscan
+en fuentes/documentos y blobs F9 nombres/emails/huellas de las muestras y una
+huella del contenido de su foto. Los originales, bases, outputs y configuración
+privada de aceptación quedan fuera de Git.
+
+
+## Regresión y evidencia de entrega — 23–24/10/2026
+
+- F1: 3/3. F2–F9 dominio/aplicación/SQLite: 170/170. UI F4–F8/pulido: 23/23.
+  Aceptación GUI nueva sobre AppImage fuera del checkout: 7/7. **203 tests distintos**,
+  sin sumar las repeticiones adicionales de diagnóstico/foco ni benchmarks.
+- TypeScript y build PASS. AppImage inventariada: 91 archivos de código/recursos
+  comparados con dist, sin fuentes TS/tests/spikes/archivos privados; recursos y
+  licencias locales. Dos builds finales idénticos; [artefacto/uso](RELEASE.md).
+- PDF F8: 26 casos; PDF F7: 7. Preview/export SHA-256 idénticos; Simple conserva
+  todos los bytes frente a la referencia, salvo los dos relojes PDF ya existentes.
+  Esto no se presenta como igualdad de hashes crudos entre generaciones distintas.
+- PDFium externo Google Chrome 153.0.8010.52: Simple 1/5 páginas; Lateral 1/3/5/8.
+  Capturas de primera/última página, texto seleccionable/enlaces y geometría
+  contrastados además con PDF.js/Poppler.
+- GUI: 1180×880, 1366×768, 1440×900 y 820×700; capturas, geometría y revisión visual
+  de modales/presentación/plan/preview, sin overlap ni overflow horizontal detectado.
+- Teclado: crear, errores asociados, ciclos de modal, Escape, Tab contenido,
+  Subir/Bajar, plantilla, zoom/importación/exportación; el foco vuelve al invocador.
+  No certificación WCAG completa ni de todos los diálogos nativos.
+- SQLite: reaperturas independientes, integridad ok, claves foráneas y rollback
+  en las pruebas. Errores/requests del renderer registrados como listas vacías.
+
+## Historial y datos privados de aceptación
+
+Los dos PDF originales están ignorados, sin staged/tracked ni nombres PDF en el
+historial. No se copiaron a fixtures; los datasets y PDFs generados son sintéticos.
+El escáner detectó dos **huellas de los archivos**, sin sus bytes ni contenido del
+CV, en `docs/research/21-importacion-generica-ocr-y-compatibilidad.md`, heredadas de
+cc2db00. Se retiraron de la versión actual con nota de redacción, sin modificar
+observaciones históricas ni sustituirlas por resultados nuevos.
+
+El commit antiguo conserva esas dos huellas: **no se declara un historial sin
+rastro alguno de metadata**, ni se reescribe historia compartida sin autorización.
+No equivale a que los PDF o su contenido estén versionados. El escáner actual y
+los blobs nuevos de F9 quedan sin coincidencias; el informe publica solo categorías
+y resultados, nunca valores privados.
+
+[Benchmark](PERFORMANCE.md) · [Compatibilidad](COMPATIBILITY.md) ·
+[Release](RELEASE.md) · [Límites y bloqueos](KNOWN_LIMITATIONS.md).
+
+
+## Commits de F9
+
+| Commit | Trabajo |
+| --- | --- |
+| 319adfc | Alcance/documentación inicial de aceptación. |
+| cb2cc1e | Reducir validación/lecturas y staging repetidos. |
+| d61c411 | Cache validado a través del worker, con regresiones de invalidación. |
+| db89189 | Foco de modales, errores de campo y mensajes locales útiles. |
+| 2accac4 | AppImage candidata y construcción reproducible. |
+| 31c4668 | Corregir carrera de foco al habilitar controles tras cerrar formulario. |
+| e0f5a8d | E2E empaquetado, corpus, privacidad y benchmark. |
+| f3df49b | Retirar capacidades del entorno de aceptación y comprobarlas. |
+| 492025e | Redactar huellas privadas y completar auditoría sin repetir suites válidas. |
+| d69b7b7 | Exit de fallo cuando se incumple un presupuesto p95. |
+
+El commit documental de cierre añade esta matriz, métricas finales, compatibilidad,
+release/README y estado real del roadmap. La rama queda limpia, sin fusionar ni
+publicar un nuevo main. **F9 = NO APROBADA** hasta resolver o revisar expresamente
+los bloqueos; F10 no se inicia.
