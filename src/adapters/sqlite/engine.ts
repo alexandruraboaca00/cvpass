@@ -1,7 +1,7 @@
 import {libraryIndex} from '../../application/library-index.js';
 import {startupMark,flushStartup,startupTracing} from '../../host/startup-timing.js';
 import Database from 'better-sqlite3';
-import { chmodSync, existsSync, lstatSync, mkdirSync, realpathSync } from 'node:fs';
+import { chmodSync, existsSync, lstatSync, mkdirSync, realpathSync, openSync, readSync, closeSync, statSync } from 'node:fs';
 import { dirname, join, resolve, relative } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
@@ -17,8 +17,19 @@ import type { StorageMigration } from './migrations.js';
 import { ExportRecordSchema } from '../../application/export-record.js';
 import type { ExportRecord } from '../../application/export-record.js';
 import { includeTimings, measure, timingEnabled } from '../../application/timing.js';
+import {singleConfirmation,writeSingleConfirmation} from './single-confirmation.js';
 
 export const DATABASE_NAME = 'library.sqlite3';
+// Diagnostics only: read WAL-index headers/nBackfill, never reserved lock bytes.
+function walCounters(directory:string):Record<string,number>{
+  const out:Record<string,number>={walBytes:0};
+  try{out.walBytes=statSync(join(directory,DATABASE_NAME+'-wal')).size;}catch{/* closed/empty WAL */}
+  let fd:number|undefined;
+  try{fd=openSync(join(directory,DATABASE_NAME+'-shm'),'r');const h=Buffer.alloc(100),n=readSync(fd,h,0,100,0);
+    if(n===100&&h.subarray(0,48).equals(h.subarray(48,96))){out.mxFrame=h.readUInt32LE(16);out.nBackfill=h.readUInt32LE(96);out.transactionCounter=h.readUInt32LE(8);}
+  }catch{/* an absent index is reported without causing a diagnostic failure */}finally{if(fd!==undefined)closeSync(fd);}
+  return out;
+}
 function privateDirectory(input: string): string {
   const directory = resolve(input);
   let existing = directory;
@@ -156,56 +167,71 @@ export class SqliteEngine {
     // unnecessary here; full schema/graph validation above preserves rejection
     // of values JSON would otherwise silently coerce or discard.
     const encode=(value:unknown)=>measure('storage.serialization',()=>JSON.stringify(value));
-    const trace=timingEnabled(),transactionStart=performance.now();let bodyMs=0;
-    const dataVersion=this.db.pragma('data_version',{simple:true}) as number;
+    const trace=timingEnabled(),transactionStart=performance.now();let bodyMs=0,bodyStarted=0,bodyFinished=0,changedBefore=0,singleWrite=0;
+    let walBefore:Record<string,number>={};
+    let dataVersion=this.db.pragma('data_version',{simple:true}) as number;
     const generation=this.db.transaction(() => {
-      const bodyStart=performance.now();
+      const bodyStart=performance.now();bodyStarted=bodyStart;
+      if(trace){changedBefore=Number(this.db.prepare('SELECT total_changes()').pluck().get());walBefore=walCounters(this.directory);}
       const generation = this.db.prepare<[], {generation:number}>('SELECT generation FROM workspace WHERE slot=1').get()?.generation ?? null;
       if (generation !== expectedGeneration) reject('LIBRARY_CONFLICT');
+      // Check under the writer lock: a competing connection could have committed
+      // after the earlier read. Never use a stale snapshot to skip SQL writes.
+      dataVersion=this.db.pragma('data_version',{simple:true}) as number;
+      const previous=this.cached?.dataVersion===dataVersion&&this.cached.record?.generation===generation?this.cached.record.content:undefined;
+      const single=previous?measure('storage.prepareSingleConfirmation',()=>singleConfirmation(previous,s,e=>this.validationCache.encoded(e))):null;
       const next = (generation ?? -1) + 1;
       const oldWorkspace=this.db.prepare('SELECT id FROM workspace WHERE slot=1').pluck().get();
       if(oldWorkspace&&oldWorkspace!==s.workspace.id)this.db.exec('DELETE FROM exports');
       this.options.transactionProbe?.('beforeWrite',this.db);
-      // Remove dependency indexes first. They are rebuilt in the same transaction.
-      for (const table of ['entity_assets','revision_assets','template_assets','draft_assets','draft_templates']) this.db.exec(`DELETE FROM ${table}`);
-      // Keep entities/revisions until dependency rows are gone; replacement is atomic to readers.
-      this.db.exec('DELETE FROM drafts; DELETE FROM revisions; DELETE FROM entities; DELETE FROM templates; DELETE FROM assets; DELETE FROM workspace;');
-      this.db.prepare('INSERT INTO workspace VALUES (1,?,?,?,?,1)').run(s.workspace.id, next, encode(s.workspace.settings), encode(s.workspace.cvOrder));
-      const insertBlob = this.db.prepare('INSERT INTO blobs VALUES (?,?,?) ON CONFLICT(sha256) DO NOTHING');
-      for (const [hash, bytes] of s.blobs) insertBlob.run(hash, bytes.length, bytes);
-      const insertAsset = this.db.prepare('INSERT INTO assets VALUES (?,?,?)');
-      Object.values(s.assetsById).forEach(a => insertAsset.run(a.id, a.sha256, encode(a)));
-      const insertTemplate = this.db.prepare('INSERT INTO templates VALUES (?,?,?)');
-      s.templates.forEach(t => insertTemplate.run(t.id, t.version, encode(t)));
-      const insertEntity = this.db.prepare('INSERT INTO entities VALUES (?,?,?,?,?,?,?,?,?,1)');
-      currentEntities(s).forEach(e => insertEntity.run(e.id, s.workspace.id, e.kind, e.revision, e.kind === 'cv' ? e.name : null, e.kind === 'cv' ? e.documentLocale : null,
-        e.kind === 'cv' ? e.presentation.templateRef.id : null, e.kind === 'cv' ? e.presentation.templateRef.version : null, this.validationCache.encoded(e)??encode(e)));
-      this.options.transactionProbe?.('afterEntities',this.db);
-      const insertRevision = this.db.prepare('INSERT INTO revisions VALUES (?,?,?,?,?,?,?,1)');
-      s.revisions.forEach(r => insertRevision.run(r.id,r.entityId,r.number,r.cause,r.retention,r.createdAt,this.validationCache.encoded(r.snapshot)??encode(r.snapshot)));
-      const insertDraft = this.db.prepare('INSERT INTO drafts VALUES (?,?,?,?,?)');
-      s.drafts.forEach(d => insertDraft.run(d.id,d.entityId,d.baseRevision,d.version,encode(d)));
-      const linkEntity = this.db.prepare('INSERT INTO entity_assets VALUES (?,?)');
-      currentEntities(s).forEach(e => referencedAssets(e).forEach(id => linkEntity.run(e.id,id)));
-      const linkRevision = this.db.prepare('INSERT INTO revision_assets VALUES (?,?)');
-      s.revisions.forEach(r => referencedAssets(r.snapshot).forEach(id => linkRevision.run(r.id,id)));
-      const linkTemplate = this.db.prepare('INSERT INTO template_assets VALUES (?,?,?)');
-      s.templates.forEach(t => new Set(t.resourceRefs.map(r => r.assetId)).forEach(id => linkTemplate.run(t.id,t.version,id)));
-      const linkDraft = this.db.prepare('INSERT INTO draft_assets VALUES (?,?)'), linkDraftTemplate = this.db.prepare('INSERT INTO draft_templates VALUES (?,?,?)');
-      s.drafts.forEach(d => {
-        new Set([...d.assetIds,...referencedAssets(d.baseSnapshot)]).forEach(id => linkDraft.run(d.id,id));
-        const refs = new Map(d.templateRefs.map(t => [templateKey(t),t]));
-        if (d.baseSnapshot.kind === 'cv') refs.set(templateKey(d.baseSnapshot.presentation.templateRef), d.baseSnapshot.presentation.templateRef);
-        refs.forEach(t => linkDraftTemplate.run(d.id,t.id,t.version));
-      });
+      if(single){
+        singleWrite=1;
+        writeSingleConfirmation(this.db,single,next,()=>this.options.transactionProbe?.('afterEntities',this.db));
+      }else{
+        // Remove dependency indexes first. They are rebuilt in the same transaction.
+        for (const table of ['entity_assets','revision_assets','template_assets','draft_assets','draft_templates']) this.db.exec(`DELETE FROM ${table}`);
+        // Keep entities/revisions until dependency rows are gone; replacement is atomic to readers.
+        this.db.exec('DELETE FROM drafts; DELETE FROM revisions; DELETE FROM entities; DELETE FROM templates; DELETE FROM assets; DELETE FROM workspace;');
+        this.db.prepare('INSERT INTO workspace VALUES (1,?,?,?,?,1)').run(s.workspace.id, next, encode(s.workspace.settings), encode(s.workspace.cvOrder));
+        const insertBlob = this.db.prepare('INSERT INTO blobs VALUES (?,?,?) ON CONFLICT(sha256) DO NOTHING');
+        for (const [hash, bytes] of s.blobs) insertBlob.run(hash, bytes.length, bytes);
+        const insertAsset = this.db.prepare('INSERT INTO assets VALUES (?,?,?)');
+        Object.values(s.assetsById).forEach(a => insertAsset.run(a.id, a.sha256, encode(a)));
+        const insertTemplate = this.db.prepare('INSERT INTO templates VALUES (?,?,?)');
+        s.templates.forEach(t => insertTemplate.run(t.id, t.version, encode(t)));
+        const insertEntity = this.db.prepare('INSERT INTO entities VALUES (?,?,?,?,?,?,?,?,?,1)');
+        currentEntities(s).forEach(e => insertEntity.run(e.id, s.workspace.id, e.kind, e.revision, e.kind === 'cv' ? e.name : null, e.kind === 'cv' ? e.documentLocale : null,
+          e.kind === 'cv' ? e.presentation.templateRef.id : null, e.kind === 'cv' ? e.presentation.templateRef.version : null, this.validationCache.encoded(e)??encode(e)));
+        this.options.transactionProbe?.('afterEntities',this.db);
+        const insertRevision = this.db.prepare('INSERT INTO revisions VALUES (?,?,?,?,?,?,?,1)');
+        s.revisions.forEach(r => insertRevision.run(r.id,r.entityId,r.number,r.cause,r.retention,r.createdAt,this.validationCache.encoded(r.snapshot)??encode(r.snapshot)));
+        const insertDraft = this.db.prepare('INSERT INTO drafts VALUES (?,?,?,?,?)');
+        s.drafts.forEach(d => insertDraft.run(d.id,d.entityId,d.baseRevision,d.version,encode(d)));
+        const linkEntity = this.db.prepare('INSERT INTO entity_assets VALUES (?,?)');
+        currentEntities(s).forEach(e => referencedAssets(e).forEach(id => linkEntity.run(e.id,id)));
+        const linkRevision = this.db.prepare('INSERT INTO revision_assets VALUES (?,?)');
+        s.revisions.forEach(r => referencedAssets(r.snapshot).forEach(id => linkRevision.run(r.id,id)));
+        const linkTemplate = this.db.prepare('INSERT INTO template_assets VALUES (?,?,?)');
+        s.templates.forEach(t => new Set(t.resourceRefs.map(r => r.assetId)).forEach(id => linkTemplate.run(t.id,t.version,id)));
+        const linkDraft = this.db.prepare('INSERT INTO draft_assets VALUES (?,?)'), linkDraftTemplate = this.db.prepare('INSERT INTO draft_templates VALUES (?,?,?)');
+        s.drafts.forEach(d => {
+          new Set([...d.assetIds,...referencedAssets(d.baseSnapshot)]).forEach(id => linkDraft.run(d.id,id));
+          const refs = new Map(d.templateRefs.map(t => [templateKey(t),t]));
+          if (d.baseSnapshot.kind === 'cv') refs.set(templateKey(d.baseSnapshot.presentation.templateRef), d.baseSnapshot.presentation.templateRef);
+          refs.forEach(t => linkDraftTemplate.run(d.id,t.id,t.version));
+        });
+      }
       this.db.exec('DELETE FROM blobs WHERE sha256 NOT IN (SELECT sha256 FROM assets)');
       this.db.exec("DELETE FROM exports WHERE cv_id NOT IN (SELECT id FROM entities WHERE kind='cv')");
       this.options.transactionProbe?.('beforeCommit',this.db);
       if ((this.db.pragma('foreign_key_check') as unknown[]).length) reject('STORAGE_FOREIGN_KEY_FAILURE');
-      bodyMs=performance.now()-bodyStart;return next;
+      bodyFinished=performance.now();bodyMs=bodyFinished-bodyStart;return next;
     }).immediate();
-    if(trace)includeTimings([{stage:'storage.transactionBody',ms:bodyMs},{stage:'storage.beginAndDurableCommit',ms:performance.now()-transactionStart-bodyMs}]);
-    this.cached={record:{generation,content:s},dataVersion};
+    const transactionFinished=performance.now();
+    if(trace){const after=walCounters(this.directory),metrics:Record<string,number>={singleEntityWrite:singleWrite,totalRowsChanged:Number(this.db.prepare('SELECT total_changes()').pluck().get())-changedBefore};
+      for(const[k,v]of Object.entries(walBefore))metrics['before_'+k]=v;for(const[k,v]of Object.entries(after))metrics['after_'+k]=v;
+      includeTimings([{stage:'storage.transactionBody',ms:bodyMs,metrics},{stage:'storage.begin',ms:bodyStarted-transactionStart},{stage:'storage.durableCommit',ms:transactionFinished-bodyFinished},{stage:'storage.beginAndDurableCommit',ms:transactionFinished-transactionStart-bodyMs}]);}
+    measure('storage.cacheUpdate',()=>{this.cached={record:{generation,content:s},dataVersion};});
     return generation;
   }
   async backup(): Promise<BackupReceipt> {

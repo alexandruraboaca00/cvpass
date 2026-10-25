@@ -1,5 +1,5 @@
 // Opt-in, numeric diagnostics only. No document values or identifiers are collected.
-export interface Timing { stage:string; ms:number }
+export interface Timing { stage:string; ms:number; metrics?:Record<string,number> }
 let active:Timing[]|undefined;
 export function timingEnabled():boolean{return active!==undefined;}
 export function includeTimings(rows:Timing[]):void{active?.push(...rows);}
