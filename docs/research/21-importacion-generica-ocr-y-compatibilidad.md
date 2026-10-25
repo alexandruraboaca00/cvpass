@@ -1,5 +1,10 @@
 # 21 — Importación de PDF genérico, escaneado, XML y documentos reales
 
+> Redacción de privacidad, 23/10/2026 (F9): se retiran dos huellas SHA-256 de
+> originales privados. Se mantienen las observaciones, cantidades y conclusiones
+> históricas; no se reemplazan por evidencia de implementación nueva. El antecedente
+> está en cc2db00; no se ha reescrito ese historial.
+
 Ampliación: [26 — Compatibilidad de PDF](26-compatibilidad-ampliada-pdf.md) añade 25 archivos/variantes, incluyendo versiones de contenedor, adjuntos, codificaciones, contraseña y plantillas. Los rechazos no se atribuyen a columnas o Unicode cuando el control también carece de datos de CV compatibles.
 
 ## 1. Hechos observados
@@ -31,7 +36,7 @@ Evidencia `ev_0f68bd3236f57936d5cb446d91c80dedd622c8e7489b527ea6d5f54d373a3af5`:
 
 La comparación del XML original con el editado detecta solo el título educativo cambiado y CandidateProfile/ID. No cambia ningún otro texto de hoja o atributo con el método aplicado. El PDF visible sigue usando la normalización de fechas observada anteriormente; conservar XML no equivale a conservar cada detalle visual.
 
-Se verificaron los hashes de los dos PDF de entrada al finalizar: siguen siendo `974def80620ad4c9b8265ad5745b075f043ff75e04f68b62bdf4cac9ade18973` y `1b9fe78d30e09e4def49a5b0cd5183e621a7729f0d287a8f9cc8c57c9f4d8956`, respectivamente. No se alteraron esos archivos ni la pestaña del usuario.
+Se verificaron los hashes de los dos PDF de entrada al finalizar: siguen siendo `[huella privada retirada en F9]` y `[huella privada retirada en F9]`, respectivamente. No se alteraron esos archivos ni la pestaña del usuario.
 
 ## 2. Inferencias y alcance propuesto
 

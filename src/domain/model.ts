@@ -75,6 +75,12 @@ export function entryIds(section: ProfileSection): string[] { return section.kin
 export function validateEntity(input: unknown): Entity {
   assertDataTree(input);
   const entity = parse(z.discriminatedUnion('kind',[MasterProfileSchema,CvDocumentSchema]),input);
+  assertEntityInvariants(entity);
+  return entity;
+}
+// Internal composition helper: callers must first parse the entity schema and
+// validate its object graph. Project validation already does both in one pass.
+export function assertEntityInvariants(entity:Entity):void {
   if (entity.updatedAt < entity.createdAt) fail('timestamp.inverted');
   checkMap(entity.sectionsById,['sectionsById']); checkMap(entity.sensitiveTranslationMemory,['sensitiveTranslationMemory']);
   assertOrder(entity.sectionOrder,Object.keys(entity.sectionsById),['sectionOrder']);
@@ -122,7 +128,6 @@ export function validateEntity(input: unknown): Entity {
       if(new Set(ids).size!==ids.length||ids.some(id=>!records.some(r=>r.id===id))) fail('visibility.invalidReference');
     }
   }
-  return entity;
 }
 export function validateProfile(value: unknown): MasterProfile { const p=validateEntity(value);if(p.kind!=='profile')fail('entity.expectedProfile');return p; }
 export function validateCv(value: unknown): CvDocument { const cv=validateEntity(value);if(cv.kind!=='cv')fail('entity.expectedCv');return cv; }

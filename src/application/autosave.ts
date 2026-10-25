@@ -11,6 +11,8 @@ export class DraftAutosaver {
   private maximumTimer: ReturnType<typeof setTimeout> | null = null;
   private running: Promise<void> | null = null;
   private version: number;
+  // Updated only after the repository's durable acknowledgement, never on schedule.
+  get durableVersion():number{return this.version;}
   private stopped = false;
   status: AutosaveStatus = 'idle';
   lastError: unknown = null;

@@ -47,13 +47,35 @@ export function assertDataTree(value:unknown,maxDepth=128):void {
     if(typeof v!=='object')fail('data.notJson');
     if(ancestors.has(v))fail('data.cycle');
     const proto=Object.getPrototypeOf(v);
-    if(!Array.isArray(v)&&proto!==Object.prototype&&proto!==null)fail('data.prototype');
-    if(Object.getOwnPropertySymbols(v).length)fail('data.symbolKey');
-    if(Array.isArray(v)&&Object.keys(v).length!==v.length)fail('data.sparseOrExtendedArray');
-    for(const descriptor of Object.values(Object.getOwnPropertyDescriptors(v)))if(descriptor.get||descriptor.set)fail('data.accessor');
+    const array=Array.isArray(v);
+    if(!array&&proto!==Object.prototype&&proto!==null)fail('data.prototype');
     ancestors.add(v);
-    for(const [key,x]of Object.entries(v)){
-      if(['__proto__','prototype','constructor'].includes(key))fail('data.unsafeKey');visit(x,depth+1);
+    if(array){
+      // Preserve sparse/extended-array rejection and accessor precedence.
+      if(Object.getOwnPropertySymbols(v).length)fail('data.symbolKey');
+      if(Object.keys(v).length!==v.length)fail('data.sparseOrExtendedArray');
+      const descriptors=Object.getOwnPropertyDescriptors(v);
+      for(const key of Object.keys(descriptors)){
+        const descriptor=descriptors[key]!;
+        if(descriptor.get||descriptor.set)fail('data.accessor');
+        if(!descriptor.enumerable)continue;
+        if(key==='__proto__'||key==='prototype'||key==='constructor')fail('data.unsafeKey');
+        visit(descriptor.value,depth+1);
+      }
+    }else{
+      // Do not allocate a second object containing every descriptor, followed
+      // by another key array, for each plain object in a large workspace.
+      // Read descriptor values, never properties: getters remain unexecuted.
+      const keys=Reflect.ownKeys(v);
+      if(keys.some(key=>typeof key!=='string'))fail('data.symbolKey');
+      for(const key of keys as string[]){
+        const descriptor=Object.getOwnPropertyDescriptor(v,key);
+        if(!descriptor)continue;
+        if(descriptor.get||descriptor.set)fail('data.accessor');
+        if(!descriptor.enumerable)continue;
+        if(key==='__proto__'||key==='prototype'||key==='constructor')fail('data.unsafeKey');
+        visit(descriptor.value,depth+1);
+      }
     }
     ancestors.delete(v);
   }

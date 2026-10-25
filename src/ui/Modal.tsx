@@ -17,12 +17,13 @@ function frame(children:ReactNode):ReactNode {
 export function Modal({title,onCancel,children,destructive=false}:{title:string;onCancel:()=>void;children:ReactNode;destructive?:boolean}){
   const ref=useRef<HTMLDialogElement>(null),id=useRef(crypto.randomUUID());
   useEffect(()=>{
+    const opener=document.activeElement instanceof HTMLElement&&document.activeElement!==document.body?document.activeElement:null;
     const dialog=ref.current;dialog?.showModal();
     // Scroll containers can receive native dialog autofocus before a field.
     // Preserve the existing first-control focus and explicit destructive Cancel.
     const initial=dialog?.querySelector<HTMLElement>('[autofocus]')??dialog?.querySelector<HTMLElement>('input:not([type=hidden]):not(:disabled), select:not(:disabled), textarea:not(:disabled), button:not(:disabled), [contenteditable=true], [tabindex="0"]');
     initial?.focus();
-    return()=>dialog?.close();
+    return()=>{if(dialog?.isConnected)dialog.close();queueMicrotask(()=>{if(opener?.isConnected&&document.activeElement===document.body)opener.focus();});};
   },[]);
   return createPortal(<dialog ref={ref} aria-labelledby={id.current} role={destructive?'alertdialog':'dialog'} onCancel={event=>{event.preventDefault();onCancel();}}><header className="modal-header"><h2 id={id.current}>{title}</h2></header><div className="modal-content">{frame(children)}</div></dialog>,document.body);
 }

@@ -1,5 +1,7 @@
+import type { EditorProfileView } from './profile-editor.js';
+import type { ProfileSelection } from './profile-selection.js';
 import type { EditorLibraryView, EditorDocumentView, PhotoView } from './editor.js';
-import type { EditorForm, EditorIssue, EditorTarget } from './editor-model.js';
+import type { EditorForm, ProfileEditorForm, EditorIssue, EditorTarget } from './editor-model.js';
 import type { SectionKind } from '../domain/index.js';
 import type { ImportView, ImportReviewInput } from './structured-import.js';
 import type { PdfGeneration, PresentationInput } from './render-contract.js';
@@ -8,6 +10,20 @@ export type BeginEditorTarget=EditorTarget|{kind:'newEntry';sectionId:string;ent
 export interface EditorFailure {code:string;issues:EditorIssue[]}
 export type EditorResult<T> = {ok:true;value:T}|{ok:false;error:EditorFailure};
 export interface EditorApi {
+  workspaceExport():Promise<EditorResult<{cancelled:boolean;sha256?:string;byteLength?:number}>>;
+  profileOpen():Promise<EditorResult<EditorProfileView>>;
+  profileCreate(name:string):Promise<EditorResult<EditorProfileView>>;
+  profileMaterialize(name:string,locale:'es'|'en',revision:number,selection:ProfileSelection):Promise<EditorResult<EditorDocumentView>>;
+  profileAddSection(revision:number,kind:Exclude<SectionKind,'custom'>):Promise<EditorResult<EditorProfileView>>;
+  profileBegin(revision:number,target:BeginEditorTarget,textLocale:'es'|'en'):Promise<EditorResult<ProfileEditorForm>>;
+  profileStage(form:ProfileEditorForm):Promise<EditorResult<void>>;
+  profileConfirm(form:ProfileEditorForm):Promise<EditorResult<EditorProfileView>>;
+  profileCancel():Promise<EditorResult<EditorProfileView>>;
+  profilePhoto(bytes:Uint8Array,mediaType:'image/png'|'image/jpeg'):Promise<EditorResult<{form:ProfileEditorForm;photo:PhotoView}>>;
+  profileRecover(id:string):Promise<EditorResult<{form:ProfileEditorForm;photo:PhotoView|null}>>;
+  profileRemove(revision:number,sectionId:string,entryId:string|null,confirm:true):Promise<EditorResult<EditorProfileView>>;
+  profileRevisions():Promise<EditorResult<{id:string;number:number;cause:string;pinned:boolean}[]>>;
+  profileRestore(revision:number,id:string):Promise<EditorResult<EditorProfileView>>;
   projectExport(cvId:string,revision:number):Promise<EditorResult<{cancelled:boolean;sha256?:string;byteLength?:number}>>;
   pdfRecords(cvId:string):Promise<EditorResult<ExportRecord[]>>;
   pdfGenerate(cvId:string,revision:number):Promise<EditorResult<PdfGeneration>>;

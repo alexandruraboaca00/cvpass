@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "main": "dist/src/desktop/main.js",
+  "main": "dist/src/desktop/bootstrap.js",
   "scripts": {
-    "build": "tsc -p tsconfig.json && vite build",
+    "build": "tsc -p tsconfig.json && vite build && vite build --config vite.worker.config.ts",
     "start": "electron .",
     "setup:electron": "install-electron",
     "typecheck": "tsc -p tsconfig.json --noEmit",
@@ -36,7 +36,13 @@
     "validate:f8:pdf": "node scripts/f8-render-check.mjs && node scripts/f8-inspect-pdfs.mjs",
     "validate:f8:reader": "node scripts/f8-external-reader.mjs",
     "validate:f8:offline": "node scripts/f8-offline-check.mjs",
-    "validate:f8:package": "node scripts/f8-package-check.mjs"
+    "validate:f8:package": "node scripts/f8-package-check.mjs",
+    "package:appimage": "node scripts/package-appimage.mjs",
+    "test:f9": "npm run build && node --test dist/tests/f9-*.test.js",
+    "test:f9:ui": "playwright test --config playwright.config.ts f9.spec.ts f9-blockers.spec.ts",
+    "validate:f9:performance": "node scripts/f9-performance.mjs",
+    "validate:f9:offline": "node scripts/f9-offline-check.mjs",
+    "validate:f9:package": "node scripts/f9-package-check.mjs"
   },
   "dependencies": {
     "@tiptap/core": "3.32.0",

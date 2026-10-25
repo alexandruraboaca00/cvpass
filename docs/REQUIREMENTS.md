@@ -1,6 +1,6 @@
 # Requisitos de CVForge
 
-Versión 0.10 · 19 de octubre de 2026 · Decisiones de producto consolidadas por el usuario. Implementación autorizada por fases; F1 está aprobada con el alcance de cierre fijado por el usuario; véase [registro F1](F1_VALIDATION.md). F2 está aprobada e integrada en main. F3 tiene biblioteca/persistencia/recuperación aprobadas por el usuario e integradas en main mediante merge commit; F4 tiene el editor principal de datos personales, educación y experiencia aprobado por el usuario e integrado en main mediante merge commit desde `f4-core-editor`. Véanse [aceptación F2](f2/VALIDATION.md), [validación F3](f3/VALIDATION.md) y [validación F4](f4/VALIDATION.md). F5 está aprobada por el usuario e integrada en main mediante merge commit desde `f5-mvp-sections-languages`, con validación en [f5/VALIDATION.md](f5/VALIDATION.md). F6 aprobada por el usuario e integrada en main mediante merge commit desde `f6-structured-import`. Véanse [alcance](f6/IMPORT.md) y [validación](f6/VALIDATION.md). F7 y el pulido visual posterior están aprobados e integrados en main. F8 está aprobada por el usuario e integrada en main mediante merge commit desde `f8-lateral-portable-cycle`, con base `7803271`; alcance y evidencia en [f8/VALIDATION.md](f8/VALIDATION.md). F9 no iniciada.
+Versión 0.10 · 19 de octubre de 2026 · Decisiones de producto consolidadas por el usuario. Implementación autorizada por fases; F1 está aprobada con el alcance de cierre fijado por el usuario; véase [registro F1](F1_VALIDATION.md). F2 está aprobada e integrada en main. F3 tiene biblioteca/persistencia/recuperación aprobadas por el usuario e integradas en main mediante merge commit; F4 tiene el editor principal de datos personales, educación y experiencia aprobado por el usuario e integrado en main mediante merge commit desde `f4-core-editor`. Véanse [aceptación F2](f2/VALIDATION.md), [validación F3](f3/VALIDATION.md) y [validación F4](f4/VALIDATION.md). F5 está aprobada por el usuario e integrada en main mediante merge commit desde `f5-mvp-sections-languages`, con validación en [f5/VALIDATION.md](f5/VALIDATION.md). F6 aprobada por el usuario e integrada en main mediante merge commit desde `f6-structured-import`. Véanse [alcance](f6/IMPORT.md) y [validación](f6/VALIDATION.md). F7 y el pulido visual posterior están aprobados e integrados en main. F8 está aprobada por el usuario e integrada en main mediante merge commit desde `f8-lateral-portable-cycle`, con base `7803271`; alcance y evidencia en [f8/VALIDATION.md](f8/VALIDATION.md). F9 está aprobada por el usuario, pero la integración queda bloqueada por el nuevo control de Confirmar durable (p95 359,7 ms >300); sin merge/push ni F10. [Control actual](f9/MERGE_VALIDATION.md). Véase [perfilado](f9/STARTUP_PROFILING.md).
 
 ## Base y alcance de la especificación
 
@@ -12,7 +12,7 @@ Convenciones comunes a los cuatro documentos:
 - **[D] Decisión del producto propio:** las decisiones finales de perfil, guardado, PDF, idiomas, importación, diseños y MVP están aprobadas por el usuario. Las elecciones técnicas todavía propuestas se identifican como tales; ninguna describe la implementación interna de Europass.
 - **[P] Pendiente:** decisión del producto o validación técnica que todavía debe resolverse.
 
-**Todos los requisitos siguientes son [D].** La investigación no demuestra que nuestra aplicación los cumpla: la aceptación del producto completo sigue pendiente; la evidencia acotada de F1/F2 está registrada por fase. Una propuesta histórica incompatible con estas decisiones no es un requisito vigente.
+**Todos los requisitos siguientes son [D].** La investigación no demuestra que nuestra aplicación los cumpla: el MVP 0.1.0 tiene aceptación técnica histórica y aprobación del usuario documentadas, con integración bloqueada por la nueva comprobación de rendimiento; la evidencia está registrada por fase. Una propuesta histórica incompatible con estas decisiones no es un requisito vigente.
 
 ## Hechos que sustentan el producto
 
@@ -138,13 +138,42 @@ En el MVP, tipos todavía no editables se conservan como información no mapeada
 | NF-02 Durabilidad | Transacciones atómicas; conflictos de revisión detectados; error de escritura visible. Probar cierre forzado, disco lleno y restauración de copia. Una confirmación reconocida debe sobrevivir al reinicio; el borrador se ofrece aparte. |
 | NF-03 PDF | A4 inicial, texto seleccionable, enlaces activos, fuentes con licencia y glifos verificados. Títulos unidos al inicio del contenido, sin recortes/solapes ni página vacía artificial. La columna lateral debe mantener lectura comprensible al extraer texto y usar tecnología de asistencia. Comprobar también un lector externo al visor propio. |
 | NF-04 Accesibilidad | Formularios y reordenación utilizables con teclado; etiquetas, foco y errores anunciables; contraste verificable. Comprobar etiquetado y orden de lectura del PDF. No declarar conformidad PDF/UA por activar una opción del motor. |
-| NF-05 Rendimiento | Objetivos iniciales, todavía no medidos: arranque en frío p95 ≤3 s; respuesta al escribir p95 ≤100 ms; confirmación durable p95 ≤300 ms; preview de CV de hasta 3 páginas p95 ≤2 s tras espera de edición de 400 ms; exportación de 10 páginas p95 ≤5 s; importación estructurada de 3 páginas p95 ≤3 s. Traducción y OCR tienen progreso/cancelación y presupuesto propio por medir, sin bloquear la edición. |
+| NF-05 Rendimiento | Objetivos vigentes del MVP: arranque p95 ≤3200 ms en el equipo/corpus y método de referencia F9 (revisión explícita del usuario posterior a las mediciones; objetivo original ≤3000 ms); respuesta al escribir p95 ≤100 ms; confirmación durable p95 ≤300 ms; preview de CV de hasta 3 páginas p95 ≤2 s tras espera de edición de 400 ms; exportación de 10 páginas p95 ≤5 s; importación estructurada de 3 páginas p95 ≤3 s. Traducción y OCR tienen progreso/cancelación y presupuesto propio por medir, sin bloquear la edición. |
 | NF-06 Privacidad | Contenido, traducción y OCR locales; sin telemetría de CV ni cargas automáticas. Los mensajes técnicos omiten datos personales. Los recursos importados no ejecutan código y el exportador no accede a recursos remotos. |
 | NF-07 Robustez | Para importar un CV: entrada limitada inicialmente a 50 MiB; paquete expandido a 100 MiB/1.000 ficheros; XML/JSON de control a 10 MiB y profundidad 128. Las copias de workspace usan límites propios configurables, calculados y declarados antes de escribir/restaurar, sin aplicarles el tamaño de un solo CV. Rechazar límites excedidos con explicación, sin truncar. Probar archivos corruptos, cifrados y adjuntos ambiguos. Límites revisables con evidencia. |
 | NF-08 Evolución | Formatos, modelo y plantillas versionados; migraciones con recuperación; un formato futuro desconocido nunca se guarda destructivamente como si fuera compatible. |
 | NF-09 Independencia | Código, plantillas, estilos, iconos y recursos propios o con licencia compatible. Los PDF del usuario son entradas privadas de prueba; no se redistribuyen como recursos de la aplicación. |
 
 El equipo de referencia propuesto para NF-05 es Linux de escritorio con 4 núcleos, 8 GiB de RAM y SSD, biblioteca de 100 CV y corpus identificado. Antes de aceptar resultados se fijarán CPU, sistema, resolución y versiones concretas, distinguiendo caché fría/caliente. Estas cifras son objetivos nuestros, no tiempos demostrados ni extrapolaciones de Europass.
+
+### NF-05 — Revisión explícita de startup para el MVP, 25/10/2026
+
+El objetivo inicial **p95 ≤3000 ms** se fijó antes de disponer de las mediciones
+de aceptación. Tras las campañas finales A/B/C (3075,6 / 2995,8 / 2935,0 ms),
+el usuario decide **p95 ≤3200 ms** para startup únicamente. La aceptación F9
+del roadmap permite corregir o revisar explícitamente objetivos no alcanzados
+antes de aceptar el MVP. Se conservan el objetivo inicial, el FAIL 3462,3 ms,
+los PASS posteriores y todos los resultados originales.
+
+La variación no pudo atribuirse a una regresión concreta; el mismo binario
+produjo campañas a ambos lados de 3000 ms. Ya se realizaron las optimizaciones
+relevantes. El usuario considera desproporcionado el riesgo de seguir cambiando
+arquitectura para recuperar los 75,6 ms del peor p95 final frente a su impacto
+real de producto. El límite 3200 ms mantiene prácticamente la intención original.
+Es una decisión posterior a la medición, no el requisito original ni un cambio
+de método, muestras o marcadores. No se modifica ningún otro objetivo NF-05: en
+particular, **Confirmar durable conserva p95 ≤300 ms** y FULL/WAL intactos.
+
+Ámbito concreto: i5-13420H/12 CPU lógicas, 16 GiB, SSD ext4, Linux y versiones
+identificadas, biblioteca sintética de 100 CV, 20 procesos/perfiles nuevos por
+campaña y cachés SO/runtime sin vaciar. La definición de startup sigue desde
+lanzamiento de AppImage hasta biblioteca usable con las 100 tarjetas; no se
+adelanta la disponibilidad. No se extrapola al equipo propuesto de 4 núcleos/8 GiB
+ni se declara arranque frío de SO. [Decisión y reevaluación](f9/NF05_STARTUP_REVIEW.md).
+
+La prueba diagnóstica con 50 revisiones acumuladas dio Confirmar p95 316,6 ms.
+Queda como deuda por crecimiento de lecturas/copias globales del historial,
+fuera del corpus oficial MVP; no cambia el límite de Confirmar ni se abre otra fase.
 
 ## Comportamientos que conservar y mejorar [D]
 
@@ -164,4 +193,4 @@ La investigación no determina qué stack usa Europass, la causa del botón desh
 
 Las decisiones de perfil, biblioteca automática, `.cvproj` completo, PDF limitado a su exportación, traducción real A/B/C, importación inteligente, diseños propios y MVP están cerradas por el usuario. F0 queda completada a nivel de decisiones de producto.
 
-F1 ha validado empaquetado, persistencia, composición y adjuntos PDF con minimización efectiva y lectura en el corpus de prueba. Por decisión final del usuario, la traducción no es criterio necesario de su cierre y no se desarrolla más en F1; sigue siendo requisito de producto en las fases posteriores. Las dependencias/versiones y sus límites validados constan en el registro F1; no se exige volver a aprobar las decisiones de producto ya cerradas. F2 ha integrado en main el dominio y el contrato `.cvproj` inicial, con alcance y límites en [f2/VALIDATION.md](f2/VALIDATION.md). F3 tiene biblioteca durable, borradores, historial y copia/restauración [aprobados e integrados en main](f3/VALIDATION.md). F4 tiene el editor principal [aprobado por el usuario e integrado en main](f4/VALIDATION.md). F5 completa las áreas y el workflow manual/revisable, aprobados por el usuario e integrados en main; [alcance real](f5/IMPLEMENTATION.md). F6 está aprobada e integrada en main; [validación](f6/VALIDATION.md). F7 implementa Simple y preview PDF.js desde bytes finales; véase [validación F7](f7/VALIDATION.md). F8 está aprobada e integrada para Lateral, selector, ciclo portable y recibos durables; no se declara terminado el MVP ni se inicia F9.
+F1 ha validado empaquetado, persistencia, composición y adjuntos PDF con minimización efectiva y lectura en el corpus de prueba. Por decisión final del usuario, la traducción no es criterio necesario de su cierre y no se desarrolla más en F1; sigue siendo requisito de producto en las fases posteriores. Las dependencias/versiones y sus límites validados constan en el registro F1; no se exige volver a aprobar las decisiones de producto ya cerradas. F2 ha integrado en main el dominio y el contrato `.cvproj` inicial, con alcance y límites en [f2/VALIDATION.md](f2/VALIDATION.md). F3 tiene biblioteca durable, borradores, historial y copia/restauración [aprobados e integrados en main](f3/VALIDATION.md). F4 tiene el editor principal [aprobado por el usuario e integrado en main](f4/VALIDATION.md). F5 completa las áreas y el workflow manual/revisable, aprobados por el usuario e integrados en main; [alcance real](f5/IMPLEMENTATION.md). F6 está aprobada e integrada en main; [validación](f6/VALIDATION.md). F7 implementa Simple y preview PDF.js desde bytes finales; véase [validación F7](f7/VALIDATION.md). F8 está aprobada e integrada para Lateral, selector, ciclo portable y recibos durables; F9 está autorizada en `f9-mvp-acceptance` desde main `cc7cf0d`. La aceptación técnica F9 supera sus tres bloqueos iniciales mediante GUI de perfil/workspace y Confirmar p95 261,3 ms ≤300; el resultado fallido anterior se conserva. La regresión posterior de arranque se corrige y revalida: p95 1844,4 ms y Confirmar 228,4 ms, 20 procesos con el mismo corpus. Pendiente de nueva aprobación, sin merge/push; véase [perfilado](f9/STARTUP_PROFILING.md); véase [resultado F9](f9/ACCEPTANCE.md). F10 no iniciada.

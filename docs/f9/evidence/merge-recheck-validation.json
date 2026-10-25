@@ -1,0 +1,186 @@
+{
+  "sourceCommit": "7088c4c446bf8d8bb887a277065e494ef9aa645c",
+  "artifact": {
+    "version": "0.1.0",
+    "artifactSha256": "16c0a4f77ac117b33a066b6c50a6ee75154552de2d485cf1fc9f8aa1974a14b3",
+    "byteLength": 159760475,
+    "linux": "x86_64",
+    "standaloneCopy": true,
+    "workingDirectoryOutsideRepository": true,
+    "chromiumSandboxPreserved": true,
+    "effectiveCapabilitiesZero": true,
+    "localFonts": true,
+    "pdfjsWorker": true,
+    "sourceParityFiles": 105,
+    "noPrivateFiles": true,
+    "noSourceTestsOrSpikes": true,
+    "artifactUnchanged": true,
+    "packagedUiPassed": true,
+    "defaultElectronIcon": true
+  },
+  "tests": {
+    "F1": 3,
+    "domainApplicationStorage": 180,
+    "legacyUIAndLayout": 23,
+    "packagedF9UI": 10,
+    "totalDistinct": 216
+  },
+  "pdfCases": 33,
+  "private": {
+    "results": [
+      {
+        "case": 1,
+        "pass": true,
+        "education": 8,
+        "work": 3,
+        "skills": 18,
+        "groups": 2,
+        "native": 2,
+        "foreign": 1,
+        "fiveB2": true,
+        "valuesCompared": true,
+        "contactsCompared": true,
+        "photoCompared": true,
+        "reviewedUrls": 5,
+        "partial": true,
+        "reopened": true,
+        "originalUnchanged": true,
+        "repositoryScan": true
+      },
+      {
+        "case": 2,
+        "pass": true,
+        "education": 8,
+        "work": 3,
+        "skills": 18,
+        "groups": 2,
+        "native": 2,
+        "foreign": 1,
+        "fiveB2": true,
+        "valuesCompared": true,
+        "contactsCompared": true,
+        "photoCompared": true,
+        "reviewedUrls": 5,
+        "partial": true,
+        "reopened": true,
+        "originalUnchanged": true,
+        "repositoryScan": true
+      }
+    ],
+    "privateValuesPublished": false
+  },
+  "network": {
+    "interfaces": [
+      "lo"
+    ],
+    "routes": [
+      "Iface\tDestination\tGateway \tFlags\tRefCnt\tUse\tMetric\tMask\t\tMTU\tWindow\tIRTT"
+    ],
+    "external": "ENETUNREACH",
+    "effectiveCapabilitiesZero": true,
+    "resumedPrivateAudit": false,
+    "resumedAfterPackage": true,
+    "method": "unshare user/network namespace; loopback only for CDP; drop capabilities before tests and AppImage",
+    "localPipeline": true
+  },
+  "environment": {
+    "scaling_governor": "powersave",
+    "energy_performance_preference": "power",
+    "scaling_cur_freq": "900187",
+    "scaling_max_freq": "4600000",
+    "cpuinfo_max_freq": "4600000",
+    "loadavg": "0.85 2.04 2.08 1/1606 226904",
+    "power": {
+      "BAT1": {
+        "type": "Battery",
+        "status": "Full",
+        "capacity": "100"
+      },
+      "ucsi-source-psy-USBC000:001": {
+        "type": "USB",
+        "online": "0",
+        "status": "Not charging"
+      },
+      "ACAD": {
+        "type": "Mains",
+        "online": "1"
+      }
+    },
+    "thermal": {
+      "thermal_zone2": {
+        "type": "SEN3",
+        "temp": "41050"
+      },
+      "thermal_zone0": {
+        "type": "acpitz",
+        "temp": "43000"
+      },
+      "thermal_zone9": {
+        "type": "iwlwifi_1",
+        "temp": "37000"
+      },
+      "thermal_zone7": {
+        "type": "TCPU_PCI",
+        "temp": "44000"
+      },
+      "thermal_zone5": {
+        "type": "INT3400 Thermal",
+        "temp": "20000"
+      },
+      "thermal_zone3": {
+        "type": "SEN4",
+        "temp": "40050"
+      },
+      "thermal_zone1": {
+        "type": "SEN2",
+        "temp": "42050"
+      },
+      "thermal_zone8": {
+        "type": "x86_pkg_temp",
+        "temp": "43000"
+      },
+      "thermal_zone6": {
+        "type": "TCPU",
+        "temp": "43050"
+      },
+      "thermal_zone4": {
+        "type": "SEN5",
+        "temp": "42050"
+      }
+    },
+    "sameVersions": true,
+    "sameMachine": true,
+    "sameMethod": true,
+    "sameCorpus": true,
+    "sameArtifact": true,
+    "sameMachineDetails": {
+      "driverNode": true,
+      "cpu": true,
+      "logicalCpus": true,
+      "ramBytes": true,
+      "platform": true,
+      "kernel": true,
+      "os": true,
+      "disk": true
+    }
+  },
+  "interruptedInitialPackagedAttempt": {
+    "reason": "Temporary /tmp/.git marker during sandbox command caused synthetic /tmp user-data rejection",
+    "observer": {
+      "hostSamples": 160,
+      "temporaryGitMarkerObserved": true,
+      "positiveSamples": 40
+    },
+    "stopped": true
+  },
+  "priorIsolatedFocusFailure": {
+    "passed": 9,
+    "failed": 1,
+    "diagnosticReproductionsPassed": 3,
+    "subsequentOriginalSuitePassed": 10,
+    "causeNotProven": true
+  },
+  "mergePerformed": false,
+  "mainPushPerformed": false,
+  "F10Started": false
+}

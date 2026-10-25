@@ -8,12 +8,16 @@ export function referencedAssets(entity:Entity):Set<string> {
 }
 export function validateResources(entity:Entity,assets:Record<string,Asset>,templates:TemplateDefinition[]=[]):void {
   const e=validateEntity(entity);parse(AssetMapSchema,assets);checkMap(assets,['assetsById']);
+  templates.forEach(t=>parse(TemplateSchema,t));
+  assertResourceReferences(e,assets,templates);
+}
+// Internal: schema/graph and entity invariants have already been checked.
+export function assertResourceReferences(e:Entity,assets:Record<string,Asset>,templates:TemplateDefinition[]):void {
   if(e.personalInformation.photo){const id=e.personalInformation.photo.assetId;if(!assets[id]||assets[id]!.role!=='photo')fail('asset.missingPhoto',[id]);}
   if(e.kind==='cv')for(const record of e.importRecords??[])if(record.source.assetId){
     const a=assets[record.source.assetId];if(!a||a.role!=='source'||a.sha256!==record.source.sha256||a.byteLength!==record.source.byteLength)fail('asset.missingImportSource');
   }
   for(const t of templates) {
-    parse(TemplateSchema,t);
     for(const r of t.resourceRefs)if(!assets[r.assetId]||assets[r.assetId]!.role!=='templateResource')fail('asset.missingTemplateResource',[r.assetId]);
   }
   if(e.kind==='cv') {

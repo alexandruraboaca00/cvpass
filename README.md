@@ -1,120 +1,147 @@
 # CVForge
 
-CVForge será una aplicación local para crear y gestionar CV, importar documentos compatibles y generar PDF profesionales con diseños propios. El objetivo es trabajar sin depender de Europass y conservar proyectos completos y recuperables.
+CVForge es una aplicación local para crear, editar y guardar CV. Incluye ocho
+áreas, las plantillas originales **Simple** y **Lateral**, preview PDF y proyectos
+editables `.cvproj`. La interfaz está disponible en español e inglés.
 
-## Estado actual
+Versión **0.1.0**, MVP Linux x86_64. **F9 aprobada definitivamente e integrada
+en main mediante merge commit.** El objetivo de arranque revisado explícitamente
+por el usuario es p95 ≤3200 ms; Confirmar conserva ≤300 ms. Las tres campañas
+oficiales cumplen. Todavía no se ha creado tag ni GitHub Release.
+[Control previo](docs/f9/MERGE_VALIDATION.md). [Resultados](docs/f9/ACCEPTANCE.md),
+[AppImage, SHA-256 y uso normal](docs/f9/RELEASE.md).
 
-La investigación de Europass está terminada y las decisiones de producto están consolidadas. **F5 está aprobada por el usuario e integrada en `main` mediante merge commit desde `f5-mvp-sections-languages`, con las ocho áreas e idiomas ES/EN**. [Implementación F5](docs/f5/IMPLEMENTATION.md), [validación](docs/f5/VALIDATION.md). F1/F2/F3/F4/F5 están aprobadas e integradas en `main`; F1 permanece cerrada. El contrato `TranslationProvider` sigue desacoplado y el flujo manual/offline es el comportamiento válido actual; el motor automático definitivo queda pendiente. El MVP completo sigue pendiente y F6 no se ha iniciado.
+## Instalar y abrir
 
-## Producto definido
+El artefacto local se genera en `out/f9/CVForge-0.1.0-x86_64.AppImage`.
+Guárdalo en una carpeta tuya, permite ejecutarlo como programa en sus propiedades
+y ábrelo con doble clic. Desde una terminal:
 
-- Un perfil maestro y múltiples CV independientes con contenido materializado; cambios y transferencias explícitos.
-- Biblioteca local guardada automáticamente; `.cvproj` completo para backup, transferencia entre equipos y continuación del trabajo, incluidas decisiones lingüísticas y revisiones necesarias.
-- Una exportación PDF normal. Puede incorporar semántica interna de lo representado, sin secciones ocultas, historial, borradores ni variantes lingüísticas no mostradas. El PDF no sustituye el backup `.cvproj`.
-- Traducción real ES/EN: narrativa automática revisable, nombres protegidos y términos sensibles con aprobación reutilizable; recuperación del estado anterior y duplicación opcional.
-- Importación con detección automática de proyecto, PDF propio y Europass compatible. PDF genérico avanzado y OCR vendrán después del MVP.
+```sh
+chmod +x CVForge-0.1.0-x86_64.AppImage
+./CVForge-0.1.0-x86_64.AppImage
+```
 
-Esta lista describe el producto completo; las capacidades implementadas y sus límites se registran por fase.
+La AppImage incluye Electron y el runtime; el usuario no necesita Node, npm,
+un servidor de desarrollo ni VS Code. Requiere un escritorio Linux con las
+bibliotecas de sistema necesarias para Electron. No se valida universalidad
+de distribuciones ni otras plataformas.
 
-## MVP previsto
+Si falla el montaje FUSE, el runtime permite ejecutar sin montaje:
 
-Datos personales, educación, experiencia, habilidades, idiomas, certificaciones, proyectos y secciones personalizadas; dos plantillas originales; ES/EN con traducción real; biblioteca durable local; importación Europass estructurada; PDF y `.cvproj`.
+```sh
+APPIMAGE_EXTRACT_AND_RUN=1 ./CVForge-0.1.0-x86_64.AppImage
+```
 
-## Stack y validación técnica F1
+La [guía de release](docs/f9/RELEASE.md) identifica el artefacto probado,
+tamaño, SHA-256, entorno y límites. No hay actualizaciones automáticas.
 
-Electron, React, TypeScript y Vite; SQLite en worker mediante better-sqlite3; Zod y Tiptap para validación/edición. F5 utiliza un catálogo local ES/EN sin nuevas dependencias; el contenido del CV tiene su plan A/B/C independiente. Chromium/PDF.js y el payload PDF tienen su validación técnica F1; su integración completa en el editor conserva las fases del roadmap. Zod está integrado desde F2 y Tiptap limitado al árbol del dominio desde F4. La traducción ES/EN conserva su exploración previa y queda fuera del criterio de cierre F1 por decisión final del usuario.
+## Crear y editar
 
-El resultado acotado y las versiones concretas del spike figuran en el registro F1. La integración del producto completo sigue el roadmap.
+1. En **Tu biblioteca**, pulsa **Crear CV**, introduce un nombre para identificarlo
+   y el nombre que debe aparecer en el documento.
+2. Abre **Editar datos personales** o añade educación, experiencia, habilidades,
+   idiomas, certificaciones, proyectos y varias secciones personalizadas.
+3. **Confirmar** valida y guarda localmente. **Cancelar** descarta el formulario,
+   incluidos cambios de modales hijos. No es necesario exportar para conservar una
+   edición confirmada.
+4. Ocultar conserva los datos del proyecto y los excluye del PDF. Contraer cambia
+   solo la vista del editor. Subir/Bajar permite ordenar con teclado; eliminar
+   requiere confirmación.
 
-## Documentación vigente
+Los CV son independientes. Tras un cierre inesperado se puede recuperar o descartar
+un borrador; la exportación utiliza siempre el contenido confirmado.
 
-| Documento | Contenido |
-| --- | --- |
-| [AGENTS.md](AGENTS.md) | Instrucciones y reglas actuales del proyecto. |
-| [REQUIREMENTS](docs/REQUIREMENTS.md) | Objetivos, alcance y criterios funcionales/no funcionales. |
-| [ARCHITECTURE](docs/ARCHITECTURE.md) | Arquitectura propuesta, límites y puertas técnicas. |
-| [DATA_MODEL](docs/DATA_MODEL.md) | Proyecto privado completo, idiomas y modelo reducido de exportación. |
-| [ROADMAP](docs/ROADMAP.md) | Fases pequeñas y criterios para avanzar. |
-| [Investigación histórica](docs/research/) | Evidencia funcional de Europass, con sus límites y propuestas originales. |
+## Perfil maestro
 
-Los diseños, código y recursos del producto serán propios o tendrán licencia compatible. Los CV personales y artefactos privados de investigación quedan fuera de Git; los tests usarán datos sintéticos.
+En la biblioteca, abre **Perfil maestro** para guardar información reutilizable
+en las ocho áreas. Sus formularios también usan Confirmar/Cancelar y recuperación
+de borradores. No es un CV y no tiene plantilla ni presentación PDF.
 
-## Dominio y formato inicial F2
+**Crear CV desde perfil** permite elegir campos personales, contactos, foto,
+secciones y entradas. Se crea una copia independiente: editar el perfil o un CV
+no actualiza los demás documentos. El idioma elegido no traduce automáticamente
+el contenido.
 
-`src/domain` contiene entidades, fechas, idiomas A/B/C, revisiones y proyección
-visible; `src/adapters` contiene el codec `.cvproj` CV/workspace versionado en
-memoria. No depende del spike F1 ni ejecuta su traductor.
+## Importar
 
-```bash
+Pulsa **Importar archivo**, selecciona el archivo y revisa antes de confirmar.
+Importar crea una copia; Cancelar deja la biblioteca intacta.
+
+- `.cvproj` CV recupera el proyecto completo de ese documento.
+- `.cvproj` workspace restaura la biblioteca de su alcance declarado. Sustituir una
+  biblioteca existente exige confirmación explícita y backup previo.
+- PDF CVForge con payload compatible recupera solo la versión exportada.
+- PDF/XML Europass compatibles recuperan el subconjunto estructurado probado;
+  el informe identifica campos parciales y datos que requieren revisión.
+
+PDF genérico, escaneado o sin estructura compatible todavía no se importa como CV
+editable. No hay OCR. [Matriz de compatibilidad](docs/f9/COMPATIBILITY.md).
+
+## Presentación y exportación
+
+**Presentación** permite elegir Simple/Lateral y ajustar densidad, acento, fechas,
+numeración y guía CEFR. **Vista previa PDF** usa PDF.js, con páginas, zoom y ajuste
+al ancho. **Exportar PDF** solicita destino y guarda exactamente esos bytes; el
+registro de exportaciones permanece en la biblioteca.
+
+**Exportar proyecto (.cvproj)** guarda el CV completo: datos ocultos, memoria
+sensible, activos originales e historial necesario. Resuelve primero formularios y
+borradores pendientes. Es el formato para continuar trabajando o transferir un CV.
+
+Para copiar toda la biblioteca, pulsa **Exportar biblioteca (.cvproj)**.
+Incluye el perfil, todos los CV, assets, configuración e historial del manifiesto.
+Recupera/confirma o descarta primero los borradores pendientes. Para restaurar,
+usa **Importar archivo** sobre una biblioteca vacía; sustituir una existente
+requiere confirmación expresa y una copia previa. Cancelar el diálogo no guarda;
+un fallo de escritura se informa sin anunciar éxito.
+
+El PDF solo recupera lo visible exportado: no ocultos, borradores ni historial.
+Retirar su payload deja un PDF normal y válido. Los recibos operativos locales no
+viajan en `.cvproj`.
+
+## Idiomas
+
+**Idioma de interfaz** cambia etiquetas. **Preparar cambio de idioma** ofrece un
+plan revisable para el contenido del CV y conserva un checkpoint previo. Nombres,
+instituciones y contactos permanecen; los términos sensibles permiten original,
+traducción o ambos y revisión de aprobaciones obsoletas.
+
+El flujo actual es **manual y local**. No hay proveedor automático de producción
+instalado. Seleccionar English no traduce automáticamente textos.
+
+## Datos, copias y privacidad
+
+La biblioteca vive fuera del repositorio, en `userData` de Electron: normalmente
+`~/.config/CVForge/library/library.sqlite3`, o bajo `$XDG_CONFIG_HOME/CVForge`.
+Allí se conservan SQLite, activos y copias internas. Mover la AppImage no mueve la
+biblioteca. Para copiar archivos locales, cierra la aplicación y conserva el
+**directorio completo**; copiar solo SQLite mientras está abierta no es un backup
+consistente. `.cvproj` conserva el proyecto editable de su alcance declarado.
+
+Los flujos actuales funcionan sin red ni cuenta. No se envían CV, fotos,
+traducciones o importaciones a servicios externos; no hay telemetría ni CDN.
+El PDF contiene solo datos visibles y recursos utilizados. El proyecto completo
+sí conserva los datos privados, valores originales y procedencia que pertenezcan
+a su alcance declarado.
+
+Linux primero, traducción manual y compatibilidad Europass limitada al subconjunto
+probado. PDF/UA y accesibilidad completa no certificados. [Limitaciones reales](docs/f9/KNOWN_LIMITATIONS.md).
+
+## Desarrollo y validación
+
+```sh
 npm ci
+npm run setup:electron
 npm test
 npm run typecheck
-npm run build
-```
-
-[Implementación y límites](docs/f2/IMPLEMENTATION.md), [formato](docs/f2/CVPROJ.md)
-y [aceptación](docs/f2/VALIDATION.md). Las operaciones de guardado automático y
-restauración de biblioteca están implementadas en F3 mediante puertos de aplicación
-y un adaptador SQLite en worker, conservando los contratos F2.
-
-## Persistencia F3
-
-[Esquema, decisiones y límites](docs/f3/PERSISTENCE.md), [validación](docs/f3/VALIDATION.md).
-`src/application` contiene los casos de biblioteca, borradores y checkpoints;
-`src/host/local-library.ts` recibe exclusivamente la capacidad userData de Electron.
-Los tests usan SQLite real y datos sintéticos fuera del repositorio.
-
-```bash
-npm run test:f2
-npm run test:f3
-CVFORGE_F1_OUTPUT=/tmp/cvforge-f3-f1-regression-final npm run test:f1
-```
-
-El harness opcional `npm run validate:f3:electron` reutiliza una copia del runtime
-Linux ya instalado de F1, con otra aplicación técnica y sin modificar el spike.
-No es una dependencia de producción. `scripts/f3-offline-check.mjs` requiere
-iniciarse dentro de un namespace Linux sin red; procedimiento en el registro F3.
-
-## Editor F4
-
-```bash
-npm run setup:electron
 npm run build
 npm start
 ```
 
-La aplicación abre la biblioteca real bajo `userData` de Electron. No carga datos
-sintéticos en producción. Confirmar/Cancelar, foto, periodos parciales, texto
-enriquecido, inclusión y orden reutilizan dominio/persistencia F2/F3. Para probar:
+Las pruebas gráficas requieren escritorio Linux y se ejecutan secuencialmente.
+Los procedimientos de aceptación, benchmark, empaquetado y aislamiento de red
+figuran en `docs/f9`. Los fixtures contienen solo datos sintéticos propios.
 
-```bash
-npm run test:f4
-npm run test:f4:ui
-npm run validate:f4:offline
-```
-
-Las pruebas UI necesitan una sesión gráfica Linux. El ensayo offline usa
-`unshare`, `ip` y loopback exclusivamente para CDP local. No ejecutar dos suites
-de UI a la vez sobre el mismo escritorio si se quiere comprobar el foco.
-El [registro F4](docs/f4/VALIDATION.md) detalla método, límites y resultados.
-
-## Áreas e idiomas F5
-
-La rama F5 añade habilidades/grupos, lenguas maternas/CEFR parcial, certificaciones,
-proyectos y varias secciones personalizadas. Mantiene Confirmar/Cancelar,
-subborradores de modales, inclusión y orden durable, con UI española/inglesa
-independiente del CV. El plan de cambio de idioma permite revisión manual, nombres
-protegidos y memoria sensible, y conserva un checkpoint antes de aplicar.
-
-```bash
-npm run test:f5
-npm run test:f5:ui
-npm run build
-npm run validate:f5:offline
-```
-
-No hay proveedor automático de producción instalado ni descargas de modelos.
-El contrato TranslationProvider y el flujo manual son el alcance F5 autorizado;
-selección, distribución y calidad del motor automático siguen pendientes antes
-del cierre del MVP. [Alcance/deuda](docs/f5/IMPLEMENTATION.md) y
-[criterios/evidencia](docs/f5/VALIDATION.md). F6 no se ha iniciado.
+[Requisitos](docs/REQUIREMENTS.md) · [Arquitectura](docs/ARCHITECTURE.md) ·
+[Modelo](docs/DATA_MODEL.md) · [Roadmap](docs/ROADMAP.md).

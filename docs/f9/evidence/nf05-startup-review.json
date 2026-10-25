@@ -1,0 +1,468 @@
+{
+  "decision": "NF05-MVP-startup-3200-2026-10-25",
+  "decisionBaseCommit": "fa2d5097083ce36ee0b9512bbb200d2cf91667a2",
+  "authorization": "Explicit user product decision after measurement; startup only; no change of method, markers, samples or durability",
+  "originalEvidenceSha256": "7285386473a008f3d296200c53d85d649ff5169db65e9218c102400d0f72c190",
+  "runnerSha256": "5441ee4ed607620c896aae372154a8d205cf35a9d31f0c27982afde09e4806b2",
+  "executableSha256": "6f07c8418392f00e98104b041885d20a1b1aa50653e9ce9dc6512451eec707f3",
+  "sourceCommitMeasured": "7e4c8e90ed8bc6089fcc1a9dd2bc885414380e1d",
+  "originalStartupBudgetMs": 3000,
+  "reviewedStartupBudgetMs": 3200,
+  "confirmBudgetMs": 300,
+  "otherBudgetsUnchanged": true,
+  "originalEvidenceUnmodified": true,
+  "originalStartupStatusesPreserved": [
+    {
+      "campaign": "A",
+      "status": "FAIL"
+    },
+    {
+      "campaign": "B",
+      "status": "PASS"
+    },
+    {
+      "campaign": "C",
+      "status": "PASS"
+    }
+  ],
+  "campaigns": [
+    {
+      "campaign": "A",
+      "metrics": {
+        "startup": {
+          "n": 20,
+          "p95Ms": 3075.583464000025,
+          "originalBudgetMs": 3000,
+          "originalStatus": "FAIL",
+          "reviewedBudgetMs": 3200,
+          "status": "PASS"
+        },
+        "library": {
+          "n": 20,
+          "p95Ms": 43.524719000037294,
+          "originalBudgetMs": null,
+          "originalStatus": "measured-no-prior-threshold",
+          "reviewedBudgetMs": null,
+          "status": "measured-no-prior-threshold"
+        },
+        "openCv": {
+          "n": 20,
+          "p95Ms": 2056.2973520000232,
+          "originalBudgetMs": null,
+          "originalStatus": "measured-no-prior-threshold",
+          "reviewedBudgetMs": null,
+          "status": "measured-no-prior-threshold"
+        },
+        "confirm": {
+          "n": 20,
+          "p95Ms": 284.19999999925494,
+          "originalBudgetMs": 300,
+          "originalStatus": "PASS",
+          "reviewedBudgetMs": 300,
+          "status": "PASS"
+        },
+        "importAnalysis": {
+          "n": 20,
+          "p95Ms": 1166.300000000745,
+          "originalBudgetMs": null,
+          "originalStatus": "measured-no-prior-threshold",
+          "reviewedBudgetMs": null,
+          "status": "measured-no-prior-threshold"
+        },
+        "importCommit": {
+          "n": 20,
+          "p95Ms": 546.5999999977648,
+          "originalBudgetMs": null,
+          "originalStatus": "measured-no-prior-threshold",
+          "reviewedBudgetMs": null,
+          "status": "measured-no-prior-threshold"
+        },
+        "importTotal": {
+          "n": 20,
+          "p95Ms": 1694.300000000745,
+          "originalBudgetMs": 3000,
+          "originalStatus": "PASS",
+          "reviewedBudgetMs": 3000,
+          "status": "PASS"
+        },
+        "previewSimple": {
+          "n": 20,
+          "p95Ms": 1955,
+          "originalBudgetMs": 2000,
+          "originalStatus": "PASS",
+          "reviewedBudgetMs": 2000,
+          "status": "PASS"
+        },
+        "previewLateral": {
+          "n": 20,
+          "p95Ms": 1770,
+          "originalBudgetMs": 2000,
+          "originalStatus": "PASS",
+          "reviewedBudgetMs": 2000,
+          "status": "PASS"
+        },
+        "previewSimpleWithDebounce": {
+          "n": 20,
+          "p95Ms": 2355,
+          "originalBudgetMs": null,
+          "originalStatus": "measured-no-prior-threshold",
+          "reviewedBudgetMs": null,
+          "status": "measured-no-prior-threshold"
+        },
+        "previewLateralWithDebounce": {
+          "n": 20,
+          "p95Ms": 2170,
+          "originalBudgetMs": null,
+          "originalStatus": "measured-no-prior-threshold",
+          "reviewedBudgetMs": null,
+          "status": "measured-no-prior-threshold"
+        },
+        "exportSimple": {
+          "n": 20,
+          "p95Ms": 84.5,
+          "originalBudgetMs": null,
+          "originalStatus": "measured-no-prior-threshold",
+          "reviewedBudgetMs": null,
+          "status": "measured-no-prior-threshold"
+        },
+        "exportLateral": {
+          "n": 20,
+          "p95Ms": 72.60000000149012,
+          "originalBudgetMs": null,
+          "originalStatus": "measured-no-prior-threshold",
+          "reviewedBudgetMs": null,
+          "status": "measured-no-prior-threshold"
+        },
+        "exportLongSimple": {
+          "n": 20,
+          "p95Ms": 1631.5,
+          "originalBudgetMs": 5000,
+          "originalStatus": "PASS",
+          "reviewedBudgetMs": 5000,
+          "status": "PASS"
+        },
+        "exportLongLateral": {
+          "n": 20,
+          "p95Ms": 2729.2999999970198,
+          "originalBudgetMs": 5000,
+          "originalStatus": "PASS",
+          "reviewedBudgetMs": 5000,
+          "status": "PASS"
+        },
+        "typing": {
+          "n": 33,
+          "p95Ms": 13.5,
+          "originalBudgetMs": 100,
+          "originalStatus": "PASS",
+          "reviewedBudgetMs": 100,
+          "status": "PASS"
+        }
+      },
+      "pass": true
+    },
+    {
+      "campaign": "B",
+      "metrics": {
+        "startup": {
+          "n": 20,
+          "p95Ms": 2995.8458010000177,
+          "originalBudgetMs": 3000,
+          "originalStatus": "PASS",
+          "reviewedBudgetMs": 3200,
+          "status": "PASS"
+        },
+        "library": {
+          "n": 20,
+          "p95Ms": 40.34215700000641,
+          "originalBudgetMs": null,
+          "originalStatus": "measured-no-prior-threshold",
+          "reviewedBudgetMs": null,
+          "status": "measured-no-prior-threshold"
+        },
+        "openCv": {
+          "n": 20,
+          "p95Ms": 2052.123870999989,
+          "originalBudgetMs": null,
+          "originalStatus": "measured-no-prior-threshold",
+          "reviewedBudgetMs": null,
+          "status": "measured-no-prior-threshold"
+        },
+        "confirm": {
+          "n": 20,
+          "p95Ms": 280.30000000074506,
+          "originalBudgetMs": 300,
+          "originalStatus": "PASS",
+          "reviewedBudgetMs": 300,
+          "status": "PASS"
+        },
+        "importAnalysis": {
+          "n": 20,
+          "p95Ms": 1132.199999999255,
+          "originalBudgetMs": null,
+          "originalStatus": "measured-no-prior-threshold",
+          "reviewedBudgetMs": null,
+          "status": "measured-no-prior-threshold"
+        },
+        "importCommit": {
+          "n": 20,
+          "p95Ms": 534.6999999992549,
+          "originalBudgetMs": null,
+          "originalStatus": "measured-no-prior-threshold",
+          "reviewedBudgetMs": null,
+          "status": "measured-no-prior-threshold"
+        },
+        "importTotal": {
+          "n": 20,
+          "p95Ms": 1656,
+          "originalBudgetMs": 3000,
+          "originalStatus": "PASS",
+          "reviewedBudgetMs": 3000,
+          "status": "PASS"
+        },
+        "previewSimple": {
+          "n": 20,
+          "p95Ms": 1984,
+          "originalBudgetMs": 2000,
+          "originalStatus": "PASS",
+          "reviewedBudgetMs": 2000,
+          "status": "PASS"
+        },
+        "previewLateral": {
+          "n": 20,
+          "p95Ms": 1747,
+          "originalBudgetMs": 2000,
+          "originalStatus": "PASS",
+          "reviewedBudgetMs": 2000,
+          "status": "PASS"
+        },
+        "previewSimpleWithDebounce": {
+          "n": 20,
+          "p95Ms": 2384,
+          "originalBudgetMs": null,
+          "originalStatus": "measured-no-prior-threshold",
+          "reviewedBudgetMs": null,
+          "status": "measured-no-prior-threshold"
+        },
+        "previewLateralWithDebounce": {
+          "n": 20,
+          "p95Ms": 2147,
+          "originalBudgetMs": null,
+          "originalStatus": "measured-no-prior-threshold",
+          "reviewedBudgetMs": null,
+          "status": "measured-no-prior-threshold"
+        },
+        "exportSimple": {
+          "n": 20,
+          "p95Ms": 57.69999999925494,
+          "originalBudgetMs": null,
+          "originalStatus": "measured-no-prior-threshold",
+          "reviewedBudgetMs": null,
+          "status": "measured-no-prior-threshold"
+        },
+        "exportLateral": {
+          "n": 20,
+          "p95Ms": 48.5,
+          "originalBudgetMs": null,
+          "originalStatus": "measured-no-prior-threshold",
+          "reviewedBudgetMs": null,
+          "status": "measured-no-prior-threshold"
+        },
+        "exportLongSimple": {
+          "n": 20,
+          "p95Ms": 1675.3999999985099,
+          "originalBudgetMs": 5000,
+          "originalStatus": "PASS",
+          "reviewedBudgetMs": 5000,
+          "status": "PASS"
+        },
+        "exportLongLateral": {
+          "n": 20,
+          "p95Ms": 2624.60000000149,
+          "originalBudgetMs": 5000,
+          "originalStatus": "PASS",
+          "reviewedBudgetMs": 5000,
+          "status": "PASS"
+        },
+        "typing": {
+          "n": 33,
+          "p95Ms": 15.399999998509884,
+          "originalBudgetMs": 100,
+          "originalStatus": "PASS",
+          "reviewedBudgetMs": 100,
+          "status": "PASS"
+        }
+      },
+      "pass": true
+    },
+    {
+      "campaign": "C",
+      "metrics": {
+        "startup": {
+          "n": 20,
+          "p95Ms": 2934.9502550000034,
+          "originalBudgetMs": 3000,
+          "originalStatus": "PASS",
+          "reviewedBudgetMs": 3200,
+          "status": "PASS"
+        },
+        "library": {
+          "n": 20,
+          "p95Ms": 40.49694899999304,
+          "originalBudgetMs": null,
+          "originalStatus": "measured-no-prior-threshold",
+          "reviewedBudgetMs": null,
+          "status": "measured-no-prior-threshold"
+        },
+        "openCv": {
+          "n": 20,
+          "p95Ms": 2100.5562900000077,
+          "originalBudgetMs": null,
+          "originalStatus": "measured-no-prior-threshold",
+          "reviewedBudgetMs": null,
+          "status": "measured-no-prior-threshold"
+        },
+        "confirm": {
+          "n": 20,
+          "p95Ms": 275.1000000014901,
+          "originalBudgetMs": 300,
+          "originalStatus": "PASS",
+          "reviewedBudgetMs": 300,
+          "status": "PASS"
+        },
+        "importAnalysis": {
+          "n": 20,
+          "p95Ms": 1128.0999999977648,
+          "originalBudgetMs": null,
+          "originalStatus": "measured-no-prior-threshold",
+          "reviewedBudgetMs": null,
+          "status": "measured-no-prior-threshold"
+        },
+        "importCommit": {
+          "n": 20,
+          "p95Ms": 522.1999999992549,
+          "originalBudgetMs": null,
+          "originalStatus": "measured-no-prior-threshold",
+          "reviewedBudgetMs": null,
+          "status": "measured-no-prior-threshold"
+        },
+        "importTotal": {
+          "n": 20,
+          "p95Ms": 1596.9000000022352,
+          "originalBudgetMs": 3000,
+          "originalStatus": "PASS",
+          "reviewedBudgetMs": 3000,
+          "status": "PASS"
+        },
+        "previewSimple": {
+          "n": 20,
+          "p95Ms": 1947,
+          "originalBudgetMs": 2000,
+          "originalStatus": "PASS",
+          "reviewedBudgetMs": 2000,
+          "status": "PASS"
+        },
+        "previewLateral": {
+          "n": 20,
+          "p95Ms": 1714,
+          "originalBudgetMs": 2000,
+          "originalStatus": "PASS",
+          "reviewedBudgetMs": 2000,
+          "status": "PASS"
+        },
+        "previewSimpleWithDebounce": {
+          "n": 20,
+          "p95Ms": 2347,
+          "originalBudgetMs": null,
+          "originalStatus": "measured-no-prior-threshold",
+          "reviewedBudgetMs": null,
+          "status": "measured-no-prior-threshold"
+        },
+        "previewLateralWithDebounce": {
+          "n": 20,
+          "p95Ms": 2114,
+          "originalBudgetMs": null,
+          "originalStatus": "measured-no-prior-threshold",
+          "reviewedBudgetMs": null,
+          "status": "measured-no-prior-threshold"
+        },
+        "exportSimple": {
+          "n": 20,
+          "p95Ms": 84.5,
+          "originalBudgetMs": null,
+          "originalStatus": "measured-no-prior-threshold",
+          "reviewedBudgetMs": null,
+          "status": "measured-no-prior-threshold"
+        },
+        "exportLateral": {
+          "n": 20,
+          "p95Ms": 70.5,
+          "originalBudgetMs": null,
+          "originalStatus": "measured-no-prior-threshold",
+          "reviewedBudgetMs": null,
+          "status": "measured-no-prior-threshold"
+        },
+        "exportLongSimple": {
+          "n": 20,
+          "p95Ms": 860.3000000007451,
+          "originalBudgetMs": 5000,
+          "originalStatus": "PASS",
+          "reviewedBudgetMs": 5000,
+          "status": "PASS"
+        },
+        "exportLongLateral": {
+          "n": 20,
+          "p95Ms": 1335.1000000014901,
+          "originalBudgetMs": 5000,
+          "originalStatus": "PASS",
+          "reviewedBudgetMs": 5000,
+          "status": "PASS"
+        },
+        "typing": {
+          "n": 33,
+          "p95Ms": 14.5,
+          "originalBudgetMs": 100,
+          "originalStatus": "PASS",
+          "reviewedBudgetMs": 100,
+          "status": "PASS"
+        }
+      },
+      "pass": true
+    }
+  ],
+  "combinedConfirmP95Ms": 283,
+  "offlinePass": true,
+  "ac09": "PASS",
+  "acceptance": {
+    "AC-01": "PASS",
+    "AC-02": "PASS",
+    "AC-03": "PASS",
+    "AC-04": "PASS",
+    "AC-05": "PASS",
+    "AC-06": "PASS",
+    "AC-07": "PASS",
+    "AC-08": "PASS",
+    "AC-09": "PASS",
+    "AC-10": "PASS"
+  },
+  "historyDebt": {
+    "revisions": 50,
+    "confirmP95Ms": 316.6,
+    "officialMvpCorpus": false,
+    "resolved": false,
+    "cause": "Global history reads/copies; optimize later without weakening durability"
+  },
+  "existingFullRegressionTests": 222,
+  "f9": "APROBADA",
+  "newBenchmarkRun": false,
+  "productCodeChanged": false,
+  "documentationRegression": {
+    "rootTestsRerun": 186,
+    "pass": 186,
+    "fail": 0,
+    "skipped": 0,
+    "allChangedTrackedPathsDocumentationOnly": true,
+    "historicalDocumentsPreservedByteForByte": true,
+    "frozenRunnerAndOriginalReportsUnchanged": true,
+    "appImageByteLength": 159764395
+  }
+}

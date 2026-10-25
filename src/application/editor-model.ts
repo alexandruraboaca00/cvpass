@@ -1,10 +1,10 @@
 import { z } from 'zod';
 import {
   DomainError, PartialDateSchema, assertDataTree, canonical, parse,
-  plainText, richText, validateCv,
+  plainText, richText, validateCv, validateEntity,
   applyLanguagePlan, buildLanguagePlan, validateLanguagePlan,
 } from '../domain/index.js';
-import type { CvDocument, CvEntry, DomainContext, LanguagePlan, PartialDate, RichNarrative, RichTextDoc, TextField } from '../domain/index.js';
+import type { Entity, MasterProfile, CvDocument, CvEntry, DomainContext, LanguagePlan, PartialDate, RichNarrative, RichTextDoc, TextField } from '../domain/index.js';
 
 export const EditorTargetSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind:z.literal('personal')}),
@@ -22,6 +22,19 @@ export interface EditorForm {
   rawDates: Record<string,string>;
   rawNumbers: Record<string,string>;
   languagePlan?:LanguagePlan;
+}
+// Shared editable content. A profile has neither PDF presentation nor documentLocale.
+export interface ContentForm {
+  draftId:string; target:EditorTarget; entity:Entity; textLocale:'es'|'en';
+  rawDates:Record<string,string>; rawNumbers:Record<string,string>; languagePlan?:LanguagePlan;
+}
+export type ProfileEditorForm=ContentForm&{entity:MasterProfile};
+export function contentForm(form:EditorForm):ContentForm {
+  return {draftId:form.draftId,target:form.target,entity:form.cv,textLocale:form.cv.documentLocale,rawDates:form.rawDates,rawNumbers:form.rawNumbers,...(form.languagePlan?{languagePlan:form.languagePlan}:{})};
+}
+export function cvForm(form:ContentForm):EditorForm {
+  if(form.entity.kind!=='cv')throw new Error('EDITOR_EXPECTED_CV');
+  return {draftId:form.draftId,target:form.target,cv:form.entity,rawDates:form.rawDates,rawNumbers:form.rawNumbers,...(form.languagePlan?{languagePlan:form.languagePlan}:{})};
 }
 export interface EditorIssue { path:string; message:string }
 export class EditorValidationError extends Error {
@@ -77,10 +90,11 @@ export function newMvpEntry(kind:CvEntry['kind'],ctx:DomainContext,locale:string
   return {...base,kind,fields:{title:text,period:{start:null,end:null,ongoing:false},description:null,links:[]}};
 }
 export const entryPath = (sectionId:string,entryId:string):string => `sectionsById.${sectionId}.entriesById.${entryId}`;
-export function makeForm(draftId:string,target:EditorTarget,cv:CvDocument):EditorForm {
-  const form:EditorForm = {draftId,target,cv:structuredClone(cv),rawDates:{},rawNumbers:{}};
+export function makeForm(draftId:string,target:EditorTarget,cv:CvDocument):EditorForm {return cvForm(makeContentForm(draftId,target,cv,cv.documentLocale));}
+export function makeContentForm(draftId:string,target:EditorTarget,cv:Entity,textLocale:'es'|'en'):ContentForm {
+  const form:ContentForm = {draftId,target,entity:structuredClone(cv),textLocale,rawDates:{},rawNumbers:{}};
   if (target.kind === 'personal') form.rawDates['personalInformation.birthDate'] = dateInput(cv.personalInformation.birthDate);
-  if(target.kind==='language')form.languagePlan=buildLanguagePlan(cv,target.targetLocale);
+  if(target.kind==='language'){if(cv.kind!=='cv')throw new Error('EDITOR_PROFILE_TARGET');form.languagePlan=buildLanguagePlan(cv,target.targetLocale);}
   if (target.kind === 'entry') {
     const entry = cv.sectionsById[target.sectionId]?.entriesById[target.entryId];
     if (!entry || entry.kind==='skill') throw new Error('EDITOR_ENTRY_UNSUPPORTED');
@@ -108,13 +122,17 @@ function setLeaf(object:unknown,path:string,value:unknown):void {
   parent[parts.at(-1)!] = value;
 }
 export function assertEditorScope(base:CvDocument,form:EditorForm):void {
+  assertDataTree(form);if(Object.keys(form).some(k=>!['draftId','target','cv','rawDates','rawNumbers','languagePlan'].includes(k)))throw new Error('EDITOR_FIELD_INVALID');
+  assertContentScope(base,contentForm(form));
+}
+export function assertContentScope(base:Entity,form:ContentForm):void {
   assertDataTree(form);
-  if(Object.keys(form).some(k=>!['draftId','target','cv','rawDates','rawNumbers','languagePlan'].includes(k)))throw new Error('EDITOR_FIELD_INVALID');
+  if(Object.keys(form).some(k=>!['draftId','target','entity','textLocale','rawDates','rawNumbers','languagePlan'].includes(k))||!['es','en'].includes(form.textLocale)||form.entity.kind!==base.kind)throw new Error('EDITOR_FIELD_INVALID');
   parse(EditorTargetSchema,form.target);
-  const allowed = structuredClone(base), target = form.target, proposed = form.cv;
+  const allowed = structuredClone(base), target = form.target, proposed = form.entity;
   if (target.kind === 'personal') {
     allowed.personalInformation = proposed.personalInformation;
-    allowed.presentation.personalFieldVisibility = proposed.presentation.personalFieldVisibility;
+    if(allowed.kind==='cv'&&proposed.kind==='cv')allowed.presentation.personalFieldVisibility = proposed.presentation.personalFieldVisibility;
   } else if (target.kind === 'entry') {
     const section = allowed.sectionsById[target.sectionId], candidate = proposed.sectionsById[target.sectionId];
     if (!section || !candidate || section.kind==='skills') throw new Error('EDITOR_ENTRY_UNSUPPORTED');
@@ -122,15 +140,15 @@ export function assertEditorScope(base:CvDocument,form:EditorForm):void {
     const kinds:Record<string,string[]>={education:['education'],work:['work'],languages:['nativeLanguage','foreignLanguage'],certifications:['certification'],projects:['project'],custom:['custom']};
     if (!entry || !kinds[section.kind]?.includes(entry.kind)) throw new Error('EDITOR_ENTRY_UNSUPPORTED');
     const previous = section.entriesById[target.entryId];
-    if (previous && (entry.createdAt !== previous.createdAt || canonical(entry.sourceRef) !== canonical(previous.sourceRef) || entry.included !== previous.included)) throw new Error('EDITOR_IDENTITY_CHANGED');
+    if (previous && (entry.createdAt !== previous.createdAt || canonical(entry.sourceRef) !== canonical(previous.sourceRef) || ('included' in entry?entry.included:undefined) !== ('included' in previous?previous.included:undefined))) throw new Error('EDITOR_IDENTITY_CHANGED');
     section.entriesById[target.entryId] = entry;
     if (!previous) section.entryOrder!.push(target.entryId);
   } else if(target.kind==='language'){
-    if(!form.languagePlan||form.languagePlan.targetLocale!==target.targetLocale)throw new Error('EDITOR_PLAN_INVALID');
+    if(base.kind!=='cv'||!form.languagePlan||form.languagePlan.targetLocale!==target.targetLocale)throw new Error('EDITOR_PLAN_INVALID');
     validateLanguagePlan(base,form.languagePlan);
   } else if(target.kind==='skills'){
     const previous=base.sectionsById[target.sectionId],section=proposed.sectionsById[target.sectionId];
-    if(previous?.kind!=='skills'||section?.kind!=='skills'||section.id!==previous.id||section.included!==previous.included||canonical(section.title)!==canonical(previous.title))throw new Error('EDITOR_SECTION_UNSUPPORTED');
+    if(previous?.kind!=='skills'||section?.kind!=='skills'||section.id!==previous.id||('included' in section?section.included:undefined)!==('included' in previous?previous.included:undefined)||canonical(section.title)!==canonical(previous.title))throw new Error('EDITOR_SECTION_UNSUPPORTED');
     for(const e of Object.values(section.entriesById)){const old=previous.entriesById[e.id];if(old&&(e.createdAt!==old.createdAt||canonical(e.sourceRef)!==canonical(old.sourceRef)))throw new Error('EDITOR_IDENTITY_CHANGED');}
     allowed.sectionsById[target.sectionId]=section;
   } else if(target.kind==='section'){
@@ -138,7 +156,7 @@ export function assertEditorScope(base:CvDocument,form:EditorForm):void {
     if(!section||section.kind!=='custom'||section.id!==target.sectionId)throw new Error('EDITOR_SECTION_UNSUPPORTED');
     if(previous)allowed.sectionsById[target.sectionId]!.title=section.title;
     else {
-      const empty={...section,entriesById:{},entryOrder:[],groupsById:{},groupOrder:[],ungroupedSkillIds:[],included:true};
+      const empty={...section,entriesById:{},entryOrder:[],groupsById:{},groupOrder:[],ungroupedSkillIds:[],...(base.kind==='cv'?{included:true}:{})};
       if(canonical(empty)!==canonical(section))throw new Error('EDITOR_SCOPE_CHANGED');
       allowed.sectionsById[target.sectionId]=section;allowed.sectionOrder.push(target.sectionId);
     }
@@ -171,16 +189,20 @@ export function assertEditorScope(base:CvDocument,form:EditorForm):void {
     }
   }
   if (canonical(allowed) !== canonical(proposed)) throw new Error('EDITOR_SCOPE_CHANGED');
-  const expected = makeForm(form.draftId,target,proposed);
+  const expected = makeContentForm(form.draftId,target,proposed,form.textLocale);
   if(target.kind!=='language'&&form.languagePlan!==undefined)throw new Error('EDITOR_PLAN_INVALID');
   if (Object.keys(form.rawDates).some(k => !Object.hasOwn(expected.rawDates,k)) || Object.keys(form.rawNumbers).some(k => !Object.hasOwn(expected.rawNumbers,k))) throw new Error('EDITOR_FIELD_INVALID');
 }
 export function candidateFromForm(base:CvDocument,form:EditorForm,ctx:DomainContext):CvDocument {
-  assertEditorScope(base,form);
+  assertDataTree(form);if(Object.keys(form).some(k=>!['draftId','target','cv','rawDates','rawNumbers','languagePlan'].includes(k)))throw new Error('EDITOR_FIELD_INVALID');
+  const result=candidateFromContent(base,contentForm(form),ctx);if(result.kind!=='cv')throw new Error('EDITOR_EXPECTED_CV');return result;
+}
+export function candidateFromContent(base:Entity,form:ContentForm,ctx:DomainContext):Entity {
+  assertContentScope(base,form);
   if(form.target.kind==='language'){
-    try{return applyLanguagePlan(base,form.languagePlan,ctx);}catch(error){if(error instanceof DomainError)throw new EditorValidationError(error.issues.map(i=>({path:i.path.join('.'),message:i.message})));throw error;}
+    try{if(base.kind!=='cv')throw new Error('EDITOR_PROFILE_TARGET');return applyLanguagePlan(base,form.languagePlan,ctx);}catch(error){if(error instanceof DomainError)throw new EditorValidationError(error.issues.map(i=>({path:i.path.join('.'),message:i.message})));throw error;}
   }
-  const cv = structuredClone(form.cv), issues:EditorIssue[] = [];
+  const cv = structuredClone(form.entity), issues:EditorIssue[] = [];
   for (const [path,raw] of Object.entries(form.rawDates)) {
     try { setLeaf(cv,path,parseDateInput(raw)); } catch { issues.push({path,message:'Fecha inválida. Usa AAAA, AAAA-MM o AAAA-MM-DD con una fecha real.'}); }
   }
@@ -204,7 +226,7 @@ export function candidateFromForm(base:CvDocument,form:EditorForm,ctx:DomainCont
   if (form.target.kind === 'entry') cv.sectionsById[form.target.sectionId]!.entriesById[form.target.entryId]!.updatedAt = ctx.now();
   if(form.target.kind==='skills')for(const entry of Object.values(cv.sectionsById[form.target.sectionId]!.entriesById))if(canonical(entry)!==canonical(base.sectionsById[form.target.sectionId]!.entriesById[entry.id]??null))entry.updatedAt=ctx.now();
   if (issues.length) throw new EditorValidationError(issues);
-  try { return validateCv(cv); } catch (error) {
+  try { return validateEntity(cv); } catch (error) {
     if (error instanceof DomainError) throw new EditorValidationError(error.issues.map(i => ({path:i.path.join('.'),message:validationMessage(i.message)})));
     throw error;
   }

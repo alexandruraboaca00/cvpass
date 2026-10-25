@@ -1,3 +1,7 @@
+import {libraryIndex} from './library-index.js';
+import { selectProfileContent } from './profile-selection.js';
+import type { ProfileSelection } from './profile-selection.js';
+import { measure, measureAsync } from './timing.js';
 import {
   checkpoint, createCvFromProfile, createProfile, parse, IdSchema, NonBlank,
   validateCv, validateEntity, validateProject, restoreCv,
@@ -19,6 +23,7 @@ export class LibraryService {
       revisions:[],assetsById:{},templates:[],blobs:new Map(),drafts:[] };
     await this.repository.commit(null,validateLibrary(content));
   }
+  async index(){return this.repository.readIndex?await this.repository.readIndex()??reject('LIBRARY_NOT_INITIALIZED'):libraryIndex((await this.loaded()).content);}
   async snapshot(): Promise<LibraryRecord> { return this.loaded(); }
   async setUiLocale(locale:'es'|'en'):Promise<void> {
     if(locale!=='es'&&locale!=='en')reject('UI_LOCALE_INVALID');
@@ -41,16 +46,19 @@ export class LibraryService {
     const profile = createProfile(personal,this.ctx); s.workspace.profile = profile; addResources(s,resources);
     await this.persist(r); return profile;
   }
-  async createCv(options: {name:string;documentLocale:'es'|'en';template:TemplateDefinition;sectionIds:string[]}, expectedProfileRevision: number, resources:Resources = {}): Promise<CvDocument> {
+  async createCv(options: {name:string;documentLocale:'es'|'en';template:TemplateDefinition;sectionIds:string[];contentSelection?:ProfileSelection}, expectedProfileRevision: number, resources:Resources = {}): Promise<CvDocument> {
     const r = await this.loaded(), s = r.content, profile = s.workspace.profile ?? reject('PROFILE_NOT_FOUND');
     if (profile.revision !== expectedProfileRevision) reject('REVISION_CONFLICT');
-    const cv = createCvFromProfile(profile,options,this.ctx);
+    const cv = createCvFromProfile(options.contentSelection?selectProfileContent(profile,options.contentSelection):profile,options,this.ctx);
     s.workspace.cvsById[cv.id] = cv; s.workspace.cvOrder.push(cv.id); addResources(s,resources);addResources(s,{templates:[options.template]});
     await this.persist(r); return cv;
   }
   private async persist(record: LibraryRecord): Promise<void> {
-    collectUnused(record.content);
-    await this.repository.commit(record.generation,validateLibrary(record.content));
+    measure('application.collectAssetsAndHistory',()=>collectUnused(record.content));
+    // The repository validates the complete dependency closure before its atomic
+    // commit. Entity edits are already validated above; avoid validating all
+    // unchanged CV twice for every draft/save in a 100-document library.
+    await measureAsync('application.persist',()=>this.repository.commit(record.generation,record.content));
   }
   private applyEntity(s: LibraryContent, input: unknown, expectedRevision: number, cause: Revision['cause'], resources: Resources, draftId?: string): Entity {
     const candidate = validateEntity(input), current = findEntity(s,candidate.id);
@@ -188,7 +196,7 @@ export class LibraryService {
     if (draft.version !== expectedVersion) reject('DRAFT_CONFLICT');
     const entity = validateEntity(candidate);
     if (entity.id !== draft.entityId) reject('DRAFT_TARGET_MISMATCH');
-    const next = this.applyEntity(r.content,entity,draft.baseRevision,cause,resources,id); await this.persist(r); return next;
+    const next = measure('application.checkpointAndApply',()=>this.applyEntity(r.content,entity,draft.baseRevision,cause,resources,id)); await this.persist(r); return next;
   }
   async exportCvproj(cvId?: string, acknowledgeDraftExclusion = false): Promise<Uint8Array> {
     const s = (await this.loaded()).content;

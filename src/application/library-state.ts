@@ -4,7 +4,7 @@ import {
   assertDataTree, parse, validateEntity, validateProject, referencedAssets, templateKey,
   canonical, validateResources, checkMap,
 } from '../domain/index.js';
-import type { Entity } from '../domain/index.js';
+import type { Entity,ProjectValidationCache } from '../domain/index.js';
 import type { FormDraft, LibraryContent, Resources, ProjectData } from './contracts.js';
 import type { DraftChanges } from './library.js';
 import { reject } from './contracts.js';
@@ -21,7 +21,9 @@ const ChangesSchema = DraftSchema.pick({values:true,rawDateInputs:true,assetIds:
 export function validateDraftChanges(value: unknown): DraftChanges {
   assertDataTree(value); return parse(ChangesSchema,value);
 }
-const LibrarySchema = z.strictObject({workspace:WorkspaceSchema,revisions:z.array(RevisionSchema),assetsById:AssetMapSchema,
+// Workspace/entity schemas and invariants are checked together by validateProject
+// below. Do not parse every unchanged entity again before that complete pass.
+const LibrarySchema = z.strictObject({workspace:z.unknown(),revisions:z.array(RevisionSchema),assetsById:AssetMapSchema,
   templates:z.array(TemplateSchema),blobs:z.map(Sha256,z.instanceof(Uint8Array)),drafts:z.array(z.unknown())});
 export function currentEntities(s: LibraryContent): Entity[] {
   return [...(s.workspace.profile ? [s.workspace.profile] : []), ...Object.values(s.workspace.cvsById)];
@@ -58,10 +60,21 @@ export function validateDraft(value: unknown): FormDraft {
   if (new TextEncoder().encode(canonical(d)).length > 10 * 1024 * 1024) reject('DRAFT_TOO_LARGE');
   return { ...d, baseSnapshot };
 }
-export function validateLibrary(s: LibraryContent): LibraryContent {
+export function validateLibrary(s: LibraryContent,memo?:ProjectValidationCache): LibraryContent {
+  if(Array.isArray(s.drafts)&&s.drafts.length===0){
+    // Without drafts the confirmed workspace IS the complete dependency closure.
+    // One complete domain pass checks every field, identity, reference and history;
+    // rebuilding a second project and parsing every CV again adds no protection.
+    const p=validateProject({scope:'workspace',workspace:s.workspace,revisions:s.revisions,assetsById:s.assetsById,templates:s.templates},memo);
+    parse(LibrarySchema.extend({revisions:z.array(z.unknown())}),s);
+    const hashes=new Set(Object.values(p.assetsById).map(a=>a.sha256));
+    if(hashes.size!==s.blobs.size||[...hashes].some(h=>!s.blobs.has(h)))reject('ASSET_BYTES_MISSING_OR_EXTRA');
+    if(p.scope!=='workspace')reject('WORKSPACE_PROJECT_REQUIRED');
+    return {workspace:p.workspace,revisions:p.revisions,assetsById:p.assetsById,templates:p.templates,blobs:structuredClone(s.blobs),drafts:[]};
+  }
   assertDataTree({workspace:s.workspace,revisions:s.revisions,assetsById:s.assetsById,templates:s.templates,drafts:s.drafts});
   parse(LibrarySchema,s);
-  parse(WorkspaceSchema, s.workspace); parse(AssetMapSchema, s.assetsById); checkMap(s.assetsById,['assetsById']);
+  checkMap(s.assetsById,['assetsById']);
   s.templates.forEach(t => parse(TemplateSchema, t)); s.revisions.forEach(r => parse(RevisionSchema, r));
   const owners = new Set(currentEntities(s).map(e => e.id));
   if (s.revisions.some(r => !owners.has(r.entityId))) reject('REVISION_OWNER_MISSING');
@@ -94,7 +107,7 @@ export function validateLibrary(s: LibraryContent): LibraryContent {
     for (const ref of d.templateRefs) requiredTemplates.add(templateKey(ref));
   }
   // Reuse F2 ownership/revision invariants for historical bases retained only by drafts.
-  projectFromState({...s,revisions:[...s.revisions,...s.drafts.map(d => ({
+  if(s.drafts.length)projectFromState({...s,revisions:[...s.revisions,...s.drafts.map(d => ({
     id:d.id,entityId:d.entityId,entityKind:d.baseSnapshot.kind,number:d.baseRevision,
     createdAt:d.createdAt,cause:'checkpoint' as const,retention:'ordinary' as const,snapshot:d.baseSnapshot,
   }))]});
@@ -108,6 +121,9 @@ export function validateLibrary(s: LibraryContent): LibraryContent {
   return structuredClone(s);
 }
 export function addResources(s: LibraryContent, r: Resources): void {
+  // No incoming resources means there is no upload/dependency closure to check.
+  // In particular, an ordinary text edit must not clone the entire library here.
+  if(!Object.keys(r.assetsById??{}).length&&!r.templates?.length&&!r.blobs?.size)return;
   if (r.assetsById) { parse(AssetMapSchema,r.assetsById); checkMap(r.assetsById,['assetsById']); }
   for (const [id, asset] of Object.entries(r.assetsById ?? {})) {
     if (s.assetsById[id] && canonical(s.assetsById[id]) !== canonical(asset)) reject('ASSET_ID_CONFLICT');

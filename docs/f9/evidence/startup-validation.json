@@ -1,0 +1,121 @@
+{
+  "artifact": {
+    "version": "0.1.0",
+    "artifactSha256": "16c0a4f77ac117b33a066b6c50a6ee75154552de2d485cf1fc9f8aa1974a14b3",
+    "byteLength": 159760475,
+    "linux": "x86_64",
+    "standaloneCopy": true,
+    "workingDirectoryOutsideRepository": true,
+    "chromiumSandboxPreserved": true,
+    "effectiveCapabilitiesZero": true,
+    "localFonts": true,
+    "pdfjsWorker": true,
+    "sourceParityFiles": 105,
+    "noPrivateFiles": true,
+    "noSourceTestsOrSpikes": true,
+    "artifactUnchanged": true,
+    "packagedUiPassed": true,
+    "defaultElectronIcon": true
+  },
+  "tests": {
+    "F1": 3,
+    "domainApplicationStorage": 180,
+    "legacyUIAndLayout": 23,
+    "packagedF9UI": 10,
+    "totalDistinct": 216
+  },
+  "pdfCases": 33,
+  "network": {
+    "interfaces": [
+      "lo"
+    ],
+    "routes": [
+      "Iface\tDestination\tGateway \tFlags\tRefCnt\tUse\tMetric\tMask\t\tMTU\tWindow\tIRTT"
+    ],
+    "external": "ENETUNREACH",
+    "effectiveCapabilitiesZero": true,
+    "resumedPrivateAudit": false,
+    "resumedAfterPackage": true,
+    "method": "unshare user/network namespace; loopback only for CDP; drop capabilities before tests and AppImage",
+    "localPipeline": true
+  },
+  "private": {
+    "results": [
+      {
+        "case": 1,
+        "pass": true,
+        "education": 8,
+        "work": 3,
+        "skills": 18,
+        "groups": 2,
+        "native": 2,
+        "foreign": 1,
+        "fiveB2": true,
+        "valuesCompared": true,
+        "contactsCompared": true,
+        "photoCompared": true,
+        "reviewedUrls": 5,
+        "partial": true,
+        "reopened": true,
+        "originalUnchanged": true,
+        "repositoryScan": true
+      },
+      {
+        "case": 2,
+        "pass": true,
+        "education": 8,
+        "work": 3,
+        "skills": 18,
+        "groups": 2,
+        "native": 2,
+        "foreign": 1,
+        "fiveB2": true,
+        "valuesCompared": true,
+        "contactsCompared": true,
+        "photoCompared": true,
+        "reviewedUrls": 5,
+        "partial": true,
+        "reopened": true,
+        "originalUnchanged": true,
+        "repositoryScan": true
+      }
+    ],
+    "privateValuesPublished": false
+  },
+  "reproducibility": {
+    "before": {
+      "version": "0.1.0",
+      "artifact": "CVForge-0.1.0-x86_64.AppImage",
+      "byteLength": 159760475,
+      "sha256": "16c0a4f77ac117b33a066b6c50a6ee75154552de2d485cf1fc9f8aa1974a14b3",
+      "sourceDateEpoch": 1792756800,
+      "electron": "44.7.2",
+      "builder": "26.15.3"
+    },
+    "after": {
+      "version": "0.1.0",
+      "artifact": "CVForge-0.1.0-x86_64.AppImage",
+      "byteLength": 159760475,
+      "sha256": "16c0a4f77ac117b33a066b6c50a6ee75154552de2d485cf1fc9f8aa1974a14b3",
+      "sourceDateEpoch": 1792756800,
+      "electron": "44.7.2",
+      "builder": "26.15.3"
+    },
+    "identical": true
+  },
+  "hostFuse": {
+    "results": [
+      {
+        "mode": "fuse",
+        "pass": true,
+        "normalDataDirectoryName": "CVForge",
+        "version": "0.1.0",
+        "startedOutsideRepository": true,
+        "noUserDataSwitch": true,
+        "noSandboxDisabled": true,
+        "reopened": true
+      }
+    ]
+  },
+  "completion": "216 passed before the auxiliary launch-check synchronization failure; same artifact receipts verified, launch restarted from scratch, then PDF/private completed; no failed stage skipped"
+}

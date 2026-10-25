@@ -1,0 +1,187 @@
+{
+  "diagnostic": true,
+  "method": "five interleaved original/candidate pairs, same closed 100-CV baseline, numeric traces enabled, no network, no concurrent test/build; not official acceptance",
+  "seedSha256": "83ae157d013de8c0423655186059076407449db8217d08659e892016b4577380",
+  "samples": [
+    {
+      "name": "original",
+      "repetition": 1,
+      "ms": 3020.481267,
+      "runtimeUntilFirstNodeMarkMs": 1537.657354,
+      "mainImportsMs": 219.289651,
+      "storageOpenMs": 728.133228,
+      "validationMs": 497.78567,
+      "decodeEntitiesMs": 171.152805,
+      "migrationMs": 0.915807,
+      "assetHashesMs": 7.167443,
+      "runtime": {
+        "version": "0.1.0",
+        "noSandbox": false,
+        "extract": true,
+        "fuse": false
+      }
+    },
+    {
+      "name": "candidate",
+      "repetition": 1,
+      "ms": 2732.493945,
+      "runtimeUntilFirstNodeMarkMs": 1225.379135,
+      "mainImportsMs": 280.672056,
+      "storageOpenMs": 682.312088,
+      "validationMs": 428.869247,
+      "decodeEntitiesMs": 190.228869,
+      "migrationMs": 0.738185,
+      "assetHashesMs": 7.55099,
+      "runtime": {
+        "version": "0.1.0",
+        "noSandbox": false,
+        "extract": true,
+        "fuse": false
+      }
+    },
+    {
+      "name": "original",
+      "repetition": 2,
+      "ms": 2867.271336,
+      "runtimeUntilFirstNodeMarkMs": 1333.295193,
+      "mainImportsMs": 223.780894,
+      "storageOpenMs": 769.874174,
+      "validationMs": 498.193392,
+      "decodeEntitiesMs": 210.774588,
+      "migrationMs": 0.801364,
+      "assetHashesMs": 7.555342,
+      "runtime": {
+        "version": "0.1.0",
+        "noSandbox": false,
+        "extract": true,
+        "fuse": false
+      }
+    },
+    {
+      "name": "candidate",
+      "repetition": 2,
+      "ms": 2829.707659,
+      "runtimeUntilFirstNodeMarkMs": 1303.444069,
+      "mainImportsMs": 283.592303,
+      "storageOpenMs": 686.243852,
+      "validationMs": 415.577343,
+      "decodeEntitiesMs": 205.657728,
+      "migrationMs": 0.799193,
+      "assetHashesMs": 7.562073,
+      "runtime": {
+        "version": "0.1.0",
+        "noSandbox": false,
+        "extract": true,
+        "fuse": false
+      }
+    },
+    {
+      "name": "original",
+      "repetition": 3,
+      "ms": 2898.977472,
+      "runtimeUntilFirstNodeMarkMs": 1282.792829,
+      "mainImportsMs": 280.783217,
+      "storageOpenMs": 737.330907,
+      "validationMs": 441.150002,
+      "decodeEntitiesMs": 228.777088,
+      "migrationMs": 0.830692,
+      "assetHashesMs": 7.910654,
+      "runtime": {
+        "version": "0.1.0",
+        "noSandbox": false,
+        "extract": true,
+        "fuse": false
+      }
+    },
+    {
+      "name": "candidate",
+      "repetition": 3,
+      "ms": 2815.731019,
+      "runtimeUntilFirstNodeMarkMs": 1322.067511,
+      "mainImportsMs": 276.637327,
+      "storageOpenMs": 680.511005,
+      "validationMs": 422.315196,
+      "decodeEntitiesMs": 197.65219,
+      "migrationMs": 0.729543,
+      "assetHashesMs": 6.482038,
+      "runtime": {
+        "version": "0.1.0",
+        "noSandbox": false,
+        "extract": true,
+        "fuse": false
+      }
+    },
+    {
+      "name": "original",
+      "repetition": 4,
+      "ms": 2935.277299,
+      "runtimeUntilFirstNodeMarkMs": 1254.931104,
+      "mainImportsMs": 308.228325,
+      "storageOpenMs": 753.272784,
+      "validationMs": 496.996946,
+      "decodeEntitiesMs": 186.562058,
+      "migrationMs": 0.869911,
+      "assetHashesMs": 7.970988,
+      "runtime": {
+        "version": "0.1.0",
+        "noSandbox": false,
+        "extract": true,
+        "fuse": false
+      }
+    },
+    {
+      "name": "candidate",
+      "repetition": 4,
+      "ms": 2961.862625,
+      "runtimeUntilFirstNodeMarkMs": 1384.008822,
+      "mainImportsMs": 291.517632,
+      "storageOpenMs": 669.672727,
+      "validationMs": 381.849027,
+      "decodeEntitiesMs": 223.085201,
+      "migrationMs": 1.329086,
+      "assetHashesMs": 4.329335,
+      "runtime": {
+        "version": "0.1.0",
+        "noSandbox": false,
+        "extract": true,
+        "fuse": false
+      }
+    },
+    {
+      "name": "original",
+      "repetition": 5,
+      "ms": 3139.71827,
+      "runtimeUntilFirstNodeMarkMs": 1469.259639,
+      "mainImportsMs": 294.78103,
+      "storageOpenMs": 805.550566,
+      "validationMs": 502.166738,
+      "decodeEntitiesMs": 237.287292,
+      "migrationMs": 1.365496,
+      "assetHashesMs": 5.613299,
+      "runtime": {
+        "version": "0.1.0",
+        "noSandbox": false,
+        "extract": true,
+        "fuse": false
+      }
+    },
+    {
+      "name": "candidate",
+      "repetition": 5,
+      "ms": 2908.326898,
+      "runtimeUntilFirstNodeMarkMs": 1448.932944,
+      "mainImportsMs": 262.131318,
+      "storageOpenMs": 615.72131,
+      "validationMs": 388.207002,
+      "decodeEntitiesMs": 164.908389,
+      "migrationMs": 1.198259,
+      "assetHashesMs": 7.382675,
+      "runtime": {
+        "version": "0.1.0",
+        "noSandbox": false,
+        "extract": true,
+        "fuse": false
+      }
+    }
+  ]
+}
