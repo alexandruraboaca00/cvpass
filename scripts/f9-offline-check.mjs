@@ -21,7 +21,7 @@ if(resumedPrivateAudit||resumedAfterPackage){
  const json=async p=>JSON.parse(await readFile(join(output,p),'utf8'));
  const proof=await json('package/proof.json');assert(proof.packagedUiPassed&&proof.effectiveCapabilitiesZero);assert.equal(proof.artifactSha256,createHash('sha256').update(await readFile('out/f9/CVForge-0.1.0-x86_64.AppImage')).digest('hex'));
  for(const [p,n] of [['ui/report.json',23],['package/ui/report.json',10]]){const r=await json(p);assert.equal(r.stats.expected,n);assert.equal(r.stats.unexpected+r.stats.skipped+r.stats.flaky+r.errors.length,0);}
- for(const [p,n] of [['f1.log',3],['tests.log',180]]){const s=await readFile(join(output,p),'utf8');assert(s.includes('pass '+n)&&s.includes('fail 0'));}
+ for(const [p,n] of [['f1.log',3],['tests.log',186]]){const s=await readFile(join(output,p),'utf8');assert(s.includes('pass '+n)&&s.includes('fail 0'));}
  if(resumedPrivateAudit){
  for(const [p,n] of [['pdf/inspection.json',26],['simple/inspection.json',7]]){const r=await json(p);assert.equal(r.results.length,n);assert(r.results.every(r=>r.payloadMatches));}
  assert((await json('simple-equivalence.json')).results.every(r=>r.equalExceptExistingClockDates));assert((await json('normal-launch/results.json')).results.every(r=>r.pass&&r.noSandboxDisabled));
