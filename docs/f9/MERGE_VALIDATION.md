@@ -1,3 +1,73 @@
+# F9 — Nuevo control previo al merge: FAIL en Confirmar durable
+
+25/10/2026. El usuario aprueba F9/MVP 0.1.0 en `7088c4c` y autoriza el merge
+condicionado a regresiones correctas. **No se realiza merge ni push**: la campaña
+oficial nueva devuelve exit 1 por Confirmar p95 **359,7 ms >300**. No se inicia F10,
+no se crea tag ni GitHub Release. No se modifica código de producto ni garantías.
+
+## Estado y regresión funcional
+
+F9 limpia al comenzar, HEAD exacto `7088c4c446bf8d8bb887a277065e494ef9aa645c`.
+Main/origin-main `cc7cf0d6b4aa56689ec9d0dec22b6aa9e5cba28c`, fetch correcto.
+216 tests PASS: F1 3, dominio/aplicación/SQLite 180, UI/layout 23, AppImage GUI 10.
+33 casos PDF, Simple/Lateral, SHA preview/export, PDF portable y `.cvproj` PASS.
+AC-01…AC-08/AC-10 PASS, incluidas GUI perfil/materialización/independencia y
+workspace backup/restore. TypeScript/build, E2E empaquetado, offline y privacidad
+PASS. AC-09 FAIL solo por Confirmar durable en esta medición.
+
+Evidencia numérica: [benchmark completo](evidence/merge-recheck-performance.json),
+[validación y entorno](evidence/merge-recheck-validation.json). Recibos locales en
+`/tmp/cvforge-f9-integration/`; datos de pruebas en SSD fuera del repositorio.
+
+La primera pasada se interrumpió durante GUI AppImage: una orden sandbox crea
+temporalmente `/tmp/.git`; un observador externo detectó 40/160 muestras durante
+una orden de dos segundos. La protección rechazó el perfil sintético bajo `/tmp`
+como almacenamiento dentro de repositorio; ningún dato real se modificó.
+Se repitió en SSD y Xvfb/Openbox, sin cambiar la protección. Una pasada aislada
+tuvo 9/10 PASS y un fallo al recuperar el foco de Presentación. Tres diagnósticos
+mostraron botón/ventana enfocados; la suite original posterior, sin sondas, pasó
+10/10 sin skips/flaky/retries automáticos. No se atribuye concluyentemente la
+causa del evento de foco. Se conserva esa pasada. Los recibos F1/180/UI23 y el SHA
+exacto se verificaron antes de continuar normal-launch/PDF/privados
+(`resumedAfterPackage=true`); no se omite ningún caso fallido.
+
+## Rendimiento: 20 muestras, ninguna exclusión
+
+Mismo script, equipo/versiones, SSD ext4, corpus de 100 CV y marcador.
+Procesos/perfiles nuevos; cachés SO/runtime sin vaciar, como el método original.
+AppImage extract-and-run en namespace offline, sin capacidades ni rutas externas;
+Xvfb/Openbox/X11 y diagnóstico pw:browser. Sin tests/build concurrentes.
+
+| Operación | p50 ms | p90 ms | p95 ms | Máximo ms | Resultado |
+| --- | ---: | ---: | ---: | ---: | --- |
+| Arranque | 2299.6 | 2442.4 | 2469.1 | 2744.3 | PASS ≤3000 |
+| Confirmar durable | 296.1 | 345.8 | 359.7 | 369.1 | FAIL >300 |
+| Abrir CV | 482.5 | 2046.8 | 2067.0 | 2121.5 | informativo, sin umbral |
+
+El resto de presupuestos anteriores PASS. FULL/WAL, revisión, atomicidad y
+resolución durable del borrador no cambian; no hay ACK anticipado. Se mantienen
+startup histórico ~2594,1, regresión 3462,3, aceptación 1844,4, FUSE normal 2339,4;
+Confirmar inicial 471,1 y aceptación 228,4; Abrir CV 2819,1 informativo.
+
+El binario es **idéntico** al aprobado. No se puede atribuir la diferencia a un
+commit nuevo de producto. Después del benchmark: governor `powersave`, EPP
+`power`, alimentación AC online, carga moderada y temperaturas observadas ~43 °C.
+La misma preferencia energética ya figura en el registro anterior. No hay dato
+suficiente para demostrar causalidad; no se cambia energía ni se inventa un nuevo
+requisito. No se repite el benchmark hasta lograr PASS ni se abre una campaña
+de optimización: se conserva el FAIL y se detiene la integración condicional.
+
+## Artefacto y límites del control
+
+Candidata `CVForge-0.1.0-x86_64.AppImage`: **159760475 bytes**.
+SHA-256 `16c0a4f77ac117b33a066b6c50a6ee75154552de2d485cf1fc9f8aa1974a14b3`.
+Paridad de 105 archivos de producción/recursos, copia fuera del checkout,
+sandbox Chromium activo. Se conserva la reproducibilidad anterior de dos builds
+idénticos; **no se reconstruye desde main ni se ejecuta post-merge** porque no
+se cumplen las condiciones para fusionar. Artefactos y PDF privados fuera de Git.
+
+## Registro histórico anterior, conservado
+
 > Registro histórico del intento de merge bloqueado. El arranque se ha corregido y revalidado en [STARTUP_PROFILING](STARTUP_PROFILING.md); la orden actual sigue prohibiendo merge/push y F10 hasta nueva aprobación.
 
 # F9 — Control previo a la integración del MVP 0.1.0

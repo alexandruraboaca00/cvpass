@@ -1,3 +1,7 @@
+> **Control previo actual: integración bloqueada.** El usuario aprobó F9/MVP 0.1.0 en `7088c4c`; la regresión nueva conserva 216 tests, UI, 33 PDF, offline y privacidad PASS, pero Confirmar durable p95 **359,7 ms >300**. Arranque p95 2469,1 ms PASS. Sin merge/push a main ni F10. [Evidencia actual](MERGE_VALIDATION.md). La aceptación anterior y todos sus resultados se conservan como historia.
+
+## Registro aprobado anterior, conservado
+
 # F9 — Rendimiento corregido: aceptación técnica PASS
 
 25/10/2026. Arranque oficial p95 **1844.4 ms ≤3000**;

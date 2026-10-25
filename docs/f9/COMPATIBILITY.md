@@ -1,6 +1,6 @@
 # F9 — Compatibilidad real
 
-Candidata MVP 0.1.0 con reaceptación técnica PASS, pendiente de aprobación e integración; véase [perfilado actual](STARTUP_PROFILING.md). La matriz se refiere a los contratos y corpus probados;
+MVP 0.1.0 aprobado por el usuario, con integración bloqueada por Confirmar durable en el nuevo [control previo](MERGE_VALIDATION.md); véase [perfilado actual](STARTUP_PROFILING.md). La matriz se refiere a los contratos y corpus probados;
 no promete compatibilidad universal con Europass ni con cualquier PDF.
 
 | Entrada | Estado | Alcance |
