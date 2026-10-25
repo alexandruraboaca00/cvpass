@@ -1,3 +1,5 @@
+> Registro histórico del intento de merge bloqueado. El arranque se ha corregido y revalidado en [STARTUP_PROFILING](STARTUP_PROFILING.md); la orden actual sigue prohibiendo merge/push y F10 hasta nueva aprobación.
+
 # F9 — Control previo a la integración del MVP 0.1.0
 
 24 de octubre de 2026. El usuario aprueba F9 y el MVP y autoriza el merge

@@ -226,7 +226,7 @@ Una memoria sensible no empareja automáticamente títulos ambiguos por texto: i
 | Versionar una plantilla cambia su aspecto histórico. | Mantener versiones disponibles; si falta una, proponer sustitución y comunicar que el PDF original sigue siendo la referencia visual. No prometer bytes idénticos entre motores/versiones. |
 | Los objetivos de rapidez no se cumplen. | Medición sobre equipo/corpus fijados; perfilar y ajustar antes de declarar el MVP, sin recortar contenido silenciosamente. |
 
-La autorización general para implementar está concedida y las decisiones de producto están cerradas. F1–F7 y el pulido visual están aprobados e integrados en main. F8 está aprobada e integrada en main mediante merge commit. **F9/MVP 0.1.0 están aprobados por el usuario en `f9-mvp-acceptance` desde main `cc7cf0d`; integración pendiente por la regresión previa de arranque, sin comenzar F10** ([control](f9/MERGE_VALIDATION.md)). La aceptación inicial detectó tres bloqueos, ya corregidos y revalidados; [estado y evidencia F9](f9/ACCEPTANCE.md). El motor automático definitivo sigue pendiente y no cambia el alcance manual/offline autorizado de F5. [Validación F7](f7/VALIDATION.md), [implementación y validación F8](f8/VALIDATION.md).
+La autorización general para implementar está concedida y las decisiones de producto están cerradas. F1–F7 y el pulido visual están aprobados e integrados en main. F8 está aprobada e integrada en main mediante merge commit. **F9/MVP 0.1.0 superan la aceptación técnica tras corregir startup, en `f9-mvp-acceptance` desde main `cc7cf0d`, pendientes de nueva aprobación; sin merge/push ni F10** ([perfilado](f9/STARTUP_PROFILING.md)). La aceptación inicial detectó tres bloqueos, ya corregidos y revalidados; [estado y evidencia F9](f9/ACCEPTANCE.md). El motor automático definitivo sigue pendiente y no cambia el alcance manual/offline autorizado de F5. [Validación F7](f7/VALIDATION.md), [implementación y validación F8](f8/VALIDATION.md).
 
 ## Resultado de la puerta F1 — 16 de octubre de 2026
 
@@ -421,3 +421,19 @@ reconocimiento. FULL/WAL, CAS, checkpoint y resolución del borrador permanecen
 en la transacción crítica. No cambia el dominio persistido ni formatos públicos.
 [Perfil/backup](f9/PROFILE_AND_BACKUP.md), [perfilado](f9/CONFIRM_PROFILING.md),
 [aceptación F9](f9/ACCEPTANCE.md).
+
+## Corrección de startup F9
+
+El puerto opcional LibraryIndex devuelve solo metadata desde el estado completo
+validado del worker; no manda 100 snapshots a main/renderer para listar. Mantiene
+integridad, assets, referencias y revalidación por data_version. Las lecturas
+públicas son copias; el snapshot privado no escapa. La validación comprueba el
+grafo una vez y mantiene cada schema/invariante; canonicalización bajo demanda
+solo para comparar versiones, sin confiar en ID/revisión ni omitir divergencias.
+
+Ventana/renderer cargan en paralelo al almacenamiento detrás de una barrera IPC;
+no se adelanta disponibilidad. PDF.js/Tiptap son locales y bajo demanda. SQLite
+sigue aislado en un worker, agrupado en su URL original con native SQLite externo;
+no hay servidor de producción. FULL/WAL, ACK durable, revisión y resolución de
+borrador no cambian. Benchmark y marcador sin modificaciones: startup 1844,4 ms
+y Confirmar 228,4 ms p95. [Evidencia y límites](f9/STARTUP_PROFILING.md).

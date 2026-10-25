@@ -1,4 +1,62 @@
-# F9 — Rendimiento del producto
+# F9 — Rendimiento corregido: aceptación técnica PASS
+
+25/10/2026. Arranque oficial p95 **1844.4 ms ≤3000**;
+Confirmar durable **228.4 ms ≤300**. Rama sin fusionar,
+pendiente de aprobación del usuario. F10 no iniciada.
+
+[Perfilado, causas y seguridad](STARTUP_PROFILING.md), [muestras oficiales](evidence/startup-acceptance.json).
+Mismo script oficial, equipo, corpus de 100 CV, SSD ext4, procesos/perfiles nuevos,
+20 repeticiones sin eliminar outliers. No se vacía la caché SO/runtime, igual que
+antes. No se cambian el marcador ni los presupuestos; FULL/WAL siguen intactos.
+Código `4ed92317ac4709cd88e89833016648b9b690d384`; artefacto `16c0a4f77ac117b33a066b6c50a6ee75154552de2d485cf1fc9f8aa1974a14b3`.
+
+| Operación | n | p50 ms | p90 ms | p95 ms | Máximo ms | Objetivo / resultado |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| startup | 20 | 1764.1 | 1824.7 | 1844.4 | 1875.5 | ≤3000 / PASS |
+| library | 20 | 21.1 | 26.6 | 29.0 | 29.7 | sin umbral previo |
+| openCv | 20 | 334.7 | 2724.6 | 2819.1 | 3015.8 | sin umbral previo |
+| confirm | 20 | 207.6 | 225.2 | 228.4 | 235.7 | ≤300 / PASS |
+| importAnalysis | 20 | 552.1 | 598.9 | 601.3 | 614.9 | sin umbral previo |
+| importCommit | 20 | 292.3 | 303.4 | 318.6 | 322.6 | sin umbral previo |
+| importTotal | 20 | 844.4 | 878.2 | 895.3 | 901.9 | ≤3000 / PASS |
+| previewSimple | 20 | 1089.0 | 1135.0 | 1147.0 | 1191.0 | ≤2000 / PASS |
+| previewLateral | 20 | 986.0 | 1010.0 | 1010.0 | 1013.0 | ≤2000 / PASS |
+| previewSimpleWithDebounce | 20 | 1489.0 | 1535.0 | 1547.0 | 1591.0 | sin umbral previo |
+| previewLateralWithDebounce | 20 | 1386.0 | 1410.0 | 1410.0 | 1413.0 | sin umbral previo |
+| exportSimple | 20 | 37.3 | 60.8 | 60.9 | 61.8 | sin umbral previo |
+| exportLateral | 20 | 29.7 | 32.7 | 32.9 | 35.9 | sin umbral previo |
+| exportLongSimple | 20 | 938.0 | 1005.5 | 1017.2 | 1032.6 | ≤5000 / PASS |
+| exportLongLateral | 20 | 1505.7 | 1541.3 | 1577.4 | 1585.2 | ≤5000 / PASS |
+| typing | 33 | 4.8 | 11.6 | 14.6 | 15.6 | ≤100 / PASS |
+
+FUSE normal se valida aparte: 20 aperturas, p95 **2339.4 ms**, máximo
+2367.9, montaje comprobado sin extracción. No se mezcla con la serie
+oficial histórica que necesita extracción en el namespace offline.
+
+| Registro conservado | Arranque p95 ms | Confirmar p95 ms | Resultado |
+| --- | ---: | ---: | --- |
+| Primera evaluación F9 | 2594,1 | 471,1 | FAIL Confirmar/GUI |
+| Cierre anterior tras perfil/backup | 2944,7 | 261,3 | PASS anterior |
+| Control previo a merge, misma imagen anterior | 3462,3 | 236,9 | FAIL arranque |
+| Intento intermedio 608a435 | 3398,7 | 387,5 | FAIL |
+| Intento intermedio 5423559 | 3340,2 | 359,6 | FAIL |
+| Aceptación actual 4ed9231 | 1844.4 | 228.4 | PASS |
+
+Los intentos fallidos nuevos conservan todas sus muestras en
+[startup-intermediate-1.json](evidence/startup-intermediate-1.json) y
+[startup-intermediate-2.json](evidence/startup-intermediate-2.json).
+No se repitieron hasta conseguir un número favorable sin cambios: cada intento
+precede a una optimización perfilada, con commit y artefacto identificados.
+La serie actual está precedida por diagnóstico con trazas, conservado por separado.
+Abrir CV empeora en su cola hasta 2819.1 ms; sigue siendo informativo,
+sin umbral previo. La pantalla inicial ya no transporta el workspace completo;
+la primera apertura todavía lo materializa donde el adaptador lo necesita.
+
+## Historial conservado
+
+El registro anterior se conserva; no representa el estado vigente de esta cabecera.
+
+## F9 — Rendimiento del producto
 
 **Control posterior a la aprobación del usuario: FAIL de arranque, integración bloqueada.**
 Confirmar durable PASS (236,9 ms p95). Véase el control completo al final y

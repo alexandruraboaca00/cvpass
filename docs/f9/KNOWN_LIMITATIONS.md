@@ -1,4 +1,37 @@
-# F9 — Limitaciones conocidas de la candidata
+# F9 — Límites actuales de la candidata 0.1.0
+
+Aceptación técnica PASS, pendiente de nueva aprobación; sin merge/push ni F10.
+[Startup y seguridad](STARTUP_PROFILING.md), [métricas](PERFORMANCE.md).
+
+- Proceso/perfil frío, sin vaciar cachés SO/runtime como en el método original.
+  Oficial startup p95 1844,4 ms; FUSE normal adicional 2339,4 ms. No se certifica
+  frío de SO, rendimiento universal, otras distribuciones ni otras plataformas.
+- Abrir CV p95 2819,1 ms: cola más lenta que 1700,5 ms anteriores, sin umbral formal.
+  La primera apertura sigue materializando snapshots completos; no se inició otra
+  optimización. La escritura global de metadata sigue siendo transaccional.
+- Linux x86_64/X11 de aceptación; Simple/Lateral. OCR/PDF genérico y tipos V1 futuros
+  quedan fuera; no se inicia F10. PDF/UA/WCAG completos no certificados.
+- Traducción manual/local revisable, sin proveedor automático de producción nuevo.
+  Compatibilidad Europass parcial del subconjunto probado, revisión de URLs sin
+  protocolo explícita. No se anuncian importaciones universales/completas.
+- SQLite corrupto requiere error/restauración explícita, no reparación automática.
+  `.cvproj` privado es la copia completa; PDF recupera solo su distribución visible.
+- Crash tras escribir PDF y antes de ExportRecord puede dejar PDF sin receipt;
+  CV intacto, ningún éxito falso, reintento explícito. Decisión anterior mantenida.
+- FUSE debe funcionar para montaje normal; extract-and-run es la alternativa del
+  runtime. AppImageLauncher del host puede mover el archivo. Icono Electron
+  predeterminado, sin auto-update/cloud y sin ampliación de plataformas.
+- Se conservan los resultados fallidos y el antecedente de dos huellas antiguas
+  en historia compartida; no hay PDF privados ni sus bytes en Git y no se reescribe
+  historia. Los recursos/pesos de pruebas anteriores no implican un motor de
+  traducción integrado ni redistribución nueva.
+
+
+## Registro histórico conservado
+
+Las cifras y estados siguientes corresponden a evaluaciones anteriores; la cabecera actual y STARTUP_PROFILING gobiernan esta candidata.
+
+## F9 — Limitaciones conocidas de la candidata
 
 **F9 y MVP 0.1.0 aprobados por el usuario**, pendientes de integración.
 El [control previo al merge](MERGE_VALIDATION.md) detecta arranque p95 3462,3 ms

@@ -1,4 +1,69 @@
-# CVForge 0.1.0 — MVP Linux
+# CVForge 0.1.0 — candidata Linux revalidada
+
+25/10/2026. **Aceptación técnica F9 PASS, pendiente de aprobación del usuario.**
+Rama sin fusionar, sin push a main y F10 no iniciada. [Aceptación](ACCEPTANCE.md),
+[perfilado](STARTUP_PROFILING.md), [compatibilidad](COMPATIBILITY.md).
+
+## Artefacto actual
+
+- `out/f9/CVForge-0.1.0-x86_64.AppImage`.
+- **159760475 bytes**, aproximadamente 152.4 MiB.
+- SHA-256: `16c0a4f77ac117b33a066b6c50a6ee75154552de2d485cf1fc9f8aa1974a14b3`.
+- Electron 44.7.2 / runtime Node 24.21.0; builder 26.15.3,
+  toolset AppImage 1.0.3; SOURCE_DATE_EPOCH 1792756800.
+- Dos reconstrucciones idénticas, verificadas en
+  `/tmp/cvforge-f9-startup/reproducibility.json`. Sin cambios de dependencias,
+  formato de proyecto/payload ni versión de plantilla/renderer.
+- Worker SQLite agrupado por Vite como compilador Node, en su URL original;
+  SQLite nativo externo, incluido en el paquete. No existe servidor de producción.
+
+La AppImage incluye runtime, native SQLite, fonts locales/licencias y PDF.js.
+No necesita Node instalado, npm, VS Code ni dev server. Los modos y límites
+funcionales 0.1.0 se mantienen. No hay auto-update, cloud ni motor automático nuevo.
+El icono sigue siendo el predeterminado de Electron; no se certifica Linux universal.
+
+## Uso normal y FUSE
+
+```sh
+chmod +x CVForge-0.1.0-x86_64.AppImage
+./CVForge-0.1.0-x86_64.AppImage
+```
+
+También se puede permitir ejecución en propiedades y abrir con doble clic.
+FUSE normal: 20 aperturas con montaje real comprobado, sin
+`APPIMAGE_EXTRACT_AND_RUN`, p95 2339.4 ms; crear/cerrar/reabrir con
+directorio por defecto también PASS, fuera del checkout y con sandbox activo.
+El harness desactiva AppImageLauncher solo para impedir que mueva el archivo.
+FUSE funcional es requisito de ese montaje; no se certifican todos los launchers.
+
+Si un sistema no puede montar, el runtime admite la alternativa:
+
+```sh
+APPIMAGE_EXTRACT_AND_RUN=1 ./CVForge-0.1.0-x86_64.AppImage
+```
+
+La aceptación offline usa esta ruta porque el namespace no permite montar FUSE.
+El método oficial ya la utilizaba antes de este trabajo: no se cambia para lograr
+el PASS. El modo normal FUSE se prueba aparte, sin mezclar muestras.
+
+Los datos normales siguen en `~/.config/CVForge/library` o su equivalente XDG.
+Cerrar antes de copiar el directorio completo; usar `.cvproj` para backup privado
+CV/workspace. El PDF recupera solo la distribución visible, no el proyecto completo.
+No se publican artefactos ni bibliotecas privadas en Git. [Uso normal](../../README.md).
+
+## Validación actual
+
+216 tests, UI, 33 PDF, E2E AppImage, dos muestras privadas, TypeScript/build,
+offline/privacidad y reapertura PASS. AppImage independiente del checkout,
+105 archivos contrastados, sin `--no-sandbox` ni capacidades efectivas.
+Oficial: startup p95 1844.4 ms y Confirmar 228.4 ms.
+La versión conserva Linux/x86_64 y el entorno X11 de aceptación; no añade otras plataformas.
+
+## Registro histórico conservado
+
+Las cifras y estados siguientes corresponden a evaluaciones anteriores; la cabecera actual y STARTUP_PROFILING gobiernan esta candidata.
+
+## CVForge 0.1.0 — MVP Linux
 
 MVP **aprobado por el usuario** en `f9-mvp-acceptance`. La integración permanece
 bloqueada: el [control previo al merge](MERGE_VALIDATION.md) falla el límite de

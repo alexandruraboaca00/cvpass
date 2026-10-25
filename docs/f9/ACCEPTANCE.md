@@ -1,4 +1,61 @@
-# F9 — Aceptación del MVP
+# F9 — Aceptación técnica tras corregir el arranque
+
+**F9 = APROBADA técnicamente. MVP candidato 0.1.0, pendiente de nueva aprobación del usuario.**
+25/10/2026. Rama `f9-mvp-acceptance`, sin fusionar ni hacer push a main;
+base `cc7cf0d6b4aa56689ec9d0dec22b6aa9e5cba28c`. **F10 no iniciada.**
+
+La regresión se investigó antes de optimizar. [Perfilado, comparación de commits,
+causas y garantías](STARTUP_PROFILING.md); [resultados crudos](evidence/startup-acceptance.json).
+No se cambió el benchmark oficial, el marcador de 100 tarjetas ni ningún umbral.
+No se revirtió perfil/workspace ni se relajó SQLite FULL/WAL.
+
+| Caso | Resultado actual | Evidencia |
+| --- | --- | --- |
+| AC-01 Europass | PASS, subconjunto parcial | Dos muestras privadas, valores y cantidades comparados con oráculo independiente: 8 educaciones, 3 experiencias, 18 skills/2 grupos, 2 maternas, 1 extranjera/cinco B2, contactos/enlaces/foto, reapertura y originales intactos. No fixtures privados ni compatibilidad universal. |
+| AC-02 Reapertura propia | PASS | E2E AppImage: Simple y Lateral → bibliotecas vacías → revisión/confirmación/reapertura y comparación visible. `.cvproj` recupera el proyecto completo declarado. |
+| AC-03 Confirmar/Cancelar | PASS | GUI email A/B, cancelar conserva A sin borrador residual; confirmar y reiniciar conserva B. También formularios de perfil y modales hijos. |
+| AC-04 Crash/borradores | PASS | SIGKILL real, recuperar/descartar, confirmado separado y PDF sin borrador. |
+| AC-05 Idiomas | PASS, workflow manual vigente | Original/traducción/ambos, aprobación reutilizada, cambio revisado con checkpoint y obsolescencia sin borrar originales. |
+| AC-06 Perfil independiente | PASS por GUI | Ocho áreas, selección explícita para A/B, IDs nuevos/sourceRef, edición independiente de A/perfil/B y comparación tras reinicio. Sin presentación/documentLocale de CV en el perfil. |
+| AC-07 PDF | PASS | 33 casos, 48 párrafos, enlaces, listas, glifos/foto, márgenes y ambas plantillas; SHA-256 preview/export idéntico. Simple sin cambio de render. |
+| AC-08 Workspace | PASS por GUI | Perfil/CV/assets/historial → exportar → biblioteca vacía → restaurar/reabrir → comparación; EACCES y Cancelar no anuncian éxito. |
+| AC-09 Rendimiento/offline | PASS | 20 procesos nuevos/100 CV: startup p95 1844.4 ≤3000 ms; Confirmar durable 228.4 ≤300. Todos los presupuestos previos pasan. FUSE normal adicional: 20 aperturas, p95 2339.4 ms, sin extracción. |
+| AC-10 Límites/privacidad | PASS en corpus probado | Corruptos/futuros/ambiguos/tamaño y PDF genérico sin medio CV; payload sin centinelas privados. Privados no tracked/staged; antecedente histórico de huellas explicado abajo. |
+
+**216 tests distintos PASS**: F1 3; dominio/aplicación/SQLite 180; UI/pulido/layout
+23; aceptación GUI AppImage 10. Se añaden seis regresiones, solo con datos sintéticos.
+Además 33 casos PDF y dos aceptaciones privadas, sin sumarlas al total unitario/UI.
+TypeScript/build y AppImage PASS. [Recibos resumidos](evidence/startup-validation.json).
+
+Evidencia local: `/tmp/cvforge-f9-startup/final-offline/`.
+Las 216 pruebas pasaron antes de que un comprobador auxiliar consultara demasiado
+pronto el título al reabrir un CV. Se corrigió esa espera asíncrona, sin modificar
+el producto ni el criterio. Se verificaron los recibos y SHA exactos antes de
+repetir desde cero el recorrido de crear/cerrar/reabrir y completar PDF/privacidad.
+`network-proof.json`: `resumedAfterPackage=true`, solo loopback, cero rutas,
+ENETUNREACH externo, capacidades cero. Ninguna prueba fallida se omitió.
+
+El paquete se ejecuta fuera del checkout; 105 archivos de producción/recursos
+contrastados con dist, sandbox Chromium activo, sin pruebas/datos privados.
+Normal FUSE también crea y reabre sin switch userData, con XDG aislado y sandbox.
+Dos reconstrucciones producen los mismos bytes:
+`16c0a4f77ac117b33a066b6c50a6ee75154552de2d485cf1fc9f8aa1974a14b3`, 159760475 bytes.
+
+Abrir CV p95 2819.1 ms queda informado; no tenía umbral formal y no
+se amplió el alcance para optimizarlo. Cachés SO/runtime no se vacían: el frío es
+de proceso/perfil, como en la definición previa. El diagnóstico con trazas y el
+FUSE normal permanecen separados de las 20 muestras oficiales.
+
+No se modifican Simple/Lateral, formatos, RenderSnapshot, payload, idiomas,
+assets, revisiones ni garantías de guardado. La deuda de PDF escrito sin receipt
+ante crash conserva su comportamiento aprobado: CV intacto, ningún éxito falso y
+reintento explícito. No se implementa F10, OCR, PDF genérico ni servicios remotos.
+
+## Registro histórico conservado
+
+Las cifras y estados siguientes corresponden a evaluaciones anteriores; la cabecera actual y STARTUP_PROFILING gobiernan esta candidata.
+
+## F9 — Aceptación del MVP
 
 **F9 y MVP 0.1.0 APROBADOS por el usuario.** Integración bloqueada por la nueva
 regresión de arranque: p95 3462,3 ms >3000. [Control previo al merge](MERGE_VALIDATION.md).
