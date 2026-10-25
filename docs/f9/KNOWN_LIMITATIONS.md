@@ -1,3 +1,26 @@
+# F9 — Límites vigentes de la investigación de repetibilidad
+
+**F9 NO APROBADA**: Confirmar pasa las tres campañas oficiales; arranque A
+falla. No se declara estabilidad de todos los presupuestos ni se seleccionan
+solo B/C. No merge/push a main ni F10. [Evidencia](CONFIRM_REPEATABILITY.md).
+
+- Confirmar cumple las tres campañas con margen de 15,8–24,9 ms frente a 300;
+  no alcanza consistentemente el margen práctico deseable de 250 ms.
+- La candidata reduce las escrituras ordinarias de Confirmar a una entidad, su
+  checkpoint y draft, pero mantiene lecturas/copias y validación globales por el
+  contrato vigente. No tiene coste constante respecto a workspace/historial.
+- Diagnóstico con trazas y 50 revisiones en un proceso: p95 316,6 ms; primeras
+  diez 302,6/últimas diez 322,1. No se oculta ni se equipara a aceptación sin
+  trazas/procesos nuevos. La preparación del draft puede seguir usando la vía
+  completa y checkpoints; no se ha rediseñado toda la persistencia.
+- No se identifica retrospectivamente la causa física exacta de 228,4→359,7.
+  El mismo binario y corpus pueden variar; no se certifica rendimiento universal,
+  OS frío ni estado energético modificado.
+- Abrir CV C p95 2100,6 ms sigue siendo informativo, sin umbral.
+
+Los límites funcionales y resultados históricos siguientes se conservan; sus
+estados de aprobación no sustituyen esta cabecera.
+
 > **Control previo actual: integración bloqueada.** El usuario aprobó F9/MVP 0.1.0 en `7088c4c`; la regresión nueva conserva 216 tests, UI, 33 PDF, offline y privacidad PASS, pero Confirmar durable p95 **359,7 ms >300**. Arranque p95 2469,1 ms PASS. Sin merge/push a main ni F10. [Evidencia actual](MERGE_VALIDATION.md). La aceptación anterior y todos sus resultados se conservan como historia.
 
 ## Registro aprobado anterior, conservado

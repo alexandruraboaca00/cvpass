@@ -1,3 +1,41 @@
+# F9 — Confirmar reproducible; cierre NO APROBADO
+
+25/10/2026. **No merge, no push a main y F10 no iniciada.** Tres campañas
+independientes completas, 20 procesos nuevos cada una, mismo binario/corpus/SSD
+y runner congelado: Confirmar p95 **284,2 / 280,3 / 275,1 ms**, todas PASS ≤300.
+Combinado 60: **283,0 ms p95**, solo informativo. No se eliminan muestras.
+
+Arranque p95 **3075,6 / 2995,8 / 2935,0 ms**: A FAIL ≤3000. El control conjunto
+no es estable y **F9 = NO APROBADA**. No se repite hasta obtener un resultado
+favorable ni se realiza la cuarta aceptación prevista como si las tres pasaran.
+Abrir CV C p95 **2100,6 ms**, informativo; no existe aceptación independiente
+posterior. [Método, diferencias, perfilado y muestras](CONFIRM_REPEATABILITY.md),
+[evidencia completa](evidence/confirm-repeatability.json).
+
+228,4 y 359,7 usaron producción/binario idénticos y bases lógicamente iguales
+salvo fecha de migración. No hay un commit causal entre esas dos mediciones;
+hay variabilidad y trabajo global evitable que la amplificaba. El coste medido
+crece en validación/clonado, no en un COMMIT lento. Se reducen asignaciones y se
+reutilizan solo valores exactos; una prueba conservadora permite escribir una
+entidad, su revisión y resolver su draft en la **misma transacción FULL/WAL**.
+Desconocidos/cambios externos/recursos/otras operaciones conservan la ruta completa.
+No se adelanta la respuesta ni se omiten validaciones globales ni se cambia NF-05.
+
+El diagnóstico con 50 revisiones mide también el crecimiento de lecturas/copias
+globales: p95 316,6 ms, con trazas y proceso reutilizado, separado de aceptación.
+No se promete coste constante para cualquier historial ni se oculta esta limitación.
+La comparación de arranque original/candidato intercalados no demuestra regresión
+de código, pero el FAIL individual permanece. No se atribuye toda la variación
+a un proceso, energía o IO sin prueba causal.
+
+Regresiones funcionales posteriores: 222 tests/UI, 33 PDF, TypeScript/build,
+AppImage/offline/privacidad PASS, [recibos](evidence/confirm-validation.json).
+No se ejecuta otra campaña de aceptación tras el FAIL de A. El último p95
+oficial de Confirmar es C 275,1 ms; startup C 2935,0 ms; **no sustituyen A**
+ni representan una nueva aceptación final independiente.
+
+## Registros históricos conservados íntegramente
+
 > **Control previo actual: integración bloqueada.** El usuario aprobó F9/MVP 0.1.0 en `7088c4c`; la regresión nueva conserva 216 tests, UI, 33 PDF, offline y privacidad PASS, pero Confirmar durable p95 **359,7 ms >300**. Arranque p95 2469,1 ms PASS. Sin merge/push a main ni F10. [Evidencia actual](MERGE_VALIDATION.md). La aceptación anterior y todos sus resultados se conservan como historia.
 
 ## Registro aprobado anterior, conservado

@@ -1,3 +1,82 @@
+# F9 — Confirmar reproducible; cierre NO APROBADO
+
+25/10/2026. **No merge, no push a main y F10 no iniciada.** Tres campañas
+independientes completas, 20 procesos nuevos cada una, mismo binario/corpus/SSD
+y runner congelado: Confirmar p95 **284,2 / 280,3 / 275,1 ms**, todas PASS ≤300.
+Combinado 60: **283,0 ms p95**, solo informativo. No se eliminan muestras.
+
+Arranque p95 **3075,6 / 2995,8 / 2935,0 ms**: A FAIL ≤3000. El control conjunto
+no es estable y **F9 = NO APROBADA**. No se repite hasta obtener un resultado
+favorable ni se realiza la cuarta aceptación prevista como si las tres pasaran.
+Abrir CV C p95 **2100,6 ms**, informativo; no existe aceptación independiente
+posterior. [Método, diferencias, perfilado y muestras](CONFIRM_REPEATABILITY.md),
+[evidencia completa](evidence/confirm-repeatability.json).
+
+228,4 y 359,7 usaron producción/binario idénticos y bases lógicamente iguales
+salvo fecha de migración. No hay un commit causal entre esas dos mediciones;
+hay variabilidad y trabajo global evitable que la amplificaba. El coste medido
+crece en validación/clonado, no en un COMMIT lento. Se reducen asignaciones y se
+reutilizan solo valores exactos; una prueba conservadora permite escribir una
+entidad, su revisión y resolver su draft en la **misma transacción FULL/WAL**.
+Desconocidos/cambios externos/recursos/otras operaciones conservan la ruta completa.
+No se adelanta la respuesta ni se omiten validaciones globales ni se cambia NF-05.
+
+El diagnóstico con 50 revisiones mide también el crecimiento de lecturas/copias
+globales: p95 316,6 ms, con trazas y proceso reutilizado, separado de aceptación.
+No se promete coste constante para cualquier historial ni se oculta esta limitación.
+La comparación de arranque original/candidato intercalados no demuestra regresión
+de código, pero el FAIL individual permanece. No se atribuye toda la variación
+a un proceso, energía o IO sin prueba causal.
+
+## Regresión funcional actual de la candidata
+
+**222 tests distintos PASS**, sin skips/flaky/retries en esta ejecución completa:
+F1 3, dominio/aplicación/SQLite 186, UI/layout 23 y GUI AppImage 10. Además
+33 casos PDF (Simple 7/corpus F8 26), dos aceptaciones privadas, TypeScript y
+dos builds AppImage byte-idénticos PASS. [Recibos numéricos](evidence/confirm-validation.json).
+Datos y logs locales:
+`~/.local/share/CVForge-F9-Acceptance/repeatability/final-offline/`; resumen
+`/tmp/cvforge-f9-repeatability/full-regression.log`. Sin reanudar etapas ni
+omitir fallos: `resumedAfterPackage=false`, `resumedPrivateAudit=false`.
+
+El proceso usa namespace sin rutas externas, solo loopback/CDP, CapEff=0,
+conexión externa ENETUNREACH y sandbox Chromium activo. Las pruebas verifican
+que no hay peticiones HTTP/HTTPS en los flujos. La AppImage se copia fuera del
+checkout y sus 106 archivos de producción/recursos coinciden con dist.
+FUSE normal también crea, cierra y reabre en el directorio XDG aislado, sin
+`--user-data-dir`, sin extract-and-run y sin desactivar sandbox; es una prueba
+funcional adicional, **no una nueva campaña p95**.
+
+La GUI verifica perfil maestro/selección/materialización/independencia tras
+reapertura, backup/restauración workspace, Confirmar/Cancelar, assets y borradores,
+Simple/Lateral y ciclos PDF/`.cvproj` en bibliotecas vacías. Preview/export
+conservan SHA-256 exacto por generación. PDF Simple coincide con la referencia
+salvo sus dos fechas de reloj ya existentes; no se modifica el renderizador.
+La privacidad del payload y los dos Europass privados pasan, sin publicar datos
+ni conservarlos como fixtures. La nueva vía SQL pasa SIGKILL/SQLITE_FULL/rollback
+y cambios externos; FULL/WAL y el ACK después de revisión/draft/COMMIT se mantienen.
+
+| AC | Resultado actual | Evidencia / límite |
+| --- | --- | --- |
+| AC-01 | PASS, parcial probado | Dos muestras privadas, cantidades y valores representativos/contactos/foto, originales intactos y reapertura. |
+| AC-02 | PASS | GUI AppImage, ambos PDF → bibliotecas vacías; `.cvproj` y foto/orden/configuración. |
+| AC-03 | PASS | Confirmar/Cancelar email A/B y reinicio, sin borrador cancelado. |
+| AC-04 | PASS | SIGKILL real, recuperar/descartar, confirmado separado del draft. |
+| AC-05 | PASS, manual vigente | Original/traducción/ambos, reutilización y obsolescencia sin perder original. |
+| AC-06 | PASS GUI | Perfil real, selección explícita A/B, independencia y reapertura. |
+| AC-07 | PASS | 33 PDF, 48 párrafos, enlaces/glifos/márgenes, SHA preview/export idéntico. |
+| AC-08 | PASS GUI | Workspace completo/restauración/reapertura; Cancelar/EACCES sin éxito falso. |
+| AC-09 | **FAIL por arranque A** | Confirmar A/B/C PASS ≤300; startup A 3075,6 >3000. Ninguna campaña sustituida. |
+| AC-10 | PASS en corpus probado | Límites/corrupción/futuros, payload sin centinelas y privacidad de fuentes. |
+
+Se completa la regresión funcional para verificar las correcciones después de
+las tres campañas de Confirmar PASS; no equivale a una aceptación global ni
+a un post-merge. El cuarto benchmark previsto sigue pendiente porque falló
+la condición conjunta de estabilidad. Main/origin-main permanecen en `cc7cf0d`.
+No se hace merge/push, tag, Release ni F10.
+
+## Registros históricos conservados íntegramente
+
 # F9 — Nuevo control previo al merge: FAIL en Confirmar durable
 
 25/10/2026. El usuario aprueba F9/MVP 0.1.0 en `7088c4c` y autoriza el merge

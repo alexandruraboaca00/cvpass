@@ -171,3 +171,94 @@ equipo/método y 20 muestras en cada serie, calcula percentiles sin filtrar y
 rechaza una campaña individual FAIL aunque el combinado dé PASS. Después de
 A/B/C estables se repetirá una cuarta aceptación oficial completa, sin mezclar
 sus 20 muestras con las 60, antes de la regresión final.
+
+## Resultado de las tres campañas congeladas — 25/10/2026
+
+**Confirmar reproducible PASS; F9 NO APROBADA por arranque A.** No se reemplaza
+ninguna campaña ni se ejecuta la cuarta aceptación prevista después de fallar
+la condición conjunta fijada. [Muestras completas y entorno](evidence/confirm-repeatability.json).
+Mismo HEAD `7e4c8e9`, runner/corpus congelados y AppImage `6f07c841…ec707f3`.
+Las trazas internas están desactivadas; el observador externo V2 es el mismo.
+
+| Campaña | n | Confirmar p50 | p90 | p95 | máximo | startup p95 | Resultado |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| A | 20 | 246,0 | 284,1 | 284,2 | 286,0 | 3075,6 | Confirmar PASS; startup FAIL |
+| B | 20 | 126,4 | 278,1 | 280,3 | 281,1 | 2995,8 | PASS |
+| C | 20 | 246,3 | 275,1 | 275,1 | 278,9 | 2935,0 | PASS |
+
+Milisegundos, nearest-rank, sin exclusiones. Combinado de 60 Confirmar:
+p50 236,0; p90 279,8; **p95 283,0**; máximo 286,0. Es informativo y no
+compensa el FAIL individual de arranque. La mejora diagnóstica de 133–148 ms
+no se presenta como aceptación: el entorno real deja bastante menos margen.
+El margen de A es 15,8 ms; B/C 19,7/24,9 ms. Las tres cumplen el límite
+formal, pero no se consigue consistentemente el objetivo práctico deseable de
+250 ms ni se promete estabilidad universal.
+La campaña C mide Abrir CV p95 2100,6 ms, sin umbral; no se selecciona el
+mejor valor de A/B/C ni se declara una aceptación final independiente.
+
+CPU total mediana A/B/C: 28,8/27,1/27,2 % de doce CPU lógicas; carga 1 máxima
+4,63/5,10/4,51. EPP `power` y governor `powersave` se conservan. Los procesos
+observados incluyen CVForge y aplicaciones del escritorio; no se matan ni se
+cambia la energía. El censo no demuestra una causa física única. Coste CPU
+del observador: 1,25/1,03/1,12 % de **un** núcleo; no se resta del intervalo.
+Se conservan memoria, IO, frecuencias, PSI y coste por tick en evidencia local
+`/tmp/cvforge-f9-repeatability/final-{A,B,C}/environment.ndjson`.
+
+### Arranque comparado, sin atribuciones retrospectivas
+
+Tras completar las tres campañas, cinco pares original/candidato intercalados,
+con trazas y el mismo corpus: original 2867,3–3139,7 ms; candidato
+2732,5–2961,9 ms. [Etapas numéricas](evidence/confirm-startup-comparison.json).
+No es aceptación ni una sustitución de A. No demuestra una regresión de código
+en el candidato. En el primer par, hasta el primer marcador Node transcurren
+1537,7/1225,4 ms; validación 497,8/428,9 ms; decodificar entidades
+171,1/190,3 ms; migraciones ya aplicadas 0,85/0,84 ms. Son spans parcialmente
+solapados. Hay coste y variación antes de JavaScript y dentro de CVForge.
+No hay datos suficientes para culpar exclusivamente a energía, un proceso
+ajeno, IO o el runtime. El FAIL 3075,6 sigue siendo FAIL frente a 3000.
+
+### Historial creciente y formulario real
+
+[Diagnóstico separado](evidence/confirm-history-profile.json): misma AppImage
+y base cerrada oficial, un proceso, 50 confirmaciones consecutivas con trazas.
+Cien CV en todo momento, revisiones 0→50, cero drafts tras cada respuesta;
+formulario GUI adicional produce revisión 51. Cada muestra comprueba la base
+con conexión readonly corta **fuera** del intervalo, sin checkpoint explícito.
+
+Primeras diez: p50 220,7/p95 302,6; últimas diez: p50 258,9/p95 322,1 ms.
+Todas: p50 258,9/p90 309,3/p95 316,6/máximo 322,1. No se usa esa serie
+con trazas/proceso reutilizado como benchmark oficial ni se oculta su coste.
+Cada Confirmar sigue escribiendo siete filas, con independencia del historial;
+las lecturas, copias, prueba exacta y validación global crecen con el grafo.
+No se ha eliminado toda complejidad proporcional al historial/workspace. Es
+una limitación real del contrato actual, no un bug cuadrático demostrado, ni
+una promesa de NF-05 para cualquier historial. La preparación previa aún puede
+usar la transacción completa y provocar checkpoints fuera de Confirmar.
+
+| Etapa ms | Rápida: 9 revisiones | Lenta: 45 revisiones |
+| --- | ---: | ---: |
+| renderer → recepción IPC | 1,42 | 2,37 |
+| candidato/validación local | 6,43 | 5,85 |
+| copia lectura / copia envío | 17,00 / 15,10 | 36,84 / 31,94 |
+| serialización worker | 2,73 | 5,14 |
+| validación global | 61,11 | 115,67 |
+| BEGIN | 0,14 | 0,23 |
+| cuerpo transacción (incluye prueba exacta) | 8,46 | 14,76 |
+| COMMIT durable | 3,72 | 4,54 |
+| actualizar caché | 0,003 | 0,005 |
+| retorno IPC disponible | 1,18 | 2,21 |
+| total renderer | 158,90 | 322,10 |
+
+Son spans anidados, no se suman. El historial difiere: no es comparación de
+CPU pura. El par rápido/lento original con **igual** estado inicial está arriba.
+En las 50 confirmaciones: vía acotada 50/50, siete filas 50/50, WAL reiniciado
+25 veces porque ya estaba completamente checkpointed antes de BEGIN; ningún
+avance nBackfill dentro del Confirmar observado. COMMIT p95 5,27 ms.
+No se desactiva autocheckpoint ni se pretende aislar syscalls fsync. El formulario
+GUI mide preparación antes de IPC 8,1 ms y trabajo posterior 21,0 ms, separados
+del marcador oficial sin moverlo.
+
+La candidata se reconstruyó dos veces, byte-idéntica: **159764395 bytes**,
+SHA-256 `6f07c8418392f00e98104b041885d20a1b1aa50653e9ce9dc6512451eec707f3`.
+Sin cambios de esquema, FULL/WAL, dominio persistido, formato, plantillas ni PDF.
+El estado global y las regresiones finales constan en [ACCEPTANCE](ACCEPTANCE.md).

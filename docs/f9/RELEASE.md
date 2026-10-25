@@ -1,3 +1,25 @@
+# CVForge 0.1.0 — candidata de repetibilidad, NO APROBADA
+
+25/10/2026. No fusionar/publicar main, tag ni GitHub Release. F10 no iniciada.
+Confirmar pasa tres campañas; arranque A p95 3075,6 ms falla 3000 y bloquea F9.
+[Método y resultados](CONFIRM_REPEATABILITY.md), [aceptación](ACCEPTANCE.md).
+
+- Artefacto: `out/f9/CVForge-0.1.0-x86_64.AppImage`.
+- Tamaño: **159764395 bytes**.
+- SHA-256: `6f07c8418392f00e98104b041885d20a1b1aa50653e9ce9dc6512451eec707f3`.
+- Dos reconstrucciones byte-idénticas, SOURCE_DATE_EPOCH 1792756800, mismas
+  versiones Electron/Node/builder que la candidata anterior.
+- Sin nuevos recursos remotos ni cambios funcionales al PDF/formatos.
+- Los hashes siguientes son históricos; no identifican esta candidata.
+
+Regresión actual: 222 tests, 33 PDF, TypeScript/build, paquete Linux/offline/
+privacidad PASS. Prueba FUSE normal crear/cerrar/reabrir PASS, sin extracción
+ni switch userData, sandbox activo y XDG aislado; no es una campaña p95 nueva.
+La candidata sigue bloqueada por el control de arranque, aunque su empaquetado
+y flujo funcional sean correctos. [Recibos](evidence/confirm-validation.json).
+
+## Historial de candidatas conservado
+
 > **Control previo actual: integración bloqueada.** El usuario aprobó F9/MVP 0.1.0 en `7088c4c`; la regresión nueva conserva 216 tests, UI, 33 PDF, offline y privacidad PASS, pero Confirmar durable p95 **359,7 ms >300**. Arranque p95 2469,1 ms PASS. Sin merge/push a main ni F10. [Evidencia actual](MERGE_VALIDATION.md). La aceptación anterior y todos sus resultados se conservan como historia.
 
 ## Registro aprobado anterior, conservado

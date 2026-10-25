@@ -1,0 +1,140 @@
+{
+  "sourceCommit": "7e4c8e90ed8bc6089fcc1a9dd2bc885414380e1d",
+  "totalDistinctTests": 222,
+  "f1Tests": 3,
+  "domainApplicationSqliteTests": 186,
+  "ui": {
+    "startTime": "2026-10-25T12:20:03.849Z",
+    "duration": 323569.637,
+    "expected": 23,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "packagedGui": {
+    "startTime": "2026-10-25T12:25:32.727Z",
+    "duration": 199674.4,
+    "expected": 10,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "testFailures": 0,
+  "pdfCases": {
+    "simple": 7,
+    "lateralCorpus": 26,
+    "payloadMatchesAll": true
+  },
+  "simpleRenderUnchangedExceptExistingClockDates": true,
+  "package": {
+    "version": "0.1.0",
+    "artifactSha256": "6f07c8418392f00e98104b041885d20a1b1aa50653e9ce9dc6512451eec707f3",
+    "byteLength": 159764395,
+    "linux": "x86_64",
+    "standaloneCopy": true,
+    "workingDirectoryOutsideRepository": true,
+    "chromiumSandboxPreserved": true,
+    "effectiveCapabilitiesZero": true,
+    "localFonts": true,
+    "pdfjsWorker": true,
+    "sourceParityFiles": 106,
+    "noPrivateFiles": true,
+    "noSourceTestsOrSpikes": true,
+    "artifactUnchanged": true,
+    "packagedUiPassed": true,
+    "defaultElectronIcon": true
+  },
+  "offline": {
+    "interfaces": [
+      "lo"
+    ],
+    "routes": [
+      "Iface\tDestination\tGateway \tFlags\tRefCnt\tUse\tMetric\tMask\t\tMTU\tWindow\tIRTT"
+    ],
+    "external": "ENETUNREACH",
+    "effectiveCapabilitiesZero": true,
+    "resumedPrivateAudit": false,
+    "resumedAfterPackage": false,
+    "method": "unshare user/network namespace; loopback only for CDP; drop capabilities before tests and AppImage",
+    "localPipeline": true
+  },
+  "privateAcceptance": [
+    {
+      "case": 1,
+      "pass": true,
+      "education": 8,
+      "work": 3,
+      "skills": 18,
+      "groups": 2,
+      "native": 2,
+      "foreign": 1,
+      "fiveB2": true,
+      "valuesCompared": true,
+      "contactsCompared": true,
+      "photoCompared": true,
+      "reviewedUrls": 5,
+      "partial": true,
+      "reopened": true,
+      "originalUnchanged": true,
+      "repositoryScan": true
+    },
+    {
+      "case": 2,
+      "pass": true,
+      "education": 8,
+      "work": 3,
+      "skills": 18,
+      "groups": 2,
+      "native": 2,
+      "foreign": 1,
+      "fiveB2": true,
+      "valuesCompared": true,
+      "contactsCompared": true,
+      "photoCompared": true,
+      "reviewedUrls": 5,
+      "partial": true,
+      "reopened": true,
+      "originalUnchanged": true,
+      "repositoryScan": true
+    }
+  ],
+  "privateValuesPublished": false,
+  "hostFuse": {
+    "results": [
+      {
+        "mode": "fuse",
+        "pass": true,
+        "normalDataDirectoryName": "CVForge",
+        "version": "0.1.0",
+        "startedOutsideRepository": true,
+        "noUserDataSwitch": true,
+        "noSandboxDisabled": true,
+        "reopened": true
+      }
+    ]
+  },
+  "typecheckPass": true,
+  "buildPass": true,
+  "reproducibility": {
+    "before": {
+      "version": "0.1.0",
+      "artifact": "CVForge-0.1.0-x86_64.AppImage",
+      "byteLength": 159764395,
+      "sha256": "6f07c8418392f00e98104b041885d20a1b1aa50653e9ce9dc6512451eec707f3",
+      "sourceDateEpoch": 1792756800,
+      "electron": "44.7.2",
+      "builder": "26.15.3"
+    },
+    "after": {
+      "version": "0.1.0",
+      "artifact": "CVForge-0.1.0-x86_64.AppImage",
+      "byteLength": 159764395,
+      "sha256": "6f07c8418392f00e98104b041885d20a1b1aa50653e9ce9dc6512451eec707f3",
+      "sourceDateEpoch": 1792756800,
+      "electron": "44.7.2",
+      "builder": "26.15.3"
+    },
+    "identical": true
+  },
+  "globalAcceptance": "NO APROBADA: campaign A startup p95 3075.583464 >3000; no fourth final campaign or merge performed"
+}

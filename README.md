@@ -4,9 +4,8 @@ CVForge es una aplicación local para crear, editar y guardar CV. Incluye ocho
 áreas, las plantillas originales **Simple** y **Lateral**, preview PDF y proyectos
 editables `.cvproj`. La interfaz está disponible en español e inglés.
 
-Versión **0.1.0**, candidata Linux x86_64. **F9 está aprobada por el usuario**,
-pero su integración sigue bloqueada: el nuevo control de Confirmar durable
-supera 300 ms p95. La rama `f9-mvp-acceptance` queda sin fusionar.
+Versión **0.1.0**, candidata Linux x86_64. **F9 continúa NO APROBADA**: Confirmar durable cumple
+en tres campañas independientes, pero una campaña de arranque supera 3000 ms p95. La rama `f9-mvp-acceptance` queda sin fusionar.
 [Control previo](docs/f9/MERGE_VALIDATION.md). [Resultados](docs/f9/ACCEPTANCE.md),
 [AppImage, SHA-256 y uso normal](docs/f9/RELEASE.md).
 
