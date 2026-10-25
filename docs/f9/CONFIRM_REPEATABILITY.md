@@ -1,3 +1,15 @@
+> **Estado vigente, decisión explícita del usuario del 25/10/2026: F9 = APROBADA técnicamente.**
+> NF-05 startup pasa de su objetivo inicial ≤3000 a **≤3200 ms p95**, después de
+> las mediciones y solo para el equipo/corpus/método F9 documentado. Confirmar
+> conserva **≤300 ms**; ningún otro objetivo cambia. Las tres campañas startup
+> 3075,6/2995,8/2935,0 y Confirmar 284,2/280,3/275,1 son PASS; offline sigue PASS.
+> [Decisión, justificación, AC-01…AC-10 y evidencia](NF05_STARTUP_REVIEW.md).
+> Se conserva el historial original de 3000 ms y sus FAIL, sin modificar muestras
+> ni método. Deuda pendiente: 50 revisiones, Confirmar p95 316,6 ms por lecturas/
+> copias globales, fuera del corpus oficial. Sin merge/push a main ni F10.
+
+## Registro anterior a la revisión explícita, conservado
+
 # F9 — Método congelado para investigar Confirmar durable
 
 25/10/2026. **F9 NO APROBADA. No merge/push a main ni F10.** Este método se fija
