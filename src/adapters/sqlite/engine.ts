@@ -179,10 +179,10 @@ export class SqliteEngine {
       s.templates.forEach(t => insertTemplate.run(t.id, t.version, encode(t)));
       const insertEntity = this.db.prepare('INSERT INTO entities VALUES (?,?,?,?,?,?,?,?,?,1)');
       currentEntities(s).forEach(e => insertEntity.run(e.id, s.workspace.id, e.kind, e.revision, e.kind === 'cv' ? e.name : null, e.kind === 'cv' ? e.documentLocale : null,
-        e.kind === 'cv' ? e.presentation.templateRef.id : null, e.kind === 'cv' ? e.presentation.templateRef.version : null, encode(e)));
+        e.kind === 'cv' ? e.presentation.templateRef.id : null, e.kind === 'cv' ? e.presentation.templateRef.version : null, this.validationCache.encoded(e)??encode(e)));
       this.options.transactionProbe?.('afterEntities',this.db);
       const insertRevision = this.db.prepare('INSERT INTO revisions VALUES (?,?,?,?,?,?,?,1)');
-      s.revisions.forEach(r => insertRevision.run(r.id,r.entityId,r.number,r.cause,r.retention,r.createdAt,encode(r.snapshot)));
+      s.revisions.forEach(r => insertRevision.run(r.id,r.entityId,r.number,r.cause,r.retention,r.createdAt,this.validationCache.encoded(r.snapshot)??encode(r.snapshot)));
       const insertDraft = this.db.prepare('INSERT INTO drafts VALUES (?,?,?,?,?)');
       s.drafts.forEach(d => insertDraft.run(d.id,d.entityId,d.baseRevision,d.version,encode(d)));
       const linkEntity = this.db.prepare('INSERT INTO entity_assets VALUES (?,?)');

@@ -18,17 +18,28 @@ export const templateKey=(t:{id:string;version:number}):string=>`${t.id}@${t.ver
 // Optional local-validation memo for a durable repository. Exact JSON values,
 // never IDs/revision numbers alone, determine reuse. The complete graph bounds,
 // ownership, history and resource closure are still checked on every call.
-// Only strings are retained: callers cannot mutate a cached validated object.
+// Only encoded values/private string ID lists are retained; no caller can
+// mutate a cached validated object or the cached identifier list.
+function entityIdentifiers(value:unknown,ids:string[]=[]):string[]{
+  if(!value||typeof value!=='object')return ids;
+  if(Array.isArray(value)){value.forEach(v=>entityIdentifiers(v,ids));return ids;}
+  for(const[key,v]of Object.entries(value)){
+    if(['sourceRef','catalog','templateRef'].includes(key))continue;
+    if(key==='id'&&typeof v==='string')ids.push(v);else entityIdentifiers(v,ids);
+  }
+  return ids;
+}
+interface ValidatedValue {json:string;validated:string;ids:string[];canonical?:string}
 export class ProjectValidationCache {
-  private values=new Map<string,{json:string;validated:string;canonical?:string}>();
-  private canonicalByEntity=new WeakMap<Entity,{validated:string;canonical?:string}>();
+  private values=new Map<string,ValidatedValue>();
+  private canonicalByEntity=new WeakMap<Entity,ValidatedValue>();
   private readonly entitySchema=z.discriminatedUnion('kind',[MasterProfileSchema,CvDocumentSchema]);
   private used=new Set<string>();
   private entity(value:unknown,kind?:Entity['kind']):Entity{
     const e=value as Entity,key=`${e?.id}@${e?.revision}`,json=JSON.stringify(value),old=this.values.get(key);
     // schema's root preprocessor checked the entire graph before any transform.
     // Keep every schema/invariant check, without walking each subtree again.
-    if(!old||old.json!==json){const valid=parse(this.entitySchema,value);assertEntityInvariants(valid);this.values.set(key,{json,validated:JSON.stringify(valid)});}
+    if(!old||old.json!==json){const valid=parse(this.entitySchema,value);assertEntityInvariants(valid);this.values.set(key,{json,validated:JSON.stringify(valid),ids:entityIdentifiers(value)});}
     if(kind&&e.kind!==kind)fail('entity.wrongKind');this.used.add(key);
     const copy=JSON.parse(json) as Entity;this.canonicalByEntity.set(copy,this.values.get(key)!);return copy;
   }
@@ -37,6 +48,8 @@ export class ProjectValidationCache {
     ProjectSnapshotSchema.options[1].extend({workspace:WorkspaceSchema.extend({profile:z.unknown().nullable().transform(v=>v===null?null:this.entity(v,'profile')),cvsById:z.record(IdSchema,z.unknown().transform(v=>this.entity(v,'cv')))}),revisions:z.array(RevisionSchema.extend({snapshot:z.unknown().transform(v=>this.entity(v))}))}),
   ]));
   serialized(e:Entity):string{const value=this.canonicalByEntity.get(e)!;return value.canonical??=canonical(JSON.parse(value.validated));}
+  identifiers(e:Entity):readonly string[]{return [...this.canonicalByEntity.get(e)!.ids];}
+  encoded(e:Entity):string|undefined{return this.canonicalByEntity.get(e)?.json;}
   begin():void{this.used.clear();}
   finish():void{for(const key of this.values.keys())if(!this.used.has(key))this.values.delete(key);}
 }
@@ -55,7 +68,7 @@ export function validateProject(value:unknown,memo?:ProjectValidationCache):Proj
     if(!v||typeof v!=='object')return;if(Array.isArray(v)){v.forEach(unique);return;}
     for(const[k,x]of Object.entries(v)){if(['sourceRef','catalog','templateRef'].includes(k))continue;if(k==='id'&&typeof x==='string'){if(ids.has(x))fail('project.duplicateId',[x]);ids.add(x);}else unique(x);}
   }
-  entities.forEach(e=>{if(!memo)assertEntityInvariants(e);unique(e);});
+  entities.forEach(e=>{if(!memo){assertEntityInvariants(e);unique(e);}else for(const id of memo.identifiers(e)){if(ids.has(id))fail('project.duplicateId',[id]);ids.add(id);}});
   const revisions=new Set<string>();
   const all=[...entities];
   // Canonical comparison is needed only when two snapshots claim the same
@@ -69,6 +82,7 @@ export function validateProject(value:unknown,memo?:ProjectValidationCache):Proj
   }
   const idOwners=new Map<string,string>(p.scope==='workspace'?[[p.workspace.id,'workspace']]:[]);
   function checkOwner(v:unknown,owner:string):void {
+    if(memo){for(const id of memo.identifiers(v as Entity)){if(idOwners.has(id)&&idOwners.get(id)!==owner)fail('revision.crossOwnerId',[id]);idOwners.set(id,owner);}return;}
     if(!v||typeof v!=='object')return;if(Array.isArray(v)){v.forEach(x=>checkOwner(x,owner));return;}
     for(const [key,x]of Object.entries(v)){
       if(['sourceRef','catalog','templateRef'].includes(key))continue;
