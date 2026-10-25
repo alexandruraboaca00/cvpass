@@ -101,3 +101,73 @@ revisable puede justificar otro conjunto final.
 Solo tras estabilidad: AC-01…AC-10, F1–F9/UI/33 PDF, TypeScript/build, AppImage,
 offline/privacidad. Los valores anteriores (471,1; 261,3; 236,9; 228,4; 359,7 ms y
 startup 2594/3462,3/1844,4/2469,1) se conservan íntegros.
+
+## Diagnóstico previo y correcciones medidas (no aceptación)
+
+El binario original, sin cambios, dio otra campaña con trazas: Confirmar p95
+350,0 ms FAIL (20 procesos). En su muestra rápida/lenta: renderer 251,7/366,3 ms;
+validación global 111,9/167,8; clon de lectura 17,6/26,1; captura de envío
+15,0/25,0; cuerpo SQLite 26,7/38,6; BEGIN+COMMIT durable 12,8/9,6 ms. Hay variación
+reproducible con el mismo binario; no un cambio de código entre 228,4 y 359,7.
+La causa física de la diferencia histórica no puede reconstruirse sin telemetría
+histórica. El coste confirmado está en trabajo global/asignaciones CPU que
+amplifican esa variación, no en un fsync extraordinario en la muestra lenta.
+
+CPU inspector separado, Node 26 y copia SSD con diez ediciones: guardián de datos
+719/2673 muestras inclusivas; recorridos unique/checkOwner 217; clonado también
+relevante. Es un diagnóstico algorítmico directo, no Electron ni aceptación.
+Prueba intercalada de guardias sobre el mismo objeto: se reduce coste sin aceptar
+getters, símbolos, ciclos, arrays dispersos, prototipos, -0 ni excesos de límites.
+
+`2fa3f0b`: menos asignaciones de descriptores, resumen privado de IDs solo tras
+aprobar valores exactos y reutilización de JSON ya validado; las comprobaciones
+globales siguen en cada llamada. 182 tests PASS. Diagnóstico cinco procesos:
+Confirmar p95 226,2; startup p95/máximo 4852,2 FAIL, primera ejecución del nuevo
+artefacto. Se conserva, no se descarta ni se confunde con aceptación de 20.
+
+`81165df`: vía SQL conservadora solo tras demostrar que cambia una entidad,
+se añade exactamente su checkpoint anterior y se resuelve un borrador, con todo
+lo demás byte-equivalente. El worker comprueba generación/data_version bajo
+BEGIN IMMEDIATE; si el caché es desconocido, cambian recursos/orden/otros datos o
+no hay prueba exacta, usa la transacción completa. No cambia puertos, formato ni
+schema. Validación global y verificación de assets completas preceden a ambas
+rutas. COMMIT FULL/WAL, revisión/borrador y cache antes del ACK permanecen.
+186 tests PASS; adicionales prueban una sola fila de entidad, perfil independiente,
+rollback/reintento sin revisión duplicada y rechazo del caché externo obsoleto.
+
+Diagnóstico cinco procesos: Confirmar p95 147,6, máximo 147,6 ms; startup
+p95/máximo 3132,5 FAIL, primer lanzamiento, otros cuatro entre 1684,6 y 1796,2.
+No es aceptación ni se borra ese primer dato. El contador real registra siete
+filas cambiadas por confirmación, 24 frames nuevos en el ejemplo, sin checkpoint
+solicitado. El fichero WAL puede conservar su tamaño preasignado: tamaño físico
+no equivale a frames activos. La antigua ruta reescribía los 100 CV e índices.
+
+Se mantienen lecturas/validación de la biblioteca completa necesarias por el
+contrato vigente y las invariantes globales. Las escrituras de la confirmación
+ordinaria dejan de ser proporcionales a todos los CV/historial/assets. No se
+rediseña toda la persistencia ni se omiten revisiones para lograr el benchmark.
+
+[Todos los diagnósticos y muestras](evidence/confirm-initial-diagnostics.json).
+La instrumentación opt-in añade BEGIN y COMMIT separados, escrituras por tipo,
+filas cambiadas y cabeceras WAL antes/después; no registra contenido/IDs. Las
+etapas anidadas no se suman. No se afirma aislar syscalls fsync del tiempo de
+COMMIT. El crecimiento progresivo con 50 revisiones se medirá aparte con el
+mismo baseline/recursos y un proceso reutilizado; no reemplaza las campañas frías.
+
+### Observador definitivo
+
+La versión inicial sondeaba todos los procesos cada segundo: p95 de coste 39,9 ms
+por tick; queda etiquetada como diagnóstico, no aceptación. Se midió el coste y
+se corrigió el observador, no la aplicación: sistema/frecuencia cada segundo,
+censo de procesos cada diez segundos y WAL/SHM cada 100 ms; ninguna conexión
+SQLite ni checkpoint. En el diagnóstico final su coste fue p50 0,37/p95 1,75 ms,
+máximo 20,9 ms (censo), CPU propia 0,55 s en 72,7 s, aproximadamente 0,76 % de
+un núcleo. Se publica el coste sin descontarlo de las mediciones. **Las tres
+campañas finales usarán esta misma versión 2, sin trazas internas**, procesos
+nuevos, un mismo artefacto y todos los demás puntos congelados arriba.
+
+`scripts/f9-campaign-summary.mjs` comprueba identidad de runner/binario/corpus/
+equipo/método y 20 muestras en cada serie, calcula percentiles sin filtrar y
+rechaza una campaña individual FAIL aunque el combinado dé PASS. Después de
+A/B/C estables se repetirá una cuarta aceptación oficial completa, sin mezclar
+sus 20 muestras con las 60, antes de la regresión final.
