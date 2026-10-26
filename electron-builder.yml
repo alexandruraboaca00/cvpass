@@ -11,6 +11,7 @@ files:
   - dist/src/**/*
   - dist/renderer/**/*
   - resources/fonts/**/*
+  - resources/licenses/**/*
   - assets/icons/*.png
   - LICENSE
   - THIRD_PARTY_NOTICES.md

@@ -49,6 +49,14 @@ TypeScript 7.0.2 and @playwright/test 1.64.1: Apache-2.0. Sources and dependency
 versions are fixed in package-lock.json. Tool-only dependencies are not all
 runtime dependencies. Test fixtures use synthetic data only.
 
+## Restored upstream notice
+
+The installed saxes 6.0.0 npm tarball lacks its standalone LICENSE file. The
+complete upstream v6.0.0 ISC/inherited notices are therefore included unchanged
+at [resources/licenses/saxes-6.0.0-LICENSE](resources/licenses/saxes-6.0.0-LICENSE)
+and explicitly packaged. Source: https://github.com/lddubeau/saxes/blob/v6.0.0/LICENSE .
+This fixes notice distribution, without changing parser code or its license.
+
 ## Redistribution
 
 The reviewed direct licenses (MIT, ISC, Apache-2.0, OFL-1.1, SQLite public domain)
