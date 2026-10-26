@@ -1,5 +1,5 @@
 {
-  "name": "cvforge-domain",
+  "name": "cvpass",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -42,7 +42,8 @@
     "test:f9:ui": "playwright test --config playwright.config.ts f9.spec.ts f9-blockers.spec.ts",
     "validate:f9:performance": "node scripts/f9-performance.mjs",
     "validate:f9:offline": "node scripts/f9-offline-check.mjs",
-    "validate:f9:package": "node scripts/f9-package-check.mjs"
+    "validate:f9:package": "node scripts/f9-package-check.mjs",
+    "branding:prepare": "electron scripts/prepare-branding.cjs"
   },
   "dependencies": {
     "@tiptap/core": "3.32.0",
@@ -75,6 +76,9 @@
     "electron@44.7.2": true,
     "better-sqlite3@13.0.3": true
   },
-  "description": "CVForge \u2014 local CV editor",
-  "author": "CVForge contributors"
+  "description": "A private, offline CV editor for Linux, inspired by Europass workflows.",
+  "author": "Alexandru David Raboaca Neagu",
+  "license": "GPL-3.0-only",
+  "productName": "CVPass",
+  "desktopName": "cvforge.desktop"
 }

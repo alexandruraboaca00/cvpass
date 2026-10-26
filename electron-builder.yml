@@ -1,5 +1,6 @@
 appId: org.cvforge.desktop
-productName: CVForge
+productName: CVPass
+copyright: Copyright © 2026 Alexandru David Raboaca Neagu
 electronVersion: 44.7.2
 electronDist: node_modules/electron/dist
 toolsets:
@@ -10,6 +11,9 @@ files:
   - dist/src/**/*
   - dist/renderer/**/*
   - resources/fonts/**/*
+  - assets/icons/*.png
+  - LICENSE
+  - THIRD_PARTY_NOTICES.md
   - package.json
 asar: true
 asarUnpack:
@@ -20,5 +24,5 @@ linux:
   category: Office
   target: dir
 appImage:
-  artifactName: CVForge-${version}-x86_64.AppImage
+  artifactName: CVPass-${version}-x86_64.AppImage
   executableArgs: []
