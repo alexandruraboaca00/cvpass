@@ -1,3 +1,14 @@
+# Publicación vigente — CVPass 0.1.0
+
+Repositorio oficial: `alexandruraboaca00/cvpass`, creado independiente desde la
+historia local saneada, sin fork, importación ni mirror de `cvforge`. Publicación,
+tag anotado v0.1.0 y release autorizados expresamente por el usuario. Solo main
+y el tag de release deben publicarse. `cvforge` permanece PRIVADO y no se modifica.
+Conservar backups privados fuera de Git. F10 NO iniciada. No cambiar funciones,
+versión, formatos, garantías de durabilidad ni NF-05 durante la publicación.
+
+## Estado histórico de preparación (conservado)
+
 # Estado vigente de preparación pública
 
 Producto público: **CVPass 0.1.0**, autor Alexandru David Raboaca Neagu, GPL-3.0-only.

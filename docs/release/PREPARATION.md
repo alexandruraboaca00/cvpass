@@ -1,3 +1,9 @@
+> Publication decision: use a **new independent** repository,
+> [alexandruraboaca00/cvpass](https://github.com/alexandruraboaca00/cvpass), sourced
+> only from sanitized local main. The old cvforge repository stays private and
+> unchanged. The historical rename/publication plan below is superseded by this
+> explicit user decision. F10 is not started.
+
 # CVPass 0.1.0 — local public-release preparation
 
 This is release preparation, **not F10**, a remote rename, publication, tag or

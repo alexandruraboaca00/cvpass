@@ -29,11 +29,11 @@ Solo se utilizan datos demo sintéticos. Consulta [capturas y procedencia](docs/
 
 ## Instalación
 
-La distribución principal es AppImage para **Linux x86_64**, en escritorios Linux compatibles. No se promete compatibilidad universal con todas las distribuciones. Esta es preparación local: todavía no hay release ni descarga pública publicada.
+La distribución principal es AppImage para **Linux x86_64**, en escritorios Linux compatibles. No se promete compatibilidad universal con todas las distribuciones. Descarga la AppImage y sus checksums desde la [release CVPass 0.1.0](https://github.com/alexandruraboaca00/cvpass/releases/tag/v0.1.0).
 
 ## AppImage
 
-Una vez obtenidos la AppImage preparada y `SHA256SUMS`, colócalos juntos y ejecuta:
+Descarga [CVPass-0.1.0-x86_64.AppImage](https://github.com/alexandruraboaca00/cvpass/releases/download/v0.1.0/CVPass-0.1.0-x86_64.AppImage) y [SHA256SUMS](https://github.com/alexandruraboaca00/cvpass/releases/download/v0.1.0/SHA256SUMS), colócalos juntos y ejecuta:
 
 ```sh
 sha256sum -c SHA256SUMS
