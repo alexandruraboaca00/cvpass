@@ -1,20 +1,25 @@
-# CVPass branding source — selected option 1
+# Official CVPass branding — selected option 1
 
-The final approved master is **not present**. Place it at:
+The two user-supplied approved originals are preserved byte-for-byte:
 
-`assets/branding/icon-master.png`
+- `icon-master.png`: 1297×1212 RGBA PNG, symbol only.
+- `logo-horizontal.png`: 1983×793 RGBA PNG, symbol and CVPass wordmark.
 
-Supply the actual selected option 1: overlapping blue CV sheets, white front
-sheet, simplified avatar/content lines and a blue circle with a white check.
-Use a square PNG, ideally 1024×1024, with the intended transparency. No Europass
-or EU emblem. Do not substitute an invented design or trace a raster into SVG.
+Both have transparent corners/background; there is no opaque black/white
+rectangle. The white front document belongs to the design. No artistic changes,
+new logo or fake SVG were made. The source vector is not supplied.
 
-Then run `npm run branding:prepare`. It creates symbol-only PNG icons at 16, 24,
-32, 48, 64, 128, 256, 512 and 1024 pixels under `assets/icons/`. The packager and
-window pick them up when available. Until then builds are explicitly provisional
-and retain Electron's default icon. No false CVPass logo is provided.
+Run `npm run branding:prepare` to produce 16, 24, 32, 48, 64, 128, 256, 512 and
+1024px square PNGs under `assets/icons/`. Because the master is not square, the
+utility centers it on a transparent 1297px square before high-quality resizing.
+It preserves the aspect ratio and transparency, without cropping the artwork.
+The original file is never overwritten. `scripts/release-branding-check.cjs`
+validates PNG signatures, alpha, dimensions and transparent corners via Electron.
 
-An optional approved horizontal wordmark may be supplied separately as
-`assets/branding/cvpass-horizontal.png`. SVG is accepted only with a genuine
-vector source. Copyright © 2026 Alexandru David Raboaca Neagu; project-owned
-assets are GPL-3.0-only. Confirm provenance before adding any supplied asset.
+The 256px derivative is used by the Electron window; electron-builder uses the
+same derived set for the AppImage and Linux desktop icon. Historical app ID,
+executable and desktop/icon key remain unchanged for compatibility. README EN/ES
+use the original horizontal logo at a bounded display width, with relative paths.
+
+Copyright © 2026 Alexandru David Raboaca Neagu. User-approved project branding,
+distributed under GPL-3.0-only with the project; no Europass/UE emblems or resources.

@@ -1,9 +1,11 @@
-# Generated CVPass icons
+# CVPass application icons
 
-Source: `../branding/icon-master.png` (awaiting the actual selected master).
-Generate using `npm run branding:prepare`, never a substitute logo.
-Expected files: `16x16.png`, `24x24.png`, `32x32.png`, `48x48.png`, `64x64.png`,
-`128x128.png`, `256x256.png`, `512x512.png`, `1024x1024.png`.
-The directory is used by electron-builder when these files exist; the window
-uses 256x256.png. The historical Linux executable/icon key `cvforge` remains
-technical metadata; the desktop entry's displayed name is CVPass.
+Generated only from `../branding/icon-master.png` by `npm run branding:prepare`.
+Sizes: 16, 24, 32, 48, 64, 128, 256, 512, 1024 pixels, square RGBA PNG.
+Transparent centering/padding preserves the non-square original's proportions;
+Electron nativeImage uses its best-quality resize. Original artwork is unchanged.
+
+These derivatives serve different desktop/application resolutions. No duplicate
+master copy, alternative design, raster-to-SVG trace or provisional Electron icon
+is used. The source hashes/dimensions and validation are recorded in the release
+branding receipt. GPL-3.0-only; copyright 2026 Alexandru David Raboaca Neagu.
