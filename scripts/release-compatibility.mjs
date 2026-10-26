@@ -7,17 +7,26 @@ import assert from 'node:assert/strict';
 import {releaseDemo} from '../dist/tests/release-demo.js';
 import {cvprojCodec} from '../dist/src/adapters/library-cvproj.js';
 import {createHash} from 'node:crypto';
+import {execFileSync} from 'node:child_process';
 const root=process.env.CVPASS_RELEASE_DATA;assert(root,'SSD data directory outside the repository required');await mkdir(root,{recursive:true});
 const screenshots=resolve('docs/screenshots');await mkdir(screenshots,{recursive:true});
 const old=process.env.CVPASS_LEGACY_APPIMAGE;assert(old,'Preserved original CVForge AppImage required');
 const renamed=resolve('out/f9/CVPass-0.1.0-x86_64.AppImage'),primary=await mkdtemp(join(root,'upgrade-')),seed=cvprojCodec.encode(await releaseDemo(),'2026-10-26T12:00:00.000Z');
 const ok=r=>{if(!r.ok)throw Error(r.error.code);return r.value;},hash=b=>createHash('sha256').update(b).digest('hex');
-let active;
+let active,windowIconVerified=false;
 async function launch(executable,dir,name){
  const app=await electron.launch({chromiumSandbox:true,executablePath:executable,cwd:dir,args:['--ozone-platform=x11'],env:{...process.env,XDG_CONFIG_HOME:join(dir,'config'),APPIMAGELAUNCHER_DISABLE:'1',APPIMAGE_EXTRACT_AND_RUN:'1',GDK_BACKEND:'x11',GTK_USE_PORTAL:'0'},timeout:60000});active=app;
  const page=await app.firstWindow();await page.getByRole('heading',{name:'Tu biblioteca',exact:true}).waitFor();
  const metadata=await app.evaluate(({app})=>({name:app.getName(),version:app.getVersion(),path:app.getPath('userData'),session:app.getPath('sessionData'),noSandbox:app.commandLine.hasSwitch('no-sandbox')}));
  assert.equal(metadata.name,name);assert.equal(metadata.version,'0.1.0');assert.equal(metadata.path,join(dir,'config/CVForge'));assert.equal(metadata.noSandbox,false);
+ if(name==='CVPass'&&!windowIconVerified){
+  const icon=await app.evaluate(({app,BrowserWindow,nativeImage})=>({handle:BrowserWindow.getAllWindows()[0].getNativeWindowHandle().readUInt32LE(0),bitmap:nativeImage.createFromPath(app.getAppPath()+'/assets/icons/256x256.png').toBitmap().toString('base64')}));
+  const property=execFileSync('xprop',['-id',String(icon.handle),'-f','_NET_WM_ICON','32c','_NET_WM_ICON'],{encoding:'utf8',maxBuffer:4000000});
+  const values=property.slice(property.indexOf('=')+1).match(/-?\d+/g).map(Number);assert.equal(values[0],256);assert.equal(values[1],256);
+  const expected=Buffer.from(icon.bitmap,'base64');assert.equal(values.length,2+expected.length/4);for(let i=0;i<expected.length/4;i++)assert.equal(values[i+2]>>>0,expected.readUInt32LE(i*4));
+  windowIconVerified=true;
+ }
+
  const errors=[],requests=[];page.on('pageerror',e=>errors.push(e.message));app.context().on('request',r=>{if(/^https?:/.test(r.url()))requests.push(r.url());});
  return {app,page,metadata,errors,requests};
 }
@@ -56,5 +65,5 @@ try{
   if(workspace){const exported=join(dir,'restored.cvproj');await destination(rig,exported);await call(rig,'workspaceExport');const decoded=cvprojCodec.decode(new Uint8Array(await readFile(exported)));assert.deepEqual(decoded.snapshot,legacyWorkspace.snapshot);assert.deepEqual(decoded.blobs,legacyWorkspace.blobs);}
   await close(rig);rig=await launch(renamed,dir,'CVPass');assert.equal((await call(rig,'list')).cvs.length,workspace?6:1);await close(rig);
  }
- await writeFile(join(root,'compatibility.json'),JSON.stringify({syntheticOnly:true,oldAppName:'CVForge',newAppName:'CVPass',userDataRetained:true,sessionDataRetained:true,oldSqlite:true,profile:true,assets:true,draftRecovery:true,revisions:true,exportRecord:true,editConfirmReopen:true,oldCvproj:true,oldCvprojContentExact:true,oldPdf:true,oldPdfProjectionExact:true,oldWorkspaceExact:true,portableReopen:true,httpRequests:0,screenshots:6,originalOldArtifactSha256:hash(await readFile(old)),renamedArtifactSha256:hash(await readFile(renamed))},null,2));console.log('CVForge -> CVPass real packaged compatibility and screenshots PASS');
+ await writeFile(join(root,'compatibility.json'),JSON.stringify({syntheticOnly:true,windowIconMatchesOfficial256:windowIconVerified,oldAppName:'CVForge',newAppName:'CVPass',userDataRetained:true,sessionDataRetained:true,oldSqlite:true,profile:true,assets:true,draftRecovery:true,revisions:true,exportRecord:true,editConfirmReopen:true,oldCvproj:true,oldCvprojContentExact:true,oldPdf:true,oldPdfProjectionExact:true,oldWorkspaceExact:true,portableReopen:true,httpRequests:0,screenshots:6,originalOldArtifactSha256:hash(await readFile(old)),renamedArtifactSha256:hash(await readFile(renamed))},null,2));console.log('CVForge -> CVPass real packaged compatibility and screenshots PASS');
 }finally{if(active)await active.close();}

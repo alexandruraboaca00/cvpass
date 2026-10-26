@@ -21,6 +21,7 @@ asarUnpack:
   - '**/*.node'
 npmRebuild: false
 linux:
+  icon: assets/icons
   executableName: cvforge
   category: Office
   target: dir
