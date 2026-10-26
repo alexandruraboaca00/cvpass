@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 const output=process.env.CVFORGE_F9_HISTORY_OUTPUT??'/tmp/cvforge-f9-history';await mkdir(output,{recursive:true});
 const data=process.env.CVFORGE_F9_HISTORY_DATA;assert(data&&process.argv[2],'SSD data directory and closed baseline/library path required');await mkdir(data,{recursive:true});
 const root=await mkdtemp(join(data,'history-'));await cp(process.argv[2],join(root,'library'),{recursive:true});
-const executable=resolve('out/f9/CVForge-0.1.0-x86_64.AppImage'),sha=createHash('sha256').update(await readFile(executable)).digest('hex');
+const executable=resolve('out/f9/CVPass-0.1.0-x86_64.AppImage'),sha=createHash('sha256').update(await readFile(executable)).digest('hex');
 const app=await electron.launch({chromiumSandbox:true,executablePath:executable,args:['--user-data-dir='+root,'--ozone-platform=x11'],env:{...process.env,APPIMAGELAUNCHER_DISABLE:'1',APPIMAGE_EXTRACT_AND_RUN:'1',GDK_BACKEND:'x11',GTK_USE_PORTAL:'0',CVFORGE_CONFIRM_TRACE:join(output,'stages.ndjson')},timeout:60000});
 const samples=[];
 try{

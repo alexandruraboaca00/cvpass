@@ -1,0 +1,14 @@
+{
+  "results": [
+    {
+      "mode": "fuse",
+      "pass": true,
+      "normalDataDirectoryName": "CVForge",
+      "version": "0.1.0",
+      "startedOutsideRepository": true,
+      "noUserDataSwitch": true,
+      "noSandboxDisabled": true,
+      "reopened": true
+    }
+  ]
+}

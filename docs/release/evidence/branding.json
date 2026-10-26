@@ -1,0 +1,106 @@
+{
+  "masterUnmodified": true,
+  "technicalPaddingOnly": true,
+  "quality": "nativeImage best",
+  "results": [
+    {
+      "path": "assets/branding/icon-master.png",
+      "width": 1297,
+      "height": 1212,
+      "transparent": 490521,
+      "partial": 1080289,
+      "opaque": 1154,
+      "sha256": "0e9833151c288b2019718cf6ecb14110d2c13286f54c52643d87edaede1e0cef"
+    },
+    {
+      "path": "assets/branding/logo-horizontal.png",
+      "width": 1983,
+      "height": 793,
+      "transparent": 1054025,
+      "partial": 515341,
+      "opaque": 3153,
+      "sha256": "cd7e503014307ee196b7afc210f6909018c511718200d0834333658d534339f1"
+    },
+    {
+      "path": "assets/icons/16x16.png",
+      "width": 16,
+      "height": 16,
+      "transparent": 46,
+      "partial": 173,
+      "opaque": 37,
+      "sha256": "da5d645ce130a997c128eec11c936aea046f0ccbaa0053d0aa3f8a6b54404567"
+    },
+    {
+      "path": "assets/icons/24x24.png",
+      "width": 24,
+      "height": 24,
+      "transparent": 116,
+      "partial": 387,
+      "opaque": 73,
+      "sha256": "ccddb6c2ddc6e508c442d4cea0bba44e801f980f9f14de7ff29f57615563ad66"
+    },
+    {
+      "path": "assets/icons/32x32.png",
+      "width": 32,
+      "height": 32,
+      "transparent": 247,
+      "partial": 659,
+      "opaque": 118,
+      "sha256": "5ab11d70f05737b8e3881790b20f2eb3f20c2534e066a9a89fe68a5865ffeaab"
+    },
+    {
+      "path": "assets/icons/48x48.png",
+      "width": 48,
+      "height": 48,
+      "transparent": 637,
+      "partial": 1439,
+      "opaque": 228,
+      "sha256": "aca22a5278b08e1862dbce6d80b36a1557a40d32cda6044fe8e246d5db56728e"
+    },
+    {
+      "path": "assets/icons/64x64.png",
+      "width": 64,
+      "height": 64,
+      "transparent": 1211,
+      "partial": 2520,
+      "opaque": 365,
+      "sha256": "31fb265a46b60994c70ceadb64e077857ac99b44206bf84a163247331eba131c"
+    },
+    {
+      "path": "assets/icons/128x128.png",
+      "width": 128,
+      "height": 128,
+      "transparent": 5402,
+      "partial": 10129,
+      "opaque": 853,
+      "sha256": "6ca45f89d0148b9fc3b62d96529d1a04fa7cdcc43898e4ec412f8fff7556ac24"
+    },
+    {
+      "path": "assets/icons/256x256.png",
+      "width": 256,
+      "height": 256,
+      "transparent": 22798,
+      "partial": 40590,
+      "opaque": 2148,
+      "sha256": "1221b340865ec9165fbb95c5efa35773a17771a2ffe604b641a169a05c187a66"
+    },
+    {
+      "path": "assets/icons/512x512.png",
+      "width": 512,
+      "height": 512,
+      "transparent": 93391,
+      "partial": 165264,
+      "opaque": 3489,
+      "sha256": "10c5a4149d4cb34d0ce6a69d1259642a385ce9d2bbbbc19657be6460bf2348c7"
+    },
+    {
+      "path": "assets/icons/1024x1024.png",
+      "width": 1024,
+      "height": 1024,
+      "transparent": 376549,
+      "partial": 666478,
+      "opaque": 5549,
+      "sha256": "f513e9e58a316875eb7d2d881398a07cf421464b2649c1884884266e7d7ae8c4"
+    }
+  ]
+}

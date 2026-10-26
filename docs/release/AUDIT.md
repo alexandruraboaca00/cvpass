@@ -1,0 +1,76 @@
+# Local public-release audit
+
+Audited the sanitized reachable Git history and current working files, not only
+`git status`. The personal Gmail remains at **zero occurrences** in all local
+Git objects (commits, author/committer metadata, messages, blobs and tags), and
+in current public files. New own commits use the approved GitHub noreply identity.
+No fetch was performed: the remote still has the old private history and must
+be sanitized only after separate approval. The private pre-rewrite backup remains
+outside the repository and must never be uploaded.
+
+## Private data and secrets
+
+The full reachable blob scan found no private-key headers, recognizable token
+patterns, literal credential candidates or personal absolute paths. Email
+candidates were reviewed: synthetic `.test`/`.invalid`/example.org fixtures,
+public author noreply and upstream license/notices. Exact local checks against
+the two private Europass samples find only two historical **SHA-256 strings**
+in historical research blob `19ae3f80a612defb2da31a8f336677b1ca71a671`.
+These are category A fingerprints, not the original files or contact details;
+this previously reviewed history is preserved. No private source PDF, photo,
+email, phone, database or academic document is copied into public assets.
+
+Both private acceptance cases pass representative value, contact, photo and
+reopen checks locally. Their inputs, filenames, parsed details and logs remain
+outside published documentation. The official full author name is expressly
+public; this exact name is exempt from the private-name sentinel check, while
+emails, source hashes, photos and other private values remain prohibited.
+
+Six screenshot PNGs are explicitly whitelisted in `.gitignore`; no wildcard
+unignore exposes private image/output folders. Screenshots use `release-demo.ts`
+only: Persona Demo, example.test, synthetic institutions and solid-color photo.
+They were inspected visually. Original PDF/private acceptance data are never
+used to create the screenshots. No application storage, AppImage, raw acceptance
+logs or backup bundle is tracked. Pattern scans are evidence, not a guarantee
+against every possible secret format.
+
+## Licensing
+
+[Third-party inventory](../../THIRD_PARTY_NOTICES.md): direct npm dependencies,
+Electron/Chromium, SQLite, PDF.js, Liberation Sans and redistributed resources.
+The project is GPL-3.0-only, with the official complete GPL v3 text in LICENSE.
+MIT, ISC, Apache-2.0 and OFL notices remain available. The saxes 6.0.0 tarball
+omitted its license file; the official upstream ISC/inherited notice is restored
+in `resources/licenses/saxes-6.0.0-LICENSE` and verified inside the final package.
+Electron and Chromium license files are retained. No Europass/UE branding,
+unlicensed image, OCR model or translation model is added. This is a scoped
+compatibility/notice review, not legal certification of every transitive package.
+
+## Remaining gate
+
+No new privacy blocker was detected. The user has now supplied the selected
+master and horizontal logo. Both original RGBA PNGs are retained unchanged; their
+C2PA provenance chunks contain no email or personal local path. The derivatives
+contain no copied provenance metadata. The prior missing-master gate is resolved. No remote history rewrite/push, visibility change,
+remote rename, tag or release was executed. Final local receipts are linked in
+[VALIDATION.md](VALIDATION.md); all remote/public actions await approval.
+
+[Prior unbranded audit receipt](evidence/previous-unbranded/privacy.json): 91 reachable commits, 855
+reachable blobs and 1,398 total local Git objects checked at the recorded HEAD.
+All 78 email candidate locations use only synthetic domains or the approved
+GitHub noreply. Both exact private acceptance cases pass after the documentation
+commits. All 61 local documentation links resolve. No new privacy blocker.
+
+## Final branding follow-up
+
+Both approved assets and nine derivatives pass PNG/alpha/dimension validation;
+original hashes are unchanged. The C2PA chunks contain no email or personal local
+path. The complete final candidate passes 222 tests, 33 PDF and two private local
+acceptance cases. Final evidence is in VALIDATION.md and evidence/privacy.json.
+The missing-icon blocker is resolved; there is no remaining detected local
+privacy or branding blocker. Remote history is still unsanitized and private;
+no remote operation has been attempted. Publication awaits explicit approval.
+
+[Current branded audit receipt](evidence/privacy.json) records the exact audited
+HEAD and counts. All current email candidates remain synthetic or the approved
+noreply identity; personal Gmail and secret-pattern hits remain zero.

@@ -12,7 +12,7 @@ export class PdfPreviewService {
   private token=0;
   private controller:AbortController|undefined;
   private ready:PdfGeneration|undefined;
-  private fileName='CVForge.pdf';
+  private fileName='CVPass.pdf';
   private links=new Set<string>();
   private exportMetadata:Omit<ExportRecord,'id'|'exportedAt'|'sha256'|'byteLength'|'pageCount'>|undefined;
   constructor(private readonly snapshots:Pick<RenderSnapshotFactory,'capture'>,private readonly source:RenderSource,private readonly renderer:PdfRenderPort,private readonly destination:PdfDestination,private readonly digest:Digest,private readonly ctx:DomainContext,private readonly records?:ExportRecordRepository){}

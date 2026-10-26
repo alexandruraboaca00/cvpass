@@ -1,0 +1,26 @@
+{
+  "allLocalGitObjectsScanned": 1454,
+  "reachableCommits": 96,
+  "personalGmailOccurrences": 0,
+  "ownIdentitiesUseApprovedNoreply": true,
+  "secretPatternHits": 0,
+  "privateBinaryOrDatabasePathsTracked": 0,
+  "workingFilesPersonalGmailOccurrences": 0,
+  "historicalPdfFingerprintOnlyBlob": "19ae3f80a612defb2da31a8f336677b1ca71a671",
+  "historicalFingerprintMatches": 2,
+  "privateOriginalPdfBytesPublished": false,
+  "noRemoteOperation": true,
+  "auditedHead": "54023d3e9603f2bdb192df4cd5d3990344b70c4b",
+  "reachableBlobsScanned": 886,
+  "candidateEmailLocationsReviewed": 84,
+  "candidateEmailDomains": [
+    "example.invalid",
+    "example.org",
+    "example.test",
+    "users.noreply.github.com"
+  ],
+  "exactPrivateAcceptanceCasesPassed": 2,
+  "localMarkdownLinksAndImagesChecked": 68,
+  "brokenLocalMarkdownLinks": 0,
+  "officialBrandingPngsChecked": 11
+}

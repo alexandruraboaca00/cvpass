@@ -52,11 +52,17 @@ for(let i=0;i<paths.length;i++){
     for(const expected of oracle.contacts){const k=expected.kind.toLowerCase();if(k==='email')assert(cv.personalInformation.contacts.some(c=>c.kind==='email'&&c.value===expected.uri));if(k==='telephone')assert(cv.personalInformation.contacts.some(c=>c.kind==='phone'&&c.number===expected.number));if(k==='web'||k==='socialmedia')assert(cv.personalInformation.contacts.some(c=>(c.kind==='website'||c.kind==='social')&&(c.value===expected.uri||c.value==='https://'+expected.uri)));}
     assert.equal(state.content.workspace.profile,null);assert.equal(state.content.workspace.cvOrder.length,1);assert.equal(state.content.drafts.length,0);assert.deepEqual((await reopened.health()).integrity,['ok']);assert.equal(sha256(new Uint8Array(await readFile(paths[i]))),originalHash);assert(project.length>0);
     const photoBase64=Buffer.from(state.content.blobs.get(photo.sha256)).toString('base64');
-    const prohibited=[cv.personalInformation.displayName,originalHash,photo.sha256,photoBase64.slice(Math.floor(photoBase64.length/2),Math.floor(photoBase64.length/2)+80),...cv.personalInformation.contacts.flatMap(c=>c.kind==='email'?[c.value]:[])].filter(s=>s.length>=8);
+    // Explicitly authorized public authorship is not private CV content.
+    // Only this exact name is exempt; source digests, photos and all emails remain prohibited.
+    const publicAuthor='Alexandru David Raboaca Neagu';
+    const prohibited=[{category:'displayName',value:cv.personalInformation.displayName===publicAuthor?'':cv.personalInformation.displayName},
+      {category:'sourcePdfDigest',value:originalHash},{category:'photoDigest',value:photo.sha256},
+      {category:'photoFragment',value:photoBase64.slice(Math.floor(photoBase64.length/2),Math.floor(photoBase64.length/2)+80)},
+      ...cv.personalInformation.contacts.flatMap(c=>c.kind==='email'?[{category:'email',value:c.value}]:[])].filter(x=>x.value.length>=8);
     const sources=execFileSync('git',['ls-files','--cached','--others','--exclude-standard','-z'],{encoding:'utf8'}).split('\0').filter(f=>/\.(?:md|ts|tsx|cts|mjs|js|py|json|yml|yaml|html|css|txt)$/.test(f));
-    for(const path of sources){const text=await readFile(path,'utf8');prohibited.forEach((value,index)=>{if(text.includes(value))privacyFindings.push({case:i+1,path,category:['displayName','sourcePdfDigest','photoDigest','photoFragment'][index]??'email'});});}
+    for(const path of sources){const text=await readFile(path,'utf8');prohibited.forEach(({value,category})=>{if(text.includes(value))privacyFindings.push({case:i+1,path,category});});}
     const objects=execFileSync('git',['rev-list','--objects','main..HEAD'],{encoding:'utf8'}).trim().split('\n').map(row=>row.split(' ')[0]).filter(Boolean);
-    for(const id of objects){if(execFileSync('git',['cat-file','-t',id],{encoding:'utf8'}).trim()!=='blob')continue;const text=execFileSync('git',['cat-file','blob',id],{maxBuffer:20*1024*1024}).toString('utf8');prohibited.forEach((value,index)=>{if(text.includes(value))privacyFindings.push({case:i+1,objectId:id,category:['displayName','sourcePdfDigest','photoDigest','photoFragment'][index]??'email'});});}
+    for(const id of objects){if(execFileSync('git',['cat-file','-t',id],{encoding:'utf8'}).trim()!=='blob')continue;const text=execFileSync('git',['cat-file','blob',id],{maxBuffer:20*1024*1024}).toString('utf8');prohibited.forEach(({value,category})=>{if(text.includes(value))privacyFindings.push({case:i+1,objectId:id,category});});}
     assert.equal(execFileSync('git',['log','--all','--format=','--name-only','--','*.pdf','*.PDF'],{encoding:'utf8'}).trim(),'','PRIVATE_PDF_TRACKED_IN_HISTORY');
     results.push({case:i+1,pass:true,education:8,work:3,skills:18,groups:2,native:2,foreign:1,fiveB2:true,valuesCompared:true,contactsCompared:true,photoCompared:true,reviewedUrls,partial:true,reopened:true,originalUnchanged:true,repositoryScan:true});
   }finally{await reopened.close();}

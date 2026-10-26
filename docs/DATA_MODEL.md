@@ -1,4 +1,10 @@
-# Modelo de datos de CVForge
+> Producto público actual: **CVPass 0.1.0**, antes CVForge. F0–F9 aprobadas e
+> integradas; esta rama solo prepara branding, licencia y release pública, no F10.
+> Los identificadores y registros históricos CVForge se conservan según
+> [REBRANDING](release/REBRANDING.md); NF-05 no cambia. El historial Git se saneó
+> localmente con aprobación; no se autoriza fetch/push ni publicación.
+
+# Modelo de datos de CVPass
 
 Versión 0.8 · 19 de octubre de 2026 · Especificación conceptual y concreciones F2/F3/F5/F6/F7/F8. El dominio MVP y el contrato portable inicial están implementados; correspondencias y límites en [f2/IMPLEMENTATION.md](f2/IMPLEMENTATION.md). La biblioteca, revisiones, activos y borradores son durables en F3; [esquema y límites](f3/PERSISTENCE.md). La importación estructurada F6 se concreta en [f6/IMPORT.md](f6/IMPORT.md); inventario V1 e importadores genéricos siguen siendo especificación.
 

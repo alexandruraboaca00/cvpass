@@ -1,0 +1,22 @@
+{
+  "first": {
+    "version": "0.1.0",
+    "artifact": "CVPass-0.1.0-x86_64.AppImage",
+    "byteLength": 162162621,
+    "sha256": "33754ed7bc85eff63c36c1a47164a47df0d4f9babf2b1eabfa6e52db2270070b",
+    "sourceDateEpoch": 1792756800,
+    "electron": "44.7.2",
+    "builder": "26.15.3"
+  },
+  "second": {
+    "version": "0.1.0",
+    "artifact": "CVPass-0.1.0-x86_64.AppImage",
+    "byteLength": 162162621,
+    "sha256": "33754ed7bc85eff63c36c1a47164a47df0d4f9babf2b1eabfa6e52db2270070b",
+    "sourceDateEpoch": 1792756800,
+    "electron": "44.7.2",
+    "builder": "26.15.3"
+  },
+  "identical": true,
+  "method": "two sequential independent npm run package:appimage executions; each rebuilds TypeScript/Vite and AppImage, fixed SOURCE_DATE_EPOCH"
+}

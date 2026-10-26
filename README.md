@@ -1,147 +1,142 @@
-# CVForge
+[English](README.md) | [Español](README_ES.md)
 
-CVForge es una aplicación local para crear, editar y guardar CV. Incluye ocho
-áreas, las plantillas originales **Simple** y **Lateral**, preview PDF y proyectos
-editables `.cvproj`. La interfaz está disponible en español e inglés.
+# CVPass
 
-Versión **0.1.0**, MVP Linux x86_64. **F9 aprobada definitivamente e integrada
-en main mediante merge commit.** El objetivo de arranque revisado explícitamente
-por el usuario es p95 ≤3200 ms; Confirmar conserva ≤300 ms. Las tres campañas
-oficiales cumplen. Todavía no se ha creado tag ni GitHub Release.
-[Control previo](docs/f9/MERGE_VALIDATION.md). [Resultados](docs/f9/ACCEPTANCE.md),
-[AppImage, SHA-256 y uso normal](docs/f9/RELEASE.md).
+<img src="assets/branding/logo-horizontal.png" alt="CVPass" width="420">
 
-## Instalar y abrir
+CVPass is a private, offline CV editor for Linux, inspired by Europass workflows.
 
-El artefacto local se genera en `out/f9/CVForge-0.1.0-x86_64.AppImage`.
-Guárdalo en una carpeta tuya, permite ejecutarlo como programa en sus propiedades
-y ábrelo con doble clic. Desde una terminal:
+## What is CVPass?
+
+CVPass 0.1.0 is a local desktop application for creating and managing CVs. It is intended for Linux x86_64. Your library is saved locally; exporting is for sharing or making portable copies.
+
+## Features
+
+Eight areas: personal information, education, work experience, skills/groups, languages with five independent CEFR dimensions, certifications, projects and multiple custom sections. Includes photos, limited rich text, manual ordering, visibility, drafts, recovery and revisions.
+
+## Privacy & Offline
+
+The supported workflow runs offline, without an account, telemetry, cloud upload or CDN. Imported files are processed locally. A PDF represents only its visible export; hidden entries, history, drafts, master profile and unselected translations are excluded. A private `.cvproj` backup intentionally contains more information: keep it secure.
+
+## Screenshots
+
+Only synthetic demo data is used. See [screenshots and their provenance](docs/screenshots/README.md). Official user-supplied CVPass assets are included; see [branding](assets/branding/README.md).
+
+
+![CVPass library](docs/screenshots/library.png)
+
+[Master profile](docs/screenshots/profile.png) · [Editor](docs/screenshots/editor.png) · [Simple](docs/screenshots/simple.png) · [Lateral](docs/screenshots/lateral.png) · [PDF preview](docs/screenshots/preview.png)
+
+## Installation
+
+The primary distribution is AppImage for **Linux x86_64**, on compatible desktop Linux systems. Universal distribution compatibility is not promised. This is local release preparation: no public release/download has been published yet.
+
+## AppImage
+
+After obtaining the prepared AppImage and `SHA256SUMS`, place them together and run:
 
 ```sh
-chmod +x CVForge-0.1.0-x86_64.AppImage
-./CVForge-0.1.0-x86_64.AppImage
+sha256sum -c SHA256SUMS
+chmod +x CVPass-0.1.0-x86_64.AppImage
+./CVPass-0.1.0-x86_64.AppImage
 ```
 
-La AppImage incluye Electron y el runtime; el usuario no necesita Node, npm,
-un servidor de desarrollo ni VS Code. Requiere un escritorio Linux con las
-bibliotecas de sistema necesarias para Electron. No se valida universalidad
-de distribuciones ni otras plataformas.
-
-Si falla el montaje FUSE, el runtime permite ejecutar sin montaje:
+You do not need Node, npm, VS Code or a development server to run it. FUSE must work for normal mounting. If mounting is unavailable, the runtime supports:
 
 ```sh
-APPIMAGE_EXTRACT_AND_RUN=1 ./CVForge-0.1.0-x86_64.AppImage
+APPIMAGE_EXTRACT_AND_RUN=1 ./CVPass-0.1.0-x86_64.AppImage
 ```
 
-La [guía de release](docs/f9/RELEASE.md) identifica el artefacto probado,
-tamaño, SHA-256, entorno y límites. No hay actualizaciones automáticas.
+Do not disable the Chromium sandbox as a workaround. The local build is in `out/f9/`.
 
-## Crear y editar
+## Getting Started
 
-1. En **Tu biblioteca**, pulsa **Crear CV**, introduce un nombre para identificarlo
-   y el nombre que debe aparecer en el documento.
-2. Abre **Editar datos personales** o añade educación, experiencia, habilidades,
-   idiomas, certificaciones, proyectos y varias secciones personalizadas.
-3. **Confirmar** valida y guarda localmente. **Cancelar** descarta el formulario,
-   incluidos cambios de modales hijos. No es necesario exportar para conservar una
-   edición confirmada.
-4. Ocultar conserva los datos del proyecto y los excluye del PDF. Contraer cambia
-   solo la vista del editor. Subir/Bajar permite ordenar con teclado; eliminar
-   requiere confirmación.
+Open the library, choose **Create CV**, enter a library name and display name, then open a section. **Confirm** validates and saves locally; **Cancel** discards the form. You do not need to export after every edit. After an unexpected close, recover or discard the separate draft.
 
-Los CV son independientes. Tras un cierre inesperado se puede recuperar o descartar
-un borrador; la exportación utiliza siempre el contenido confirmado.
+## Master Profile
 
-## Perfil maestro
+Use **Master profile** for reusable information in all eight areas. **Create CV from profile** lets you select personal fields, sections and entries. It creates an independent copy; later changes to the profile or another CV do not propagate automatically.
 
-En la biblioteca, abre **Perfil maestro** para guardar información reutilizable
-en las ocho áreas. Sus formularios también usan Confirmar/Cancelar y recuperación
-de borradores. No es un CV y no tiene plantilla ni presentación PDF.
+## CV Editor
 
-**Crear CV desde perfil** permite elegir campos personales, contactos, foto,
-secciones y entradas. Se crea una copia independiente: editar el perfil o un CV
-no actualiza los demás documentos. El idioma elegido no traduce automáticamente
-el contenido.
+Edit entries independently. Hide keeps content in the project but excludes it from the PDF. Collapse only changes the editor view. Move up/down supports keyboard ordering. Deletion is explicit; recover previous relevant states through revisions.
 
-## Importar
+## Templates
 
-Pulsa **Importar archivo**, selecciona el archivo y revisa antes de confirmar.
-Importar crea una copia; Cancelar deja la biblioteca intacta.
+**Simple** is one column; **Lateral** uses two columns. Both are original designs. Presentation settings include density, accent, date precision, numbering and CEFR guide. Changing presentation does not change content. The PDF.js preview shows the exact bytes exported for that generation.
 
-- `.cvproj` CV recupera el proyecto completo de ese documento.
-- `.cvproj` workspace restaura la biblioteca de su alcance declarado. Sustituir una
-  biblioteca existente exige confirmación explícita y backup previo.
-- PDF CVForge con payload compatible recupera solo la versión exportada.
-- PDF/XML Europass compatibles recuperan el subconjunto estructurado probado;
-  el informe identifica campos parciales y datos que requieren revisión.
+## Importing
 
-PDF genérico, escaneado o sin estructura compatible todavía no se importa como CV
-editable. No hay OCR. [Matriz de compatibilidad](docs/f9/COMPATIBILITY.md).
+Choose **Import file**, inspect the review, correct supported fields and confirm. Cancel creates nothing. Supports own projects/PDF payloads and the tested structured Europass PDF/XML subset. Ambiguous or unsupported fields are reported; generic or scanned PDFs are not reconstructed.
 
-## Presentación y exportación
+## Exporting
 
-**Presentación** permite elegir Simple/Lateral y ajustar densidad, acento, fechas,
-numeración y guía CEFR. **Vista previa PDF** usa PDF.js, con páginas, zoom y ajuste
-al ancho. **Exportar PDF** solicita destino y guarda exactamente esos bytes; el
-registro de exportaciones permanece en la biblioteca.
+**Export PDF** asks for a destination and saves the previewed bytes. A compatible own PDF can be reimported to recover that visible version, not the private source project. Export failure is reported; saving a PDF is separate from confirming edits.
 
-**Exportar proyecto (.cvproj)** guarda el CV completo: datos ocultos, memoria
-sensible, activos originales e historial necesario. Resuelve primero formularios y
-borradores pendientes. Es el formato para continuar trabajando o transferir un CV.
+## Portable Projects
 
-Para copiar toda la biblioteca, pulsa **Exportar biblioteca (.cvproj)**.
-Incluye el perfil, todos los CV, assets, configuración e historial del manifiesto.
-Recupera/confirma o descarta primero los borradores pendientes. Para restaurar,
-usa **Importar archivo** sobre una biblioteca vacía; sustituir una existente
-requiere confirmación expresa y una copia previa. Cancelar el diálogo no guarda;
-un fallo de escritura se informa sin anunciar éxito.
+**Export project (.cvproj)** preserves the full selected CV project and its declared resources/history, including hidden information. It is the reliable editable backup/transfer format. Resolve pending forms/drafts before exporting.
 
-El PDF solo recupera lo visible exportado: no ocultos, borradores ni historial.
-Retirar su payload deja un PDF normal y válido. Los recibos operativos locales no
-viajan en `.cvproj`.
+## Workspace Backup
 
-## Idiomas
+**Export library (.cvproj)** creates a workspace backup with the profile, CVs, assets, settings and declared history. Import into an empty library to restore. Replacing an existing library requires explicit confirmation and a prior backup. A canceled destination or failed write is not announced as success.
 
-**Idioma de interfaz** cambia etiquetas. **Preparar cambio de idioma** ofrece un
-plan revisable para el contenido del CV y conserva un checkpoint previo. Nombres,
-instituciones y contactos permanecen; los términos sensibles permiten original,
-traducción o ambos y revisión de aprobaciones obsoletas.
+## Languages
 
-El flujo actual es **manual y local**. No hay proveedor automático de producción
-instalado. Seleccionar English no traduce automáticamente textos.
+Interface Spanish/English and document Spanish/English are independent. Document language changes use a reviewable **manual/local** plan with a prior checkpoint. Official names/identifiers are protected; sensitive titles can show original, reviewed translation or both. There is no production automatic translation provider.
 
-## Datos, copias y privacidad
+## Compatibility
 
-La biblioteca vive fuera del repositorio, en `userData` de Electron: normalmente
-`~/.config/CVForge/library/library.sqlite3`, o bajo `$XDG_CONFIG_HOME/CVForge`.
-Allí se conservan SQLite, activos y copias internas. Mover la AppImage no mueve la
-biblioteca. Para copiar archivos locales, cierra la aplicación y conserva el
-**directorio completo**; copiar solo SQLite mientras está abierta no es un backup
-consistente. `.cvproj` conserva el proyecto editable de su alcance declarado.
+CVForge 0.1.0 libraries, compatible `.cvproj` CV/workspace backups and own PDF payloads remain readable. Storage stays at `~/.config/CVForge/library` or `$XDG_CONFIG_HOME/CVForge/library` intentionally, so updating does not hide your library. Internal format/creator identifiers and frozen PDF technical metadata may still say CVForge; these are compatibility identities, not a second product. See [retained identifiers](docs/release/REBRANDING.md).
 
-Los flujos actuales funcionan sin red ni cuenta. No se envían CV, fotos,
-traducciones o importaciones a servicios externos; no hay telemetría ni CDN.
-El PDF contiene solo datos visibles y recursos utilizados. El proyecto completo
-sí conserva los datos privados, valores originales y procedencia que pertenezcan
-a su alcance declarado.
+## Current Limitations
 
-Linux primero, traducción manual y compatibilidad Europass limitada al subconjunto
-probado. PDF/UA y accesibilidad completa no certificados. [Limitaciones reales](docs/f9/KNOWN_LIMITATIONS.md).
+Linux x86_64 only; Simple/Lateral only. No OCR, generic PDF reconstruction, universal Europass import, production automatic translation, cloud, accounts, sync or auto-update. PDF/UA and complete accessibility are not certified. Large histories have additional read/copy cost (50-revision diagnostic: Confirm p95 316.6 ms, outside the official acceptance corpus). See [compatibility and limitations](docs/release/PREPARATION.md).
 
-## Desarrollo y validación
+## Build from Source
+
+Validated with Node.js 26 and npm on Linux; native tooling may be needed for SQLite. From the matching source/lockfile:
 
 ```sh
 npm ci
 npm run setup:electron
-npm test
-npm run typecheck
 npm run build
 npm start
 ```
 
-Las pruebas gráficas requieren escritorio Linux y se ejecutan secuencialmente.
-Los procedimientos de aceptación, benchmark, empaquetado y aislamiento de red
-figuran en `docs/f9`. Los fixtures contienen solo datos sintéticos propios.
+Build the local binary:
 
-[Requisitos](docs/REQUIREMENTS.md) · [Arquitectura](docs/ARCHITECTURE.md) ·
-[Modelo](docs/DATA_MODEL.md) · [Roadmap](docs/ROADMAP.md).
+```sh
+npm run package:appimage
+```
+
+This builds locally and does not publish. Keep the provided third-party notices with redistribution.
+
+## Testing
+
+```sh
+npm test
+npm run typecheck
+npm run build
+npm run test:f9:ui
+```
+
+UI tests require an appropriate Linux graphical environment and prepared package. Additional phase/offline procedures are in [release preparation](docs/release/PREPARATION.md). Tests use synthetic data; never submit your real CV as a fixture.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Report security concerns according to [SECURITY.md](SECURITY.md), without private CVs/databases or sensitive public attachments.
+
+## License
+
+GNU General Public License v3.0, **GPL-3.0-only**. See [LICENSE](LICENSE) and [third-party notices](THIRD_PARTY_NOTICES.md).
+
+## Author
+
+**Alexandru David Raboaca Neagu**
+
+Copyright © 2026 Alexandru David Raboaca Neagu
+
+## Europass Disclaimer
+
+CVPass is an independent open-source project inspired by some Europass workflows. It is not affiliated with, endorsed by, or sponsored by Europass, the European Commission, or the European Union.

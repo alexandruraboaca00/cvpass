@@ -1,0 +1,43 @@
+{
+  "results": [
+    {
+      "case": 1,
+      "pass": true,
+      "education": 8,
+      "work": 3,
+      "skills": 18,
+      "groups": 2,
+      "native": 2,
+      "foreign": 1,
+      "fiveB2": true,
+      "valuesCompared": true,
+      "contactsCompared": true,
+      "photoCompared": true,
+      "reviewedUrls": 5,
+      "partial": true,
+      "reopened": true,
+      "originalUnchanged": true,
+      "repositoryScan": true
+    },
+    {
+      "case": 2,
+      "pass": true,
+      "education": 8,
+      "work": 3,
+      "skills": 18,
+      "groups": 2,
+      "native": 2,
+      "foreign": 1,
+      "fiveB2": true,
+      "valuesCompared": true,
+      "contactsCompared": true,
+      "photoCompared": true,
+      "reviewedUrls": 5,
+      "partial": true,
+      "reopened": true,
+      "originalUnchanged": true,
+      "repositoryScan": true
+    }
+  ],
+  "privateValuesPublished": false
+}

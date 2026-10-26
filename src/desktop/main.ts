@@ -3,6 +3,7 @@ import { ProfileEditorService } from '../application/profile-editor.js';
 import { ProfileSelectionSchema } from '../application/profile-selection.js';
 import type { ProfileEditorForm } from '../application/editor-model.js';
 import { appendFile } from 'node:fs/promises';
+import { mkdirSync, existsSync } from 'node:fs';
 import { captureTimings, measureAsync } from '../application/timing.js';
 import { app, BrowserWindow, dialog, ipcMain, nativeImage, session, shell } from 'electron';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -33,10 +34,15 @@ import type { PresentationInput } from '../application/render-contract.js';
 import { writeProjectFile } from '../adapters/project-files.js';
 
 startupMark('main:body');
-app.setName('CVForge');
+app.setName('CVPass');
+if (process.platform==='linux') app.setDesktopName('cvforge.desktop');
 // Electron's standard --user-data-dir is useful for isolated synthetic acceptance runs.
 const customData = app.commandLine.getSwitchValue('user-data-dir');
-if (customData) app.setPath('userData',customData);
+// Keep the pre-rebrand storage identity; changing productName must not hide an existing library.
+const dataDirectory = customData || join(app.getPath('appData'),'CVForge');
+mkdirSync(dataDirectory,{recursive:true,mode:0o700});
+app.setPath('userData',dataDirectory);
+app.setPath('sessionData',dataDirectory);
 if (!app.requestSingleInstanceLock()) app.quit();
 else void run();
 async function run():Promise<void> {
@@ -44,7 +50,7 @@ async function run():Promise<void> {
   const ctx = {newId:randomUUID,now:()=>new Date().toISOString()};
   let win:BrowserWindow|undefined, closing = false, uiLocale:'es'|'en'='es';
   const message=(key:string,values:Record<string,string|number>={})=>translateMessage(uiLocale,key,values);
-  const diagnostic=(event:string):void=>{if(app.commandLine.hasSwitch('cvforge-diagnostics'))console.info('CVForge lifecycle:',event);};
+  const diagnostic=(event:string):void=>{if(app.commandLine.hasSwitch('cvforge-diagnostics'))console.info('CVPass lifecycle:',event);};
   let releaseStartup!:()=>void,rejectStartup!:(error:Error)=>void;
   const startupReady=new Promise<void>((resolve,reject)=>{releaseStartup=resolve;rejectStartup=reject;});
   void startupReady.catch(()=>{});
@@ -52,7 +58,7 @@ async function run():Promise<void> {
     session.defaultSession.setPermissionRequestHandler((_webContents,_permission,callback)=>callback(false));
     session.defaultSession.webRequest.onBeforeRequest((details,callback)=>callback({cancel:!['file:','data:','blob:','devtools:'].includes(new URL(details.url).protocol)}));
     const base = fileURLToPath(new URL('.',import.meta.url));
-    startupMark('window:create-start');win = new BrowserWindow({width:1180,height:860,minWidth:760,minHeight:620,show:false,backgroundColor:'#f4f5f7',title:'CVForge',
+    startupMark('window:create-start');win = new BrowserWindow({width:1180,height:860,minWidth:760,minHeight:620,show:false,backgroundColor:'#f4f5f7',title:'CVPass 0.1.0',...(existsSync(join(app.getAppPath(),'assets/icons/256x256.png'))?{icon:join(app.getAppPath(),'assets/icons/256x256.png')} : {}),
       webPreferences:{additionalArguments:startupTracing?['--cvforge-startup-trace']:[],preload:join(base,'preload.cjs'),contextIsolation:true,sandbox:true,nodeIntegration:false,webSecurity:true}});
     startupMark('window:create-end');if(startupTracing)ipcMain.on('cvforge:startup:preload',()=>startupMark('preload:ready'));
     win.removeMenu();
@@ -121,7 +127,7 @@ async function run():Promise<void> {
             let cvId:string|undefined;
             if(envelope.action==='projectExport'){const cv=await host.library.openCv(args[0] as string);if(cv.revision!==args[1])throw new Error('REVISION_CONFLICT');cvId=cv.id;}
             const bytes=await host.library.exportCvproj(cvId);
-            const result=await dialog.showSaveDialog(win!,{title:message(envelope.action==='workspaceExport'?'Exportar biblioteca (.cvproj)':'Exportar proyecto (.cvproj)'),defaultPath:envelope.action==='workspaceExport'?'CVForge-biblioteca.cvproj':'CVForge.cvproj',filters:[{name:'CVForge',extensions:['cvproj']}],properties:['createDirectory','showOverwriteConfirmation']});
+            const result=await dialog.showSaveDialog(win!,{title:message(envelope.action==='workspaceExport'?'Exportar biblioteca (.cvproj)':'Exportar proyecto (.cvproj)'),defaultPath:envelope.action==='workspaceExport'?'CVPass-biblioteca.cvproj':'CVPass.cvproj',filters:[{name:'CVPass',extensions:['cvproj']}],properties:['createDirectory','showOverwriteConfirmation']});
             value=result.canceled||!result.filePath?{cancelled:true}:{cancelled:false,...await writeProjectFile(result.filePath,bytes,true)};
           }
           else if(envelope.action==='confirm'&&process.env.CVFORGE_CONFIRM_TRACE){
@@ -184,15 +190,15 @@ async function run():Promise<void> {
       if(closing)return;
       preview.invalidate();
       try{importer.cancel();}catch{/* wait for the confirmed transaction below */}
-      void queue.then(async()=>{await profileEditor.finish();await editor.close();}).catch(()=>dialog.showErrorBox(message('CVForge — borrador pendiente'),message('La ventana se ha cerrado inesperadamente y no se ha podido completar el guardado del borrador. El contenido confirmado se conserva.'))).finally(()=>{closing=true;win!.destroy();app.quit();});
+      void queue.then(async()=>{await profileEditor.finish();await editor.close();}).catch(()=>dialog.showErrorBox(message('CVPass — borrador pendiente'),message('La ventana se ha cerrado inesperadamente y no se ha podido completar el guardado del borrador. El contenido confirmado se conserva.'))).finally(()=>{closing=true;win!.destroy();app.quit();});
     });
     app.on('second-instance',()=>{win?.restore();win?.focus();});
     await rendererLoading;flushStartup();win.show();
   } catch (error) {
     rejectStartup(new Error('STORAGE_NOT_AVAILABLE'));
     // Diagnostic codes contain no CV values, SQL text or local filenames.
-    console.error('CVForge startup:',safeCode(error));
-    dialog.showErrorBox(message('CVForge — almacenamiento no disponible'),message('No se ha podido abrir la biblioteca. Comprueba el espacio disponible y los permisos de la carpeta de datos. Conserva ese directorio y restaura una copia si el error continúa. Código: {code}',{code:safeCode(error)}));
+    console.error('CVPass startup:',safeCode(error));
+    dialog.showErrorBox(message('CVPass — almacenamiento no disponible'),message('No se ha podido abrir la biblioteca. Comprueba el espacio disponible y los permisos de la carpeta de datos. Conserva ese directorio y restaura una copia si el error continúa. Código: {code}',{code:safeCode(error)}));
     closing = true; win?.destroy(); app.exit(1);
   }
 }

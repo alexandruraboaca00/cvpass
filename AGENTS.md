@@ -1,3 +1,17 @@
+# Estado vigente de preparación pública
+
+Producto público: **CVPass 0.1.0**, autor Alexandru David Raboaca Neagu, GPL-3.0-only.
+Rama `release-v0.1.0` desde main saneada `b22c2f9`. Rebranding visible únicamente;
+conservar userData `CVForge`, IDs y formatos históricos para no ocultar bibliotecas.
+F0–F9 aprobadas; **F10 no iniciada**. No fetch/push, force push, remoto público,
+renombrado remoto, tag ni GitHub Release. El servidor aún contiene historia antigua.
+No reescribir de nuevo historia. Los backups Git privados nunca se publican.
+NF-05 y A/B/C conservados; deuda 50 revisiones/316,6 ms no se resuelve aquí.
+Branding definitivo suministrado en `assets/branding/icon-master.png` y `logo-horizontal.png`;
+conservar originales, generar derivados técnicos y seguir [preparación](docs/release/PREPARATION.md) y esperar aprobación para publicar.
+
+## Instrucciones e historial conservados
+
 # AGENTS.md
 
 ## Proyecto y estado
