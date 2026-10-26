@@ -167,3 +167,14 @@ attachment.xml
 /docs/research/scenarios/41-analisis-seguimiento.py
 /docs/research/scenarios/45-cerrar-control-caducidad.mjs
 /docs/research/scenarios/cierre-helpers.mjs
+
+# Reviewed public screenshots only; all other runtime screenshots stay ignored.
+!/docs/screenshots/
+/docs/screenshots/*
+!/docs/screenshots/README.md
+!/docs/screenshots/library.png
+!/docs/screenshots/profile.png
+!/docs/screenshots/editor.png
+!/docs/screenshots/simple.png
+!/docs/screenshots/lateral.png
+!/docs/screenshots/preview.png
