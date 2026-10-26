@@ -1,3 +1,9 @@
+> Producto público actual: **CVPass 0.1.0**, antes CVForge. F0–F9 aprobadas e
+> integradas; esta rama solo prepara branding, licencia y release pública, no F10.
+> Los identificadores y registros históricos CVForge se conservan según
+> [REBRANDING](release/REBRANDING.md); NF-05 no cambia. El historial Git se saneó
+> localmente con aprobación; no se autoriza fetch/push ni publicación.
+
 # Roadmap de implementación
 
 Versión 0.9 · 25 de octubre de 2026 · Decisiones de producto consolidadas e implementación por fases. **F9 APROBADA técnicamente tras corregir startup; pendiente de nueva aprobación en su rama, sin fusionar ni publicar main. F1–F8 y el pulido visual integrados; main sigue en `cc7cf0d`. F10 no iniciada.** [Aceptación](f9/ACCEPTANCE.md), [perfilado](f9/STARTUP_PROFILING.md).

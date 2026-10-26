@@ -1,0 +1,20 @@
+{
+  "version": "0.1.0",
+  "artifactSha256": "e4be32c6d27d5fd9dec210026d765869855510003999353a4313a71775dbc125",
+  "byteLength": 159776605,
+  "linux": "x86_64",
+  "standaloneCopy": true,
+  "workingDirectoryOutsideRepository": true,
+  "chromiumSandboxPreserved": true,
+  "effectiveCapabilitiesZero": true,
+  "localFonts": true,
+  "pdfjsWorker": true,
+  "restoredSaxesLicense": true,
+  "sourceParityFiles": 106,
+  "noPrivateFiles": true,
+  "noSourceTestsOrSpikes": true,
+  "artifactUnchanged": true,
+  "packagedUiPassed": true,
+  "defaultElectronIcon": true,
+  "brandingMasterPending": true
+}

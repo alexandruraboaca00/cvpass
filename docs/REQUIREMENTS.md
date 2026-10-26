@@ -1,4 +1,10 @@
-# Requisitos de CVForge
+> Producto público actual: **CVPass 0.1.0**, antes CVForge. F0–F9 aprobadas e
+> integradas; esta rama solo prepara branding, licencia y release pública, no F10.
+> Los identificadores y registros históricos CVForge se conservan según
+> [REBRANDING](release/REBRANDING.md); NF-05 no cambia. El historial Git se saneó
+> localmente con aprobación; no se autoriza fetch/push ni publicación.
+
+# Requisitos de CVPass
 
 Versión 0.10 · 19 de octubre de 2026 · Decisiones de producto consolidadas por el usuario. Implementación autorizada por fases; F1 está aprobada con el alcance de cierre fijado por el usuario; véase [registro F1](F1_VALIDATION.md). F2 está aprobada e integrada en main. F3 tiene biblioteca/persistencia/recuperación aprobadas por el usuario e integradas en main mediante merge commit; F4 tiene el editor principal de datos personales, educación y experiencia aprobado por el usuario e integrado en main mediante merge commit desde `f4-core-editor`. Véanse [aceptación F2](f2/VALIDATION.md), [validación F3](f3/VALIDATION.md) y [validación F4](f4/VALIDATION.md). F5 está aprobada por el usuario e integrada en main mediante merge commit desde `f5-mvp-sections-languages`, con validación en [f5/VALIDATION.md](f5/VALIDATION.md). F6 aprobada por el usuario e integrada en main mediante merge commit desde `f6-structured-import`. Véanse [alcance](f6/IMPORT.md) y [validación](f6/VALIDATION.md). F7 y el pulido visual posterior están aprobados e integrados en main. F8 está aprobada por el usuario e integrada en main mediante merge commit desde `f8-lateral-portable-cycle`, con base `7803271`; alcance y evidencia en [f8/VALIDATION.md](f8/VALIDATION.md). F9 está aprobada por el usuario, pero la integración queda bloqueada por el nuevo control de Confirmar durable (p95 359,7 ms >300); sin merge/push ni F10. [Control actual](f9/MERGE_VALIDATION.md). Véase [perfilado](f9/STARTUP_PROFILING.md).
 

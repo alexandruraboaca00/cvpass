@@ -1,3 +1,5 @@
+> Historical CVForge MVP acceptance evidence. Current CVPass public-release preparation: [release notes](../release/v0.1.0.md) and [validation](../release/VALIDATION.md). Original measurements and artifact records below are preserved.
+
 > **Integración definitiva del MVP 0.1.0 aprobada por el usuario:** F9 se integra
 > en `main` mediante merge commit, sin squash ni reescribir historia. Las campañas
 > A/B/C y NF-05 vigente (startup ≤3200, Confirmar ≤300) no cambian ni se repiten.

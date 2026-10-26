@@ -1,4 +1,10 @@
-# Arquitectura propuesta
+> Producto público actual: **CVPass 0.1.0**, antes CVForge. F0–F9 aprobadas e
+> integradas; esta rama solo prepara branding, licencia y release pública, no F10.
+> Los identificadores y registros históricos CVForge se conservan según
+> [REBRANDING](release/REBRANDING.md); NF-05 no cambia. El historial Git se saneó
+> localmente con aprobación; no se autoriza fetch/push ni publicación.
+
+# Arquitectura de CVPass
 
 Versión 0.10 · 19 de octubre de 2026 · F1/F2/F3 aprobadas e integradas en main. Editor principal F4 aprobado por el usuario e integrado en main mediante merge commit desde `f4-core-editor`. Véanse [aceptación F2](f2/VALIDATION.md), [validación F3](f3/VALIDATION.md) y [arquitectura/validación F4](f4/EDITOR.md). F5 tiene áreas e idiomas aprobados por el usuario e integrados en main mediante merge commit desde `f5-mvp-sections-languages`; [detalle](f5/IMPLEMENTATION.md). F6 aprobada por el usuario e integrada en main mediante merge commit desde `f6-structured-import`; [pipeline y límites](f6/IMPORT.md).
 
