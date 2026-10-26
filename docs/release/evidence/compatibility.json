@@ -1,5 +1,6 @@
 {
   "syntheticOnly": true,
+  "windowIconMatchesOfficial256": true,
   "oldAppName": "CVForge",
   "newAppName": "CVPass",
   "userDataRetained": true,
@@ -20,5 +21,5 @@
   "httpRequests": 0,
   "screenshots": 6,
   "originalOldArtifactSha256": "6f07c8418392f00e98104b041885d20a1b1aa50653e9ce9dc6512451eec707f3",
-  "renamedArtifactSha256": "e4be32c6d27d5fd9dec210026d765869855510003999353a4313a71775dbc125"
+  "renamedArtifactSha256": "33754ed7bc85eff63c36c1a47164a47df0d4f9babf2b1eabfa6e52db2270070b"
 }

@@ -43,20 +43,30 @@ were recaptured from actual PDF.js canvas pixels to avoid viewport clipping.
 
 ## Artifact and reproducibility
 
-`out/f9/CVPass-0.1.0-x86_64.AppImage`: **159,776,605 bytes**.
+`out/f9/CVPass-0.1.0-x86_64.AppImage`: **162,162,621 bytes**.
 
-SHA-256: `e4be32c6d27d5fd9dec210026d765869855510003999353a4313a71775dbc125`.
+SHA-256: `33754ed7bc85eff63c36c1a47164a47df0d4f9babf2b1eabfa6e52db2270070b`.
 
 [Two-build receipt](evidence/reproducibility.json): two sequential independent
-AppImage packaging runs from the same validated compiled production inputs,
+full `npm run package:appimage` runs, each rebuilding TypeScript/Vite and AppImage,
 fixed SOURCE_DATE_EPOCH 1792756800, Electron 44.7.2, builder 26.15.3. The full
 artifact bytes match. No concurrent dist rebuild was used for this proof.
 The old CVForge checksum was not reused. [SHA256SUMS](../../SHA256SUMS).
 
-The artifact is technically validated but has the default Electron icon. The
-approved master is not available: place it at `assets/branding/icon-master.png`,
-run `npm run branding:prepare`, rebuild twice and update checksums/evidence.
-No substitute logo or fake vector was made. AppStream was absent, not claimed.
+The approved master and horizontal logo are now supplied. [Branding receipt](evidence/branding.json)
+checks the original RGBA PNGs and nine transparent derivatives. Originals remain
+byte-for-byte unchanged. The non-square master is centered on transparent padding
+and resized at best quality, without distortion/cropping. AppStream was absent,
+not claimed. Linux icon/desktop keys remain historical; the visible icon is CVPass.
+
+### Previous provisional artifact (history preserved)
+
+Before the supplied assets, the candidate used Electron's default icon:
+159,776,605 bytes, SHA-256
+`e4be32c6d27d5fd9dec210026d765869855510003999353a4313a71775dbc125`.
+It was NOT READY because the master was absent. That gate is now resolved.
+Its receipts remain under [previous-unbranded](evidence/previous-unbranded/reproducibility.json),
+separate from the new final candidate. No old checksum is reused.
 
 ## Performance and outstanding limits
 
@@ -66,8 +76,8 @@ startup A/B/C remain 3075.6 / 2995.8 / 2935.0 ms against the explicitly revised
 300 ms. Historical results remain in F9 documents. The 50-revision diagnostic
 316.6 ms and global history read/copy debt remain outside the acceptance corpus.
 
-Public-release readiness is **NOT READY FOR PUBLIC RELEASE** while the selected
-branding master is missing. Remote sanitization/publication also require separate
+The branding gate is resolved. Final readiness is determined by the branded
+regression and privacy audit below. Remote sanitization/publication require separate
 approval; neither was attempted. See [preparation](PREPARATION.md),
 [compatibility identifiers](REBRANDING.md), [audit](AUDIT.md) and
 [third-party notices](../../THIRD_PARTY_NOTICES.md).
@@ -75,4 +85,51 @@ approval; neither was attempted. See [preparation](PREPARATION.md),
 Final [legacy compatibility receipt](evidence/compatibility.json) and
 [normal FUSE receipt](evidence/fuse.json) both PASS for the same final AppImage.
 Six public screenshots were reviewed: Library, Master Profile, Editor, Simple,
-Lateral and Preview. The only missing visual asset is the approved app icon.
+Lateral and Preview. The official icon is now supplied and integrated.
+
+## Official asset integration
+
+Master: 1297×1212; wordmark: 1983×793, RGBA PNG with transparent corners.
+Nine derivatives: 16/24/32/48/64/128/256/512/1024. The source is padded to a
+1297px transparent square before resizing, never stretched or artistically
+modified. The original hashes in `evidence/branding.json` remain unchanged.
+The window uses 256px; the Linux packager uses the full icon directory and
+preserves the historical desktop icon key. README EN/ES use the wordmark at
+420px width, not a replacement text/logo. No AppStream file existed.
+
+No NF-05 benchmark was repeated for this asset integration. All product content,
+format/schema versions and renderers remain unchanged. The new build contains
+only the intended branding resource/packaging differences.
+
+## Final branded candidate — PASS
+
+[Regression receipt](evidence/regression.json): F1–F9 **222 tests PASS**, 23 GUI
+and 10 packaged GUI without skips/flaky cases, **33 PDF PASS**, TypeScript/build
+PASS. Preview/export hash identity, Simple clock-date-only equivalence, Lateral,
+portable PDF, `.cvproj`, profile independence, workspace backup/restore, assets,
+drafts and revisions remain validated. The two private Europass samples also
+pass the separate isolated [private acceptance](evidence/private-acceptance.json),
+with no private values published. This separate run is explicit: the first full
+branded pipeline invocation did not set its optional private-input environment
+variable, so it did not execute that additional acceptance stage.
+
+[Compatibility](evidence/compatibility.json) and [normal FUSE](evidence/fuse.json)
+PASS on the same branded SHA-256. The actual X11 window icon matches the official
+256px image after standard alpha representation conversion. The test initially
+hit xprop's default 250KB property truncation and then compared premultiplied
+nativeImage BGRA against straight-alpha X11 ARGB. The reader now requests enough
+bytes and compares associated-alpha pixels with one-byte rounding tolerance.
+These were test assumptions, not product/design changes; failed local logs remain.
+The AppImage desktop icon matches an official derivative byte-for-byte; all nine
+packaged icon files match source hashes, and the Electron default icon is absent.
+
+Public screenshots were regenerated from this candidate and use the same synthetic
+fixture, never the private acceptance PDFs. READMEs use the supplied horizontal
+logo via a relative path; all 68 local links/image paths resolve. User-visible
+GUI branding is CVPass. Historical PDF metadata/format and data-path CVForge
+identifiers remain deliberately preserved, as classified in REBRANDING.md.
+
+Conclusion: **READY FOR REMOTE SANITIZATION AND PUBLIC RELEASE**.
+This is readiness only: no fetch, push/force push, remote rename, visibility
+change, tag or GitHub Release was performed. The branch remains unmerged and
+F10 is not started. All remote/public actions still require user approval.

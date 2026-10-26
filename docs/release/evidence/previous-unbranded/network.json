@@ -1,0 +1,14 @@
+{
+  "interfaces": [
+    "lo"
+  ],
+  "routes": [
+    "Iface\tDestination\tGateway \tFlags\tRefCnt\tUse\tMetric\tMask\t\tMTU\tWindow\tIRTT"
+  ],
+  "external": "ENETUNREACH",
+  "effectiveCapabilitiesZero": true,
+  "resumedPrivateAudit": false,
+  "resumedAfterPackage": false,
+  "method": "unshare user/network namespace; loopback only for CDP; drop capabilities before tests and AppImage",
+  "localPipeline": true
+}

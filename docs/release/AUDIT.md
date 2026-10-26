@@ -48,15 +48,29 @@ compatibility/notice review, not legal certification of every transitive package
 
 ## Remaining gate
 
-No new privacy blocker was detected. **The selected branding master is missing**;
-the provisional package has Electron's default icon. Provide
-`assets/branding/icon-master.png` before the final branded artifact is rebuilt,
-checksummed and revalidated. No remote history rewrite/push, visibility change,
+No new privacy blocker was detected. The user has now supplied the selected
+master and horizontal logo. Both original RGBA PNGs are retained unchanged; their
+C2PA provenance chunks contain no email or personal local path. The derivatives
+contain no copied provenance metadata. The prior missing-master gate is resolved. No remote history rewrite/push, visibility change,
 remote rename, tag or release was executed. Final local receipts are linked in
 [VALIDATION.md](VALIDATION.md); all remote/public actions await approval.
 
-[Final local audit receipt](evidence/privacy.json): 91 reachable commits, 855
+[Prior unbranded audit receipt](evidence/previous-unbranded/privacy.json): 91 reachable commits, 855
 reachable blobs and 1,398 total local Git objects checked at the recorded HEAD.
 All 78 email candidate locations use only synthetic domains or the approved
 GitHub noreply. Both exact private acceptance cases pass after the documentation
 commits. All 61 local documentation links resolve. No new privacy blocker.
+
+## Final branding follow-up
+
+Both approved assets and nine derivatives pass PNG/alpha/dimension validation;
+original hashes are unchanged. The C2PA chunks contain no email or personal local
+path. The complete final candidate passes 222 tests, 33 PDF and two private local
+acceptance cases. Final evidence is in VALIDATION.md and evidence/privacy.json.
+The missing-icon blocker is resolved; there is no remaining detected local
+privacy or branding blocker. Remote history is still unsanitized and private;
+no remote operation has been attempted. Publication awaits explicit approval.
+
+[Current branded audit receipt](evidence/privacy.json) records the exact audited
+HEAD and counts. All current email candidates remain synthetic or the approved
+noreply identity; personal Gmail and secret-pattern hits remain zero.

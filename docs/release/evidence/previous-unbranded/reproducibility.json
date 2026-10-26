@@ -1,0 +1,23 @@
+{
+  "first": {
+    "version": "0.1.0",
+    "artifact": "CVPass-0.1.0-x86_64.AppImage",
+    "byteLength": 159776605,
+    "sha256": "e4be32c6d27d5fd9dec210026d765869855510003999353a4313a71775dbc125",
+    "sourceDateEpoch": 1792756800,
+    "electron": "44.7.2",
+    "builder": "26.15.3"
+  },
+  "second": {
+    "version": "0.1.0",
+    "artifact": "CVPass-0.1.0-x86_64.AppImage",
+    "byteLength": 159776605,
+    "sha256": "e4be32c6d27d5fd9dec210026d765869855510003999353a4313a71775dbc125",
+    "sourceDateEpoch": 1792756800,
+    "electron": "44.7.2",
+    "builder": "26.15.3"
+  },
+  "identical": true,
+  "method": "two sequential electron-builder AppImage builds from the same already compiled validated dist; no source changes or concurrent dist rebuilds",
+  "supersedesEarlierProvisionalHash": true
+}

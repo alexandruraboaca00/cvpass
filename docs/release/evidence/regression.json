@@ -1,0 +1,18 @@
+{
+  "f1": 3,
+  "domainApplicationSqlite": 186,
+  "uiLayout": 23,
+  "packagedGui": 10,
+  "totalTests": 222,
+  "uiUnexpectedSkippedFlaky": 0,
+  "pdfSimpleLateral": 26,
+  "pdfSimpleRegression": 7,
+  "totalPdf": 33,
+  "simpleEquivalentExceptExistingClockDates": true,
+  "typeScript": "PASS",
+  "build": "PASS",
+  "privateAcceptanceCases": 2,
+  "offline": "PASS",
+  "privacy": "PASS",
+  "benchmarkRepeated": false
+}
