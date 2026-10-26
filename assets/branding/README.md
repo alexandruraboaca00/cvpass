@@ -23,3 +23,7 @@ use the original horizontal logo at a bounded display width, with relative paths
 
 Copyright © 2026 Alexandru David Raboaca Neagu. User-approved project branding,
 distributed under GPL-3.0-only with the project; no Europass/UE emblems or resources.
+
+The supplied originals retain C2PA/OpenAI provenance chunks (no email or local
+personal path found). No hand-drawn/vector origin is claimed. Technical icon
+derivatives do not copy the original metadata chunks.

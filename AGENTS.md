@@ -7,8 +7,8 @@ F0–F9 aprobadas; **F10 no iniciada**. No fetch/push, force push, remoto públi
 renombrado remoto, tag ni GitHub Release. El servidor aún contiene historia antigua.
 No reescribir de nuevo historia. Los backups Git privados nunca se publican.
 NF-05 y A/B/C conservados; deuda 50 revisiones/316,6 ms no se resuelve aquí.
-Falta el maestro aprobado en `assets/branding/icon-master.png`: no inventar logo;
-seguir [preparación](docs/release/PREPARATION.md) y esperar aprobación para publicar.
+Branding definitivo suministrado en `assets/branding/icon-master.png` y `logo-horizontal.png`;
+conservar originales, generar derivados técnicos y seguir [preparación](docs/release/PREPARATION.md) y esperar aprobación para publicar.
 
 ## Instrucciones e historial conservados
 

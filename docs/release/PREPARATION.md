@@ -56,14 +56,17 @@ no product behavior was changed to hide that harness error. Both logs remain loc
 
 ## Branding gate
 
-**Missing selected master:** place the approved option 1 PNG at
-`assets/branding/icon-master.png` (ideally 1024×1024). Run `npm run branding:prepare`
-then rebuild twice and revalidate package/screenshots/checksum. No substitute logo
-or fake SVG is created. Pending wordmark: optional `assets/branding/cvpass-horizontal.png`.
-The provisional AppImage still uses Electron's icon. Do not treat it as the final
-public branded artifact while this is pending. No AppStream metadata existed;
-none is claimed as validated. The generated .desktop name is CVPass, while its
-technical key/executable remain cvforge for compatibility.
+The selected master and horizontal logo have now been supplied by the user at
+`assets/branding/icon-master.png` and `assets/branding/logo-horizontal.png`.
+Original bytes remain unchanged. Transparent square padding and best-quality
+resize generate all nine PNG resolutions. The default Electron icon is replaced.
+Window and AppImage icon checks use the official derived pixels/files. README
+EN/ES use the supplied horizontal logo at 420px width with relative paths.
+No AppStream metadata existed; none is claimed as validated. Generated .desktop
+name is CVPass; its technical key/executable/icon identity remain cvforge.
+
+The prior missing-master gate and provisional artifact remain recorded in Git
+and in the validation history; they are superseded by the branded candidate.
 
 ## Licensing and author
 
@@ -90,6 +93,6 @@ acceptance corpus; global history reads/copies need later optimization.
 
 Final results, artifact, checksums, reproducibility, screenshots and audit receipts
 are recorded below after execution. The final publication gate also requires the
-selected branding master and separate user approval of remote actions.
+separate user approval of remote actions.
 
 Executed results: [validation and artifact](VALIDATION.md), [privacy/license audit](AUDIT.md).

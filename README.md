@@ -2,6 +2,8 @@
 
 # CVPass
 
+<img src="assets/branding/logo-horizontal.png" alt="CVPass" width="420">
+
 CVPass is a private, offline CV editor for Linux, inspired by Europass workflows.
 
 ## What is CVPass?
@@ -18,7 +20,7 @@ The supported workflow runs offline, without an account, telemetry, cloud upload
 
 ## Screenshots
 
-Only synthetic demo data is used. See [screenshots and their provenance](docs/screenshots/README.md). The approved CVPass icon master is still awaited; see [branding](assets/branding/README.md).
+Only synthetic demo data is used. See [screenshots and their provenance](docs/screenshots/README.md). Official user-supplied CVPass assets are included; see [branding](assets/branding/README.md).
 
 
 ![CVPass library](docs/screenshots/library.png)
