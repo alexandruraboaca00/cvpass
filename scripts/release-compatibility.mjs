@@ -21,9 +21,12 @@ async function launch(executable,dir,name){
  assert.equal(metadata.name,name);assert.equal(metadata.version,'0.1.0');assert.equal(metadata.path,join(dir,'config/CVForge'));assert.equal(metadata.noSandbox,false);
  if(name==='CVPass'&&!windowIconVerified){
   const icon=await app.evaluate(({app,BrowserWindow,nativeImage})=>({handle:BrowserWindow.getAllWindows()[0].getNativeWindowHandle().readUInt32LE(0),bitmap:nativeImage.createFromPath(app.getAppPath()+'/assets/icons/256x256.png').toBitmap().toString('base64')}));
-  const property=execFileSync('xprop',['-id',String(icon.handle),'-f','_NET_WM_ICON','32c','_NET_WM_ICON'],{encoding:'utf8',maxBuffer:4000000});
+  const property=execFileSync('xprop',['-len','1000000','-id',String(icon.handle),'-f','_NET_WM_ICON','32c','_NET_WM_ICON'],{encoding:'utf8',maxBuffer:4000000});
   const values=property.slice(property.indexOf('=')+1).match(/-?\d+/g).map(Number);assert.equal(values[0],256);assert.equal(values[1],256);
-  const expected=Buffer.from(icon.bitmap,'base64');assert.equal(values.length,2+expected.length/4);for(let i=0;i<expected.length/4;i++)assert.equal(values[i+2]>>>0,expected.readUInt32LE(i*4));
+  const expected=Buffer.from(icon.bitmap,'base64');assert.equal(values.length,2+expected.length/4);
+  // nativeImage bitmap is premultiplied BGRA; X11 exposes straight-alpha ARGB.
+  // Compare in the associated-alpha representation (one-byte rounding tolerance).
+  for(let i=0;i<expected.length/4;i++){const pixel=values[i+2]>>>0,alpha=pixel>>>24;assert.equal(alpha,expected[i*4+3]);for(let channel=0;channel<3;channel++)assert(Math.abs(Math.round(((pixel>>>(channel*8))&255)*alpha/255)-expected[i*4+channel])<=1,'Window icon pixels must match the official image after alpha conversion');}
   windowIconVerified=true;
  }
 

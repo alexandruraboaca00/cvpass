@@ -13,3 +13,8 @@ example.test contacts, synthetic institutions and synthetic solid-color photo).
 They are lossless Playwright PNGs, not mockups or generated logo assets. No
 private acceptance library or private PDF is used. Simple/Lateral are PDF.js
 canvas captures of the actual generated PDFs.
+
+The final branded AppImage is rechecked with the same synthetic fixture. The
+window icon is verified against the official 256px pixels through X11; the
+page screenshots do not include window decorations or a provisional icon.
+No private photo is substituted for the synthetic solid-color demo photo.
