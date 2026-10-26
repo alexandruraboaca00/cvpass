@@ -71,3 +71,8 @@ branding master is missing. Remote sanitization/publication also require separat
 approval; neither was attempted. See [preparation](PREPARATION.md),
 [compatibility identifiers](REBRANDING.md), [audit](AUDIT.md) and
 [third-party notices](../../THIRD_PARTY_NOTICES.md).
+
+Final [legacy compatibility receipt](evidence/compatibility.json) and
+[normal FUSE receipt](evidence/fuse.json) both PASS for the same final AppImage.
+Six public screenshots were reviewed: Library, Master Profile, Editor, Simple,
+Lateral and Preview. The only missing visual asset is the approved app icon.

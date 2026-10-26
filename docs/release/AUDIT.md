@@ -54,3 +54,9 @@ the provisional package has Electron's default icon. Provide
 checksummed and revalidated. No remote history rewrite/push, visibility change,
 remote rename, tag or release was executed. Final local receipts are linked in
 [VALIDATION.md](VALIDATION.md); all remote/public actions await approval.
+
+[Final local audit receipt](evidence/privacy.json): 91 reachable commits, 855
+reachable blobs and 1,398 total local Git objects checked at the recorded HEAD.
+All 78 email candidate locations use only synthetic domains or the approved
+GitHub noreply. Both exact private acceptance cases pass after the documentation
+commits. All 61 local documentation links resolve. No new privacy blocker.
