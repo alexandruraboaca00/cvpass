@@ -1,0 +1,78 @@
+name: Windows candidate 0.2.0
+on:
+  pull_request:
+  workflow_dispatch:
+  push:
+    branches: [windows-support-v0.2.0]
+permissions:
+  contents: read
+concurrency:
+  group: windows-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 40
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      CVPASS_NATIVE_OUTPUT: native-proof.json
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version: 26.12.1
+          cache: npm
+      - run: npm install --global npm@12.2.1
+      - run: npm ci
+      - run: npm run setup:electron
+      - run: npm run typecheck
+      - run: npm run build
+      - run: npm run test:portable
+      - name: Verify target native N-API SQLite under Electron
+        run: npm run validate:native
+      - run: npm run package:windows
+      - name: Install unsigned per-user candidate
+        shell: pwsh
+        run: |
+          $setup = (Resolve-Path out/windows/CVPass-0.2.0-win-x64-Setup.exe).Path
+          $install = Join-Path $env:LOCALAPPDATA 'Programs/CVPass-CI'
+          $p = Start-Process -FilePath $setup -ArgumentList @('/S', "/D=$install") -PassThru -Wait
+          if ($p.ExitCode -ne 0) { throw "NSIS install failed: $($p.ExitCode)" }
+          if (-not (Test-Path "$install/CVPass.exe")) { throw 'Installed executable absent' }
+          "CVPASS_EXECUTABLE=$install/CVPass.exe" >> $env:GITHUB_ENV
+      - name: Real installed GUI / SQLite / PDF / portable projects / reopen
+        run: npm run test:windows:smoke
+      - name: Existing GUI profile, languages and keyboard regressions
+        run: npm run test:f9:ui -- --grep 'AC-06|AC-05|keyboard'
+        env:
+          CVFORGE_F9_EXECUTABLE: ${{ env.CVPASS_EXECUTABLE }}
+          CVFORGE_F9_OUTPUT: ${{ runner.temp }}/cvpass-gui
+          CVFORGE_F4_OUTPUT: out/windows/gui
+          CVFORGE_F4_REPORT: out/windows/gui/report.json
+      - name: Uninstall must preserve user library
+        shell: pwsh
+        run: |
+          $data = Join-Path $env:APPDATA 'CVPass/library/library.sqlite3'
+          if (-not (Test-Path $data)) { throw 'Default user library not created' }
+          $before = (Get-FileHash $data -Algorithm SHA256).Hash
+          $uninstall = Join-Path $env:LOCALAPPDATA 'Programs/CVPass-CI/Uninstall CVPass.exe'
+          $p = Start-Process -FilePath $uninstall -ArgumentList '/S' -Wait -PassThru
+          Start-Sleep -Seconds 3
+          if ($p.ExitCode -ne 0) { throw 'Uninstall failed' }
+          if ((Get-FileHash $data -Algorithm SHA256).Hash -ne $before) { throw 'User library changed during uninstall' }
+      - name: Portable launch with ordinary roaming data
+        run: node scripts/windows-portable-smoke.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: cvpass-windows-x64-candidate
+          retention-days: 14
+          path: |
+            out/windows/*Setup.exe
+            out/windows/*Portable.exe
+            out/windows/SHA256SUMS
+            out/windows/artifacts.json
+            out/windows/*proof.json
+            out/windows/gui/*.png
+            out/windows/gui/report.json
+            native-proof.json

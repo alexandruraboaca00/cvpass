@@ -28,3 +28,31 @@ linux:
 appImage:
   artifactName: CVPass-${version}-x86_64.AppImage
   executableArgs: []
+
+win:
+  files:
+    - "!**/prebuilds/linux*.node"
+    - "!**/prebuilds/darwin*.node"
+    - "!**/prebuilds/win32-arm64.node"
+  icon: assets/icons/cvpass.ico
+  executableName: CVPass
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: portable
+      arch: [x64]
+  signAndEditExecutable: true
+nsis:
+  artifactName: CVPass-${version}-win-x64-Setup.exe
+  oneClick: false
+  perMachine: false
+  allowElevation: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: always
+  createStartMenuShortcut: true
+  shortcutName: CVPass
+  deleteAppDataOnUninstall: false
+  runAfterFinish: false
+portable:
+  artifactName: CVPass-${version}-win-x64-Portable.exe
+  requestExecutionLevel: user

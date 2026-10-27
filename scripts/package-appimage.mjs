@@ -14,6 +14,7 @@ for(const args of [['run','build'],['exec','--','electron-builder','--linux','Ap
 const metadata=JSON.parse(await readFile('package.json','utf8')),name=`CVPass-${metadata.version}-x86_64.AppImage`,path='out/f9/'+name,bytes=await readFile(path),sha256=createHash('sha256').update(bytes).digest('hex');
 await writeFile(path+'.sha256',sha256+'  '+name+'\n');
 await writeFile('out/f9/SHA256SUMS',sha256+'  '+name+'\n');
-await writeFile('SHA256SUMS',sha256+'  '+name+'\n');
+// Preserve the published 0.1.0 checksum while developing the next version.
+if(metadata.version==='0.1.0')await writeFile('SHA256SUMS',sha256+'  '+name+'\n');
 await writeFile('out/f9/release.json',JSON.stringify({version:metadata.version,artifact:name,byteLength:(await stat(path)).size,sha256,sourceDateEpoch:Number(epoch),electron:metadata.devDependencies.electron,builder:metadata.devDependencies['electron-builder']},null,2));
 console.log(JSON.stringify({artifact:path,sha256,bytes:bytes.length,sourceDateEpoch:epoch}));

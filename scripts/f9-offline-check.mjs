@@ -7,6 +7,7 @@ import {connect} from 'node:net';
 import {createHash} from 'node:crypto';
 import assert from 'node:assert/strict';
 if(!process.argv.includes('--isolated')){const r=spawnSync('unshare',['--user','--map-current-user','--keep-caps','--net','sh','-c','ip link set lo up && exec setpriv --bounding-set=-all --inh-caps=-all --ambient-caps=-all "$@"','cvforge-f9-offline',process.execPath,fileURLToPath(import.meta.url),'--isolated',...process.argv.slice(2)],{stdio:'inherit'});if(r.error)throw r.error;process.exit(r.status??1);}
+const currentVersion=JSON.parse(await readFile('package.json','utf8')).version;
 const output=process.env.CVFORGE_F9_OUTPUT??'/tmp/cvforge-f9/final-offline';await mkdir(output,{recursive:true});
 const interfaces=Object.keys(networkInterfaces()),routes=(await readFile('/proc/net/route','utf8')).trim().split('\n');assert(interfaces.every(i=>i==='lo'));assert.equal(routes.length,1);
 assert(/^CapEff:\s+0+$/m.test(await readFile('/proc/self/status','utf8')),'Acceptance must run without effective capabilities');
@@ -19,7 +20,7 @@ if(resumedPrivateAudit||resumedAfterPackage){
  // Resume only successful verified stages. Always rerun the failed stage;
  // every preceding receipt must belong to the exact same AppImage.
  const json=async p=>JSON.parse(await readFile(join(output,p),'utf8'));
- const proof=await json('package/proof.json');assert(proof.packagedUiPassed&&proof.effectiveCapabilitiesZero);assert.equal(proof.artifactSha256,createHash('sha256').update(await readFile('out/f9/CVPass-0.1.0-x86_64.AppImage')).digest('hex'));
+ const proof=await json('package/proof.json');assert(proof.packagedUiPassed&&proof.effectiveCapabilitiesZero);assert.equal(proof.artifactSha256,createHash('sha256').update(await readFile(`out/f9/CVPass-${currentVersion}-x86_64.AppImage`)).digest('hex'));
  for(const [p,n] of [['ui/report.json',23],['package/ui/report.json',10]]){const r=await json(p);assert.equal(r.stats.expected,n);assert.equal(r.stats.unexpected+r.stats.skipped+r.stats.flaky+r.errors.length,0);}
  for(const [p,n] of [['f1.log',3],['tests.log',186]]){const s=await readFile(join(output,p),'utf8');assert(s.includes('pass '+n)&&s.includes('fail 0'));}
  if(resumedPrivateAudit){
