@@ -1,3 +1,5 @@
+import { APP_VERSION } from '../application/version.js';
+document.title = `CVPass ${APP_VERSION}`;
 import { createRoot } from 'react-dom/client';
 import { App } from './App.js';
 import { I18nProvider } from './i18n.js';

@@ -1,5 +1,5 @@
 import { constants } from 'node:fs';
-import { open, link, rename, unlink } from 'node:fs/promises';
+import { open, link, rename, unlink, lstat } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { LibraryService } from '../application/library.js';
@@ -11,10 +11,12 @@ import { WORKSPACE_LIMITS } from './zip-store.js';
 // This adapter is not exposed to a renderer as a general filesystem API.
 export async function readProjectFile(path: string, maxBytes = WORKSPACE_LIMITS.inputBytes): Promise<Uint8Array> {
   if (!Number.isSafeInteger(maxBytes) || maxBytes < 1) throw new LibraryError('PROJECT_FILE_LIMIT_INVALID');
-  const file = await open(path,constants.O_RDONLY | constants.O_NOFOLLOW);
+  const before=await lstat(path);
+  if(before.isSymbolicLink())throw new LibraryError('PROJECT_FILE_UNSAFE_PATH');
+  const file = await open(path,constants.O_RDONLY | (constants.O_NOFOLLOW??0));
   try {
     const info = await file.stat();
-    if (!info.isFile() || info.size > maxBytes) throw new LibraryError('PROJECT_FILE_SIZE_OR_TYPE');
+    if (info.dev!==before.dev||info.ino!==before.ino||!info.isFile() || info.size > maxBytes) throw new LibraryError('PROJECT_FILE_SIZE_OR_TYPE');
     const chunks: Uint8Array[] = []; let size = 0;
     while (true) {
       const buffer = new Uint8Array(Math.min(64*1024,maxBytes-size+1));
@@ -32,8 +34,10 @@ export async function writeProjectFile(path: string, bytes: Uint8Array, overwrit
     try { await file.writeFile(bytes); await file.sync(); } finally { await file.close(); }
     if (overwrite) await rename(temporary,path);
     else { await link(temporary,path); await unlink(temporary); } // atomic no-replace publication
-    const directory = await open(parent,constants.O_RDONLY);
-    try { await directory.sync(); } finally { await directory.close(); }
+    // Windows/Node cannot open directory handles for fsync. File data was
+    // flushed before atomic publication; Linux keeps its directory durability.
+    if(process.platform!=='win32'){const directory = await open(parent,constants.O_RDONLY);
+    try { await directory.sync(); } finally { await directory.close(); }}
     return {byteLength:bytes.length,sha256:sha256(bytes)};
   } finally {
     await unlink(temporary).catch(error => { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; });

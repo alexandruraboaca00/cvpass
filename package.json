@@ -1,6 +1,6 @@
 {
   "name": "cvpass",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "main": "dist/src/desktop/bootstrap.js",
@@ -43,7 +43,12 @@
     "validate:f9:performance": "node scripts/f9-performance.mjs",
     "validate:f9:offline": "node scripts/f9-offline-check.mjs",
     "validate:f9:package": "node scripts/f9-package-check.mjs",
-    "branding:prepare": "electron scripts/prepare-branding.cjs"
+    "branding:prepare": "electron scripts/prepare-branding.cjs",
+    "branding:windows": "node scripts/prepare-windows-icon.mjs",
+    "validate:native": "electron scripts/native-sqlite-check.cjs",
+    "test:portable": "node scripts/test-portable.mjs",
+    "package:windows": "node scripts/package-windows.mjs",
+    "test:windows:smoke": "node scripts/windows-smoke.mjs"
   },
   "dependencies": {
     "@tiptap/core": "3.32.0",

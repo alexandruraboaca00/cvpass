@@ -1,3 +1,4 @@
+import { isWithinDirectory } from '../../host/platform-paths.js';
 import {libraryIndex} from '../../application/library-index.js';
 import {startupMark,flushStartup,startupTracing} from '../../host/startup-timing.js';
 import Database from 'better-sqlite3';
@@ -38,7 +39,7 @@ function privateDirectory(input: string): string {
   // The trusted main process supplies userData/library; tests use a fresh temporary directory.
   for (let at = dirname(fileURLToPath(import.meta.url)); ; at = dirname(at)) {
     if (existsSync(join(at, '.git'))) {
-      if (physicalDirectory === at || physicalDirectory.startsWith(at + '/')) reject('STORAGE_INSIDE_REPOSITORY');
+      if (isWithinDirectory(physicalDirectory,at)) reject('STORAGE_INSIDE_REPOSITORY');
       break;
     }
     if (dirname(at) === at) break;

@@ -1,3 +1,4 @@
+import { userDataDirectory } from '../host/platform-paths.js';
 import {startupMark,flushStartup,startupTracing} from '../host/startup-timing.js';
 import { ProfileEditorService } from '../application/profile-editor.js';
 import { ProfileSelectionSchema } from '../application/profile-selection.js';
@@ -36,10 +37,11 @@ import { writeProjectFile } from '../adapters/project-files.js';
 startupMark('main:body');
 app.setName('CVPass');
 if (process.platform==='linux') app.setDesktopName('cvforge.desktop');
+if (process.platform==='win32') app.setAppUserModelId('org.cvforge.desktop');
 // Electron's standard --user-data-dir is useful for isolated synthetic acceptance runs.
 const customData = app.commandLine.getSwitchValue('user-data-dir');
 // Keep the pre-rebrand storage identity; changing productName must not hide an existing library.
-const dataDirectory = customData || join(app.getPath('appData'),'CVForge');
+const dataDirectory = customData || userDataDirectory(app.getPath('appData'));
 mkdirSync(dataDirectory,{recursive:true,mode:0o700});
 app.setPath('userData',dataDirectory);
 app.setPath('sessionData',dataDirectory);
@@ -58,7 +60,7 @@ async function run():Promise<void> {
     session.defaultSession.setPermissionRequestHandler((_webContents,_permission,callback)=>callback(false));
     session.defaultSession.webRequest.onBeforeRequest((details,callback)=>callback({cancel:!['file:','data:','blob:','devtools:'].includes(new URL(details.url).protocol)}));
     const base = fileURLToPath(new URL('.',import.meta.url));
-    startupMark('window:create-start');win = new BrowserWindow({width:1180,height:860,minWidth:760,minHeight:620,show:false,backgroundColor:'#f4f5f7',title:'CVPass 0.1.0',...(existsSync(join(app.getAppPath(),'assets/icons/256x256.png'))?{icon:join(app.getAppPath(),'assets/icons/256x256.png')} : {}),
+    startupMark('window:create-start');win = new BrowserWindow({width:1180,height:860,minWidth:760,minHeight:620,show:false,backgroundColor:'#f4f5f7',title:`CVPass ${app.getVersion()}`,...(existsSync(join(app.getAppPath(),'assets/icons/256x256.png'))?{icon:join(app.getAppPath(),'assets/icons/256x256.png')} : {}),
       webPreferences:{additionalArguments:startupTracing?['--cvforge-startup-trace']:[],preload:join(base,'preload.cjs'),contextIsolation:true,sandbox:true,nodeIntegration:false,webSecurity:true}});
     startupMark('window:create-end');if(startupTracing)ipcMain.on('cvforge:startup:preload',()=>startupMark('preload:ready'));
     win.removeMenu();

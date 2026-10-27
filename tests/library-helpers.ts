@@ -1,3 +1,5 @@
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import type { TestContext } from 'node:test';
@@ -9,7 +11,7 @@ import { completeProjectFixture } from './fixtures.js';
 // A deterministic synthetic clock after the F2 fixture timestamps; not the machine clock.
 export const runtimeContext = {newId:randomUUID,now:()=> '2026-10-17T12:00:00.000Z'};
 export async function libraryFixture(t: TestContext, seed = true) {
-  const directory = await mkdtemp('/tmp/cvforge-f3-library-');
+  const directory = await mkdtemp(join(tmpdir(),'cvforge-f3-library-'));
   const repositories: SqliteLibraryRepository[] = [];
   const open = async () => {
     const repository = await SqliteLibraryRepository.open(directory); repositories.push(repository);

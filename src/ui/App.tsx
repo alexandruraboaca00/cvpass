@@ -1,3 +1,4 @@
+import { APP_VERSION } from '../application/version.js';
 import { contentForm, cvForm } from '../application/editor-model.js';
 import type { ContentForm, ProfileEditorForm } from '../application/editor-model.js';
 import type { EditorProfileView } from '../application/profile-editor.js';
@@ -81,7 +82,7 @@ export function App(){
   const cv=document?('cv' in document?document.cv:document.profile):undefined,blocked=!!cv&&!!library?.recovery.some(d=>d.cvId===cv.id);
   const toggleCollapse=(id:string)=>setCollapsed(previous=>{const next=new Set(previous);if(next.has(id))next.delete(id);else next.add(id);return next;});
   const showError=()=>error&&<div role="alert" className="error-banner"><p>{errorText(error,t)}</p>{issues.length>0&&<ul>{[...new Set(issues.map(i=>i.message))].map(key=><li key={key}>{t(key)}</li>)}</ul>}</div>;
-  return <div className="app-shell"><header className="app-header"><div className="brand">CVPass 0.1.0</div><span>{t('Biblioteca local · Editor')}</span>
+  return <div className="app-shell"><header className="app-header"><div className="brand">CVPass {APP_VERSION}</div><span>{t('Biblioteca local · Editor')}</span>
     <label className="ui-language">{t('Idioma de interfaz')}<select aria-label={t('Idioma de interfaz')} value={locale} disabled={busy||!library} onChange={event=>{const next=event.target.value as 'es'|'en';void perform(async()=>{await pending.current;const value=unwrap(await api.setUiLocale(next));setLibrary(value);setLocale(value.uiLocale);});}}><option value="es">Español</option><option value="en">English</option></select></label>
     <button onClick={()=>closeRequested.current()}>{t('Guardar borrador y salir')}</button></header>
     <div className="app-layout"><aside className="library" aria-label={t('Biblioteca de CV')}><h1>{t('Tu biblioteca')}</h1><p className="hint">{t('CV independientes, guardados en este equipo.')}</p>

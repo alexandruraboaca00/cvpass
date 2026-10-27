@@ -1,3 +1,4 @@
+import { APP_VERSION } from '../application/version.js';
 import { z } from 'zod';
 import { parse, fail, Timestamp, Sha256, validateProject, DOMAIN_MODEL_VERSION, projectForCv, ExportPayloadSchema } from '../domain/index.js';
 import type { ProjectSnapshot, ExportPayload, ExportProjection } from '../domain/index.js';
@@ -25,7 +26,7 @@ export function encodeCvproj(data:ProjectData,createdAt:string,options:ProjectLi
  const required=new Set(Object.values(snapshot.assetsById).map(a=>a.sha256));
  if(data.blobs.size!==required.size||[...data.blobs.keys()].some(k=>!required.has(k)))fail('cvproj.extraOrMissingBlob');
  for(const a of Object.values(snapshot.assetsById)){const bytes=data.blobs.get(a.sha256);if(!bytes)fail('cvproj.missingBlob');verifyAssetBytes(a,bytes);files[`assets/${a.sha256}`]=new Uint8Array(bytes);}
- const manifest=parse(ProjectManifestSchema,{format:'cvforge-project',projectFormatVersion:1,domainModelVersion:1,scope:snapshot.scope,payloadPolicy:'complete-private-project',createdAt,creator:{name:'CVForge',appVersion:'0.1.0'},files:Object.entries(files).map(([path,bytes])=>({path,byteLength:bytes.length,sha256:sha256(bytes)}))});
+ const manifest=parse(ProjectManifestSchema,{format:'cvforge-project',projectFormatVersion:1,domainModelVersion:1,scope:snapshot.scope,payloadPolicy:'complete-private-project',createdAt,creator:{name:'CVForge',appVersion:APP_VERSION},files:Object.entries(files).map(([path,bytes])=>({path,byteLength:bytes.length,sha256:sha256(bytes)}))});
  files['manifest.json']=encodeJson(manifest);
  if(Object.keys(files).length>limits.files||Object.values(files).reduce((n,b)=>n+b.length,0)>limits.expandedBytes)fail('archive.outputLimit');
  for(const [path,bytes]of Object.entries(files))if(path.endsWith('.json')&&bytes.length>limits.controlBytes)fail('archive.controlLimit');
