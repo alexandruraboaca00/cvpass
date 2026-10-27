@@ -1,3 +1,6 @@
-# Preserve the upstream font license verbatim, including its whitespace.
-spikes/f1/assets/LIBERATION-LICENSE.txt -whitespace
-resources/fonts/OFL.txt -whitespace
+* text=auto eol=lf
+*.ttf binary
+*.png binary
+*.ico binary
+# This license is a hashed template resource: preserve its exact repository bytes.
+resources/fonts/OFL.txt -text

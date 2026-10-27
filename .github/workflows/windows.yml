@@ -40,6 +40,10 @@ jobs:
           if ($p.ExitCode -ne 0) { throw "NSIS install failed: $($p.ExitCode)" }
           if (-not (Test-Path "$install/CVPass.exe")) { throw 'Installed executable absent' }
           "CVPASS_EXECUTABLE=$install/CVPass.exe" >> $env:GITHUB_ENV
+      - name: Block external networking only for the installed application
+        shell: pwsh
+        run: |
+          New-NetFirewallRule -DisplayName CVPass-CI-Offline -Direction Outbound -Program $env:CVPASS_EXECUTABLE -Action Block -RemoteAddress @('0.0.0.0-126.255.255.255','128.0.0.0-255.255.255.255','::/0')
       - name: Real installed GUI / SQLite / PDF / portable projects / reopen
         run: npm run test:windows:smoke
       - name: Existing GUI profile, languages and keyboard regressions
