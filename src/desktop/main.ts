@@ -1,3 +1,4 @@
+import { captureRendererOrigin, matchesRendererOrigin } from '../host/renderer-origin.js';
 import { userDataDirectory } from '../host/platform-paths.js';
 import {startupMark,flushStartup,startupTracing} from '../host/startup-timing.js';
 import { ProfileEditorService } from '../application/profile-editor.js';
@@ -7,7 +8,7 @@ import { appendFile } from 'node:fs/promises';
 import { mkdirSync, existsSync } from 'node:fs';
 import { captureTimings, measureAsync } from '../application/timing.js';
 import { app, BrowserWindow, dialog, ipcMain, nativeImage, session, shell } from 'electron';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
@@ -74,7 +75,8 @@ async function run():Promise<void> {
     let dispatch:Parameters<typeof ipcMain.handle>[1]|undefined;
     ipcMain.handle('cvforge:editor',async(event,input:unknown)=>{await startupReady;return dispatch!(event,input);});
     startupMark('renderer:load-start');
-    const rendererLoading=win.loadFile(page).then(()=>startupMark('renderer:load-end'));
+    let trustedRendererUrl:string|undefined;
+    const rendererLoading=win.loadFile(page).then(()=>{trustedRendererUrl=captureRendererOrigin(win!.webContents.mainFrame.url);startupMark('renderer:load-end');});
     void rendererLoading.catch(()=>{}); // awaited below; avoid an early unhandled rejection
     const resources=()=>loadSimpleResources(join(app.getAppPath(),'resources/fonts'));
     startupMark('library:open-start');
@@ -113,7 +115,7 @@ async function run():Promise<void> {
       const ipcReceivedAt=performance.timeOrigin+performance.now();
       const work = async () => {
         try {
-          if (event.sender !== win!.webContents || event.senderFrame !== win!.webContents.mainFrame || event.senderFrame.url !== pathToFileURL(page).href) throw new Error('IPC_SENDER_REJECTED');
+          if (event.sender !== win!.webContents || event.senderFrame !== win!.webContents.mainFrame || !matchesRendererOrigin(event.senderFrame.url,trustedRendererUrl)) throw new Error('IPC_SENDER_REJECTED');
           const envelope = z.strictObject({action:z.enum(Object.keys(schemas) as [keyof typeof schemas,...(keyof typeof schemas)[]]),args:z.array(z.unknown())}).parse(input);
           const args = schemas[envelope.action].parse(envelope.args);
           diagnostic('ipc '+envelope.action);
@@ -179,7 +181,7 @@ async function run():Promise<void> {
           return {ok:false,error:issue};
         }
       };
-      const allowedSender=event.sender===win!.webContents&&event.senderFrame===win!.webContents.mainFrame&&event.senderFrame.url===pathToFileURL(page).href;
+      const allowedSender=event.sender===win!.webContents&&event.senderFrame===win!.webContents.mainFrame&&matchesRendererOrigin(event.senderFrame.url,trustedRendererUrl);
       const action=(input as {action?:unknown})?.action;
       // Cancel is read-only with respect to the library and must interrupt an active parser.
       if(action==='importCancel'||action==='pdfGenerate'||action==='pdfCancel'||action==='pdfExport')return work();
