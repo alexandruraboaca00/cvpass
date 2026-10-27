@@ -1,0 +1,10 @@
+{
+  "platform": "win32",
+  "arch": "x64",
+  "electron": "44.7.2",
+  "node": "24.21.0",
+  "napi": "10",
+  "sqlite": "3.53.4",
+  "bindingSha256": "e21e5efd71fba66578e95b62554d9028064a80dafd7221bf8a8ef155de8d240a",
+  "realOpenWriteCloseReopen": true
+}

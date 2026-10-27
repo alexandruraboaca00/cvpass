@@ -27,6 +27,8 @@ Only synthetic demo data is used. See [screenshots and their provenance](docs/sc
 
 [Master profile](docs/screenshots/profile.png) · [Editor](docs/screenshots/editor.png) · [Simple](docs/screenshots/simple.png) · [Lateral](docs/screenshots/lateral.png) · [PDF preview](docs/screenshots/preview.png)
 
+Windows 10/11 x64 support for **0.2.0 is in development**, not officially supported or released yet. NSIS/portable candidates and manual acceptance are described in [Windows porting](docs/windows/PORTING.md).
+
 ## Installation
 
 The primary distribution is AppImage for **Linux x86_64**, on compatible desktop Linux systems. Universal distribution compatibility is not promised. Download the AppImage and checksums from the [CVPass 0.1.0 release](https://github.com/alexandruraboaca00/cvpass/releases/tag/v0.1.0).

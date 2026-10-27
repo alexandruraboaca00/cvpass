@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "sourceCommit": "053fe81faa99f8068a9a566459b8a3f0baff0570",
+  "f1": 3,
+  "domainApplicationSqlite": 192,
+  "uiLayout": 23,
+  "packagedGui": 10,
+  "totalTests": 228,
+  "pdfCases": 33,
+  "typecheck": "PASS",
+  "build": "PASS",
+  "offline": "PASS",
+  "privacy": "PASS",
+  "privateLocalAcceptanceCases": 2,
+  "sandboxPreserved": true,
+  "linuxAppImage": {
+    "bytes": 162162672,
+    "sha256": "a910874057526fbe9d87de80ef13177f4b97faf1d7067b06272f50ca0a4087dc"
+  },
+  "publishedV010Untouched": true
+}

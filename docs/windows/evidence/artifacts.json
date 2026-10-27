@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "artifacts": [
+    {
+      "name": "CVPass-0.2.0-win-x64-Setup.exe",
+      "byteLength": 141506322,
+      "sha256": "972b547a0a776e2676035677c6e8299bfb613b9ed4cbf5d349600e7553b70b45",
+      "signed": false
+    },
+    {
+      "name": "CVPass-0.2.0-win-x64-Portable.exe",
+      "byteLength": 141189862,
+      "sha256": "7e5ea986ea634aee5607a1432a4245305ef8f39098e8264d6d520a6ce3358c73",
+      "signed": false
+    }
+  ]
+}

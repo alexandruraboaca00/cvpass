@@ -1,0 +1,30 @@
+{
+  "destination": "win32",
+  "syntheticOnly": true,
+  "checks": [
+    {
+      "file": "project.cvproj",
+      "contentCompared": true,
+      "reopened": true,
+      "pass": true
+    },
+    {
+      "file": "workspace.cvproj",
+      "contentCompared": true,
+      "reopened": true,
+      "pass": true
+    },
+    {
+      "file": "simple.pdf",
+      "contentCompared": true,
+      "reopened": true,
+      "pass": true
+    },
+    {
+      "file": "lateral.pdf",
+      "contentCompared": true,
+      "reopened": true,
+      "pass": true
+    }
+  ]
+}

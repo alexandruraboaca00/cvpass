@@ -1,0 +1,13 @@
+{
+  "allLocalGitObjectsScanned": 1581,
+  "reachableCommits": 108,
+  "personalGmailOccurrences": 0,
+  "ownIdentitiesUseApprovedNoreply": true,
+  "secretPatternHits": 0,
+  "privateBinaryOrDatabasePathsTracked": 0,
+  "workingFilesPersonalGmailOccurrences": 0,
+  "historicalPdfFingerprintOnlyBlob": "19ae3f80a612defb2da31a8f336677b1ca71a671",
+  "historicalFingerprintMatches": 2,
+  "privateOriginalPdfBytesPublished": false,
+  "note": "Local history and working-file scan; Windows branch CI pushes are authorized. No main/tag/Release mutation."
+}

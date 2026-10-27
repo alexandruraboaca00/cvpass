@@ -1,0 +1,9 @@
+{
+  "platform": "win32",
+  "version": "0.2.0",
+  "realPortableExe": true,
+  "normalRoamingData": true,
+  "noDataBesideExe": true,
+  "preservedInstalledLibrary": true,
+  "gui": true
+}

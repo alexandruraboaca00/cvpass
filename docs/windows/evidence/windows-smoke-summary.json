@@ -1,0 +1,65 @@
+{
+  "platform": "win32",
+  "version": "0.2.0",
+  "realPackagedSqlite": true,
+  "confirmCancel": true,
+  "reopened": true,
+  "profile": true,
+  "photoAssets": true,
+  "templates": [
+    {
+      "template": "simple",
+      "sha256": "cf647efe8eec570a80ccd4cc41fe661526b6a0ac3973110ed59ad26186e0ee34",
+      "bytes": 47854
+    },
+    {
+      "template": "lateral",
+      "sha256": "605d82cf6ae0589e5b99949d15f0375697394fffc4d09dfe4c61b80d52604285",
+      "bytes": 47672
+    },
+    {
+      "template": "simple",
+      "long": true,
+      "all48Paragraphs": true,
+      "glyphs": true,
+      "links": true
+    },
+    {
+      "template": "lateral",
+      "long": true,
+      "all48Paragraphs": true,
+      "glyphs": true,
+      "links": true
+    }
+  ],
+  "previewExportIdentical": true,
+  "cvproj": true,
+  "workspace": true,
+  "ownPdf": true,
+  "emptyLibraryReopen": true,
+  "externalRequests": 0,
+  "osFirewallEgressBlocked": true,
+  "guiScaleFactors": [
+    1,
+    1.25,
+    1.5
+  ],
+  "guiSizes": [
+    [
+      1366,
+      768
+    ],
+    [
+      1920,
+      1080
+    ]
+  ],
+  "syntheticOnly": true,
+  "note": "Sanitized summary; absolute CI runner paths omitted. Raw proof remains in linked Actions artifact.",
+  "run": "https://github.com/alexandruraboaca00/cvpass/actions/runs/40488843555",
+  "sourceCommit": "053fe81faa99f8068a9a566459b8a3f0baff0570",
+  "portableDomainTests": 84,
+  "guiTests": 4,
+  "windowsRunner": "Windows Server 2025 / windows-2025-vs2026",
+  "installerAndUninstaller": "PASS; per-user install and unchanged library hash after uninstall"
+}

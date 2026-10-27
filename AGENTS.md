@@ -1,3 +1,14 @@
+# Trabajo vigente: port Windows 0.2.0 (NO F10)
+
+Usuario autoriza `windows-support-v0.2.0`, CI nativo windows-latest, NSIS/portable
+solo como Actions artifacts y regresión Linux. No merge, tag ni Release 0.2.0.
+Main/v0.1.0 y sus assets públicos intactos. Windows no se declara soportado hasta
+prueba manual real Windows 10/11. Mantener SQLite FULL/WAL, ACK durable, formatos,
+privacidad/offline y rutas Linux históricas. CVForge remoto permanece privado e
+intacto. Preservar historial de aceptación. Ver docs/windows/PORTING.md.
+
+## Estado histórico de publicación
+
 # Publicación vigente — CVPass 0.1.0
 
 Repositorio oficial: `alexandruraboaca00/cvpass`, creado independiente desde la
