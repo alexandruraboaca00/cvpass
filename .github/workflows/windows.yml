@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches: [windows-support-v0.2.0]
+    paths-ignore: ["docs/**", "README*", "AGENTS.md"]
 permissions:
   contents: read
 concurrency:
@@ -54,6 +55,12 @@ jobs:
       - name: Verify target native N-API SQLite under Electron
         run: npm run validate:native
       - run: npm run package:windows
+      - name: Verify unsigned candidate artifacts
+        shell: pwsh
+        run: |
+          foreach ($file in Get-ChildItem out/windows/*-x64-*.exe) {
+            if ((Get-AuthenticodeSignature $file.FullName).Status -ne 'NotSigned') { throw "Unexpected signature state: $file" }
+          }
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           name: cvpass-linux-interop
@@ -68,11 +75,12 @@ jobs:
           $p = Start-Process -FilePath $setup -ArgumentList @('/S', "/D=$install") -PassThru -Wait
           if ($p.ExitCode -ne 0) { throw "NSIS install failed: $($p.ExitCode)" }
           if (-not (Test-Path "$install/CVPass.exe")) { throw 'Installed executable absent' }
-          "CVPASS_EXECUTABLE=$install/CVPass.exe" >> $env:GITHUB_ENV
+          "CVPASS_EXECUTABLE=$(Join-Path $install 'CVPass.exe')" >> $env:GITHUB_ENV
       - name: Block external networking only for the installed application
         shell: pwsh
         run: |
-          New-NetFirewallRule -DisplayName CVPass-CI-Offline -Direction Outbound -Program $env:CVPASS_EXECUTABLE -Action Block -RemoteAddress @('0.0.0.0-126.255.255.255','128.0.0.0-255.255.255.255','::/0')
+          $program = (Get-Item $env:CVPASS_EXECUTABLE).FullName.Replace('/', '\')
+          New-NetFirewallRule -DisplayName CVPass-CI-Offline -Direction Outbound -Program $program -Action Block -RemoteAddress @('0.0.0.0-126.255.255.255','128.0.0.0-255.255.255.255','::/0')
       - name: Real installed GUI / SQLite / PDF / portable projects / reopen
         run: npm run test:windows:smoke
       - name: Existing GUI profile, languages and keyboard regressions
